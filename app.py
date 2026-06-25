@@ -244,6 +244,28 @@ def add_like_outfit(outfit_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/outfits/<int:outfit_id>/vote', methods=['POST'])
+def vote_outfit_style(outfit_id):
+    try:
+        data = request.json or {}
+        style = data.get('style')
+        if not style:
+            return jsonify({"error": "Debe proporcionar el campo 'style' en el JSON."}), 400
+            
+        res = database.vote_outfit(outfit_id, style)
+        if res:
+            return jsonify({
+                "id": outfit_id,
+                "votes": res,
+                "message": f"Voto para el estilo '{style}' registrado correctamente."
+            }), 200
+        else:
+            return jsonify({"error": "Outfit no encontrado."}), 404
+    except ValueError as ve:
+        return jsonify({"error": str(ve)}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # 5. Orders Management
 @app.route('/api/orders', methods=['GET'])
 def get_orders():

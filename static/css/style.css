@@ -362,6 +362,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     border-radius: 6px;
     cursor: pointer;
     outline: none;
+    width: 100%;
     transition: var(--transition-smooth);
 }
 
@@ -370,7 +371,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     box-shadow: 0 0 8px var(--accent-gold-light);
 }
 
-/* SECTION 1: WEATHER (CLIMA) */
+/* SECTION 1: CLIMA & SILHOUETTE */
 .weather-widget {
     display: flex;
     justify-content: space-between;
@@ -430,11 +431,58 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     font-size: 1rem;
 }
 
+.clima-layout-container {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 35px;
+    align-items: start;
+}
+
+/* Mannequin Style Details */
+.mannequin-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px;
+    height: 100%;
+    min-height: 380px;
+}
+
+.mannequin-title {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+}
+
+.mannequin-svg-wrapper {
+    width: 100%;
+    max-width: 180px;
+    display: flex;
+    justify-content: center;
+}
+
+.silhouette-vector {
+    width: 100%;
+    height: auto;
+}
+
+.mannequin-part {
+    transition: var(--transition-smooth);
+}
+
+.mannequin-part.highlighted {
+    stroke: var(--accent-gold-hover) !important;
+    stroke-width: 2.5px !important;
+    filter: url(#gold-glow);
+    opacity: 1 !important;
+}
+
 /* Outfit Recommendation Cards */
 .recommendation-showcase {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
 }
 
 .rec-card {
@@ -454,7 +502,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
 .rec-img-wrapper {
     position: relative;
     width: 100%;
-    height: 340px;
+    height: 320px;
     overflow: hidden;
     background-color: #171717;
 }
@@ -501,7 +549,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
 
 .rec-name {
     font-family: var(--font-editorial);
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     margin-bottom: 8px;
     color: var(--text-primary);
 }
@@ -629,7 +677,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* SECTION 3: ASISTENTE (GANCHITO) */
+/* SECTION 3: ASISTENTE (ARIA) */
 .asistente-container {
     display: grid;
     grid-template-columns: 320px 1fr;
@@ -638,58 +686,79 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     min-height: 520px;
 }
 
-.ganchito-frame {
+.aria-frame {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     border-right: 1px solid var(--border-color);
     padding-right: 30px;
+    justify-content: flex-start;
 }
 
-.ganchito-avatar-wrapper {
+.aria-portrait-wrapper {
     width: 200px;
-    height: 200px;
+    height: 250px;
     position: relative;
+    border-radius: 12px;
+    border: 2px solid var(--border-gold);
+    overflow: hidden;
+    background-color: var(--bg-secondary);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+    animation: float 6s ease-in-out infinite;
 }
 
-/* Sway animation for Ganchito */
-#hanger-g {
-    transform-origin: 100px 30px;
-    animation: sway 6s ease-in-out infinite alternate;
-    cursor: pointer;
-    transition: transform 0.1s ease;
+.aria-portrait-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 0.4s ease;
 }
 
-#hanger-g:active {
-    transform: scale(0.95) rotate(5deg);
+/* Aria float animation */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+    100% { transform: translateY(0px); }
 }
 
-@keyframes sway {
-    0% { transform: rotate(-5deg); }
-    100% { transform: rotate(5deg); }
+.aria-pulse-ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px solid var(--accent-gold);
+    border-radius: 10px;
+    opacity: 0;
+    pointer-events: none;
 }
 
-/* Blinking animation for Ganchito eyes */
-#hanger-eyes {
-    animation: blink 4s infinite;
+.aria-pulse-ring.talking {
+    animation: pulseGlow 1.5s ease-in-out infinite;
 }
 
-@keyframes blink {
-    0%, 90%, 100% { transform: scaleY(1); }
-    95% { transform: scaleY(0.1); }
+@keyframes pulseGlow {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.03); opacity: 0.2; }
+    100% { transform: scale(1); opacity: 0.8; }
 }
 
-.ganchito-personality-selector {
-    margin-top: 30px;
+.aria-controls {
+    margin-top: 24px;
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 16px;
 }
 
-.ganchito-personality-selector label {
-    font-size: 0.8rem;
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.control-group label {
+    font-size: 0.75rem;
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -1354,7 +1423,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     justify-content: flex-end;
 }
 
-/* SECTION 7: COMUNIDAD */
+/* SECTION 7: COMUNIDAD (VALORACIONES FASHION) */
 .comunidad-feed {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -1423,33 +1492,51 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     object-fit: cover;
 }
 
-.post-actions {
+/* Valuation Tags Bar Style */
+.valuation-bar {
     padding: 15px 20px;
     display: flex;
-    gap: 15px;
+    flex-wrap: wrap;
+    gap: 8px;
     border-bottom: 1px solid var(--border-color);
 }
 
-.post-action-btn {
-    background: none;
-    border: none;
+.tag-vote-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
     color: var(--text-secondary);
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 6px 14px;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 6px;
-    font-family: var(--font-ui);
-    font-size: 0.85rem;
-    transition: var(--transition-smooth);
+    transition: var(--transition-snappy);
 }
 
-.post-action-btn:hover {
+.tag-vote-btn:hover {
+    border-color: var(--accent-gold);
+    color: var(--text-primary);
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.tag-vote-btn.active {
+    background-color: var(--accent-gold-light);
+    border-color: var(--accent-gold);
     color: var(--accent-gold);
+    box-shadow: 0 2px 10px rgba(212, 175, 55, 0.15);
 }
 
-.post-action-btn svg {
-    width: 18px;
-    height: 18px;
+.vote-count {
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+.tag-vote-btn.active .vote-count {
+    opacity: 1;
 }
 
 .post-body {
@@ -1783,12 +1870,27 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
         padding-top: 12px;
     }
     
+    .clima-layout-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .mannequin-column {
+        height: 240px;
+        min-height: auto;
+        padding: 16px;
+    }
+
+    .mannequin-svg-wrapper {
+        max-width: 110px;
+    }
+
     .asistente-container {
         grid-template-columns: 1fr;
         gap: 20px;
     }
     
-    .ganchito-frame {
+    .aria-frame {
         border-right: none;
         border-bottom: 1px solid var(--border-color);
         padding-right: 0;

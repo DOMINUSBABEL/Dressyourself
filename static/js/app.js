@@ -1,7 +1,8 @@
 /**
  * Dress Yourself - Client Interactive Engine
  * Handles asynchronous API connections, state management, vision scanning, 
- * interactive fitting room, Ganchito's personalities, and real-time tracking.
+ * interactive fitting room, Aria's styles/personalities, silhouette hover highlight,
+ * and real-time community fashion tags.
  */
 
 // App State Configuration
@@ -14,17 +15,28 @@ const STATE = {
         closet: null,
         boutique: null
     },
-    ganchitoPersonality: 'classy',
+    ariaLook: 'base',
+    ariaPersonality: 'classy',
     currentOrder: {
         id: 'DY-74692',
         status: 'Procesado', // Procesado, Enviado, En Camino, Entregado
-        progress: 10, // percentage for the truck
+        progress: 10,
         logs: [
             { time: '14:32', text: 'Orden recibida en Dress Yourself Atelier.' },
             { time: '15:10', text: 'Prendas curadas y preparadas en el empaque de seda.' }
         ]
     },
     trackingInterval: null
+};
+
+// Look image map for Aria
+const ARIA_LOOK_IMAGES = {
+    base: 'static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Propuesta Animada.png',
+    castano_corto: 'static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Versiones del personaje/Pelo Castaño Corto.jpeg',
+    rojo_corto: 'static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Versiones del personaje/Pelo Rojo corto.jpeg',
+    rojo_largo: 'static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Versiones del personaje/Pelo Rojo largo.jpeg',
+    castano_gafas: 'static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Versiones del personaje/Pelo castaño medio con gafas.jpeg',
+    castano_medio: 'static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Versiones del personaje/Pelo castaño medio.jpeg'
 };
 
 // Mock Databases (Fallback when Backend is offline)
@@ -43,6 +55,7 @@ const MOCK_DATA = {
         {
             type: 'Abrigo',
             name: 'Abrigo Trench Impermeable Camel',
+            part: 'mannequin-abrigo',
             why: 'Ideal para resguardarte de la llovizna sin perder el corte estructurado clásico.',
             image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=600&auto=format&fit=crop',
             badge: 'Clima Húmedo'
@@ -50,6 +63,7 @@ const MOCK_DATA = {
         {
             type: 'Superior',
             name: 'Suéter de Cashmere Off-White',
+            part: 'mannequin-superior',
             why: 'Aislamiento premium de tacto suave para mantener el confort térmico hoy.',
             image: 'https://images.unsplash.com/photo-1578587018452-892bacefd3f2?q=80&w=600&auto=format&fit=crop',
             badge: 'Térmico'
@@ -57,6 +71,7 @@ const MOCK_DATA = {
         {
             type: 'Calzado',
             name: 'Botines Chelsea de Cuero Negro',
+            part: 'mannequin-calzado',
             why: 'Suela antideslizante con acabado repelente al agua para caminar seguro en la pasarela urbana.',
             image: 'https://images.unsplash.com/photo-1520639888713-7851133b1ed0?q=80&w=600&auto=format&fit=crop',
             badge: 'Protección'
@@ -76,7 +91,7 @@ const MOCK_DATA = {
         { id: 'b4', cat: 'calzado', brand: 'PRADA', name: 'Tacones Velvet Emerald', price: '$340', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=500&auto=format&fit=crop' },
         { id: 'b5', cat: 'superior', brand: 'JIL SANDER', name: 'Camisa Oversize Silk Sage', price: '$160', image: 'https://images.unsplash.com/photo-1551854838-212c50b4c184?q=80&w=500&auto=format&fit=crop' }
     ],
-    ganchitoQuotes: {
+    ariaQuotes: {
         classy: [
             "La sencillez es la clave de la verdadera elegancia, querido.",
             "Una silueta limpia nunca pasa de moda. Agrega textura antes que logos.",
@@ -108,7 +123,12 @@ const MOCK_DATA = {
         colores: ["#d4af37", "#1e1e1e", "#f5f5f5", "#a28325"],
         confianza: 98,
         consejo: "Este blazer cuenta con hombreras estructuradas y un solapado impecable. Combínalo con pantalones crema ligeros de seda o jeans oscuros de corte recto para un look semi-formal sofisticado. Agrega joyería champaña sutil."
-    }
+    },
+    posts: [
+        { id: 1, user: 'Alessia V.', initials: 'AV', img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600&auto=format&fit=crop', desc: 'Tarde de lino y champaña con un blazer clásico.', votes: { aesthetic: 42, streetwear: 5, minimalist: 24, classic: 53, oversize: 8 }, userVoted: {} },
+        { id: 2, user: 'Mateo Garces', initials: 'MG', img: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=600&auto=format&fit=crop', desc: 'Quiet luxury en la ciudad. Paletas crema y botas altas.', votes: { aesthetic: 18, streetwear: 35, minimalist: 62, classic: 41, oversize: 27 }, userVoted: {} },
+        { id: 3, user: 'Sophia Atelier', initials: 'SA', img: 'https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?q=80&w=600&auto=format&fit=crop', desc: 'Probando el Vestidor de Aria. Combinación aprobada al 92%.', votes: { aesthetic: 75, streetwear: 12, minimalist: 19, classic: 25, oversize: 33 }, userVoted: {} }
+    ]
 };
 
 // Document Lifecycle Init
@@ -117,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initWeather();
     initCloset();
     initBoutique();
-    initGanchito();
+    initAria();
     initScanner();
     initFittingRoom();
     initComunidad();
@@ -157,7 +177,6 @@ function switchTab(tabName) {
     const activeSection = document.getElementById(tabName);
     if (activeSection) {
         activeSection.classList.add('active');
-        // Scroll to top of content area on change
         document.querySelector('.main-content').scrollTop = 0;
     }
     
@@ -169,21 +188,14 @@ function switchTab(tabName) {
     }
 }
 
-// 2. Weather & Daily Recommendations Integration
+// 2. Weather & Daily Recommendations Integration (with interactive mannequin highlights)
 async function initWeather() {
-    const cityEl = document.getElementById('weather-city');
-    const tempEl = document.getElementById('weather-temp');
-    const descEl = document.getElementById('weather-desc');
-    const detailsEl = document.getElementById('weather-details');
-    const recShowcaseEl = document.getElementById('clima-recommendation');
-
     try {
         const response = await fetch('/api/clima');
         if (!response.ok) throw new Error("Fallback to mock");
         const data = await response.json();
         renderWeather(data);
     } catch (e) {
-        // Safe Fallback
         renderWeather(MOCK_DATA.weather);
         renderRecommendations(MOCK_DATA.climaRecommendation);
     }
@@ -217,6 +229,7 @@ function renderRecommendations(items) {
     items.forEach(item => {
         const card = document.createElement('div');
         card.className = 'rec-card';
+        card.setAttribute('data-part', item.part);
         card.innerHTML = `
             <div class="rec-img-wrapper">
                 <span class="rec-badge">${item.badge}</span>
@@ -228,19 +241,34 @@ function renderRecommendations(items) {
                 <p class="rec-why">"${item.why}"</p>
             </div>
         `;
+
+        // Mannequin interactive hover highlight binders
+        card.addEventListener('mouseenter', () => {
+            const partId = card.getAttribute('data-part');
+            const mannequinPart = document.getElementById(partId);
+            if (mannequinPart) {
+                mannequinPart.classList.add('highlighted');
+            }
+        });
+
+        card.addEventListener('mouseleave', () => {
+            const partId = card.getAttribute('data-part');
+            const mannequinPart = document.getElementById(partId);
+            if (mannequinPart) {
+                mannequinPart.classList.remove('highlighted');
+            }
+        });
+
         recShowcaseEl.appendChild(card);
     });
 }
 
 // 3. Virtual Closet Manager
 async function initCloset() {
-    const closetGrid = document.getElementById('closet-grid');
     const filterButtons = document.querySelectorAll('.filter-btn');
 
-    // Load Items
     await loadClosetItems();
 
-    // Setup filter listeners
     filterButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             filterButtons.forEach(b => b.classList.remove('active'));
@@ -287,7 +315,6 @@ function renderCloset(category) {
             e.dataTransfer.setData('text/plain', JSON.stringify({ source: 'closet', item }));
         });
         
-        // Mobile tap to try-on
         card.addEventListener('click', () => {
             selectForFitting('closet', item);
         });
@@ -306,75 +333,65 @@ function renderCloset(category) {
     });
 }
 
-// 4. Ganchito Assistant Engine
-function initGanchito() {
+// 4. Aria Assistant Engine
+function initAria() {
+    const lookSelector = document.getElementById('aria-look');
     const personalitySelector = document.getElementById('personality');
-    const hangerSvg = document.getElementById('ganchito-svg');
+    const portraitImg = document.getElementById('aria-portrait');
     const sendBtn = document.getElementById('send-chat');
     const chatInput = document.getElementById('chat-input');
 
-    // Selection changes Ganchito's mode
-    personalitySelector.addEventListener('change', (e) => {
-        STATE.ganchitoPersonality = e.target.value;
-        updateGanchitoAccessories();
-        triggerGanchitoSpeech(getRandomQuote());
-    });
-
-    // Tap/Click Hanger sways it and triggers quote
-    hangerSvg.addEventListener('click', () => {
-        // Hanger physical action
-        const hangerGroup = document.getElementById('hanger-g');
-        hangerGroup.style.transform = "scale(0.9) rotate(15deg)";
+    // Look/Style selection
+    lookSelector.addEventListener('change', (e) => {
+        const lookKey = e.target.value;
+        STATE.ariaLook = lookKey;
+        
+        // Transition fade out/in
+        portraitImg.style.opacity = '0';
         setTimeout(() => {
-            hangerGroup.style.transform = "";
+            portraitImg.src = ARIA_LOOK_IMAGES[lookKey] || ARIA_LOOK_IMAGES.base;
+            portraitImg.style.opacity = '1';
         }, 300);
 
-        triggerGanchitoSpeech(getRandomQuote());
+        triggerAriaSpeech(`He cambiado mi apariencia a ${e.target.options[e.target.selectedIndex].text}. ¿Qué tal me queda?`);
     });
 
-    // Chat sending
+    // Advisor Personality Selection
+    personalitySelector.addEventListener('change', (e) => {
+        STATE.ariaPersonality = e.target.value;
+        triggerAriaSpeech(getRandomQuote());
+    });
+
+    // Clicking Aria triggers quote and pulse animation
+    portraitImg.addEventListener('click', () => {
+        triggerAriaSpeech(getRandomQuote());
+    });
+
+    // Chat events
     sendBtn.addEventListener('click', handleUserMessage);
     chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') handleUserMessage();
     });
 }
 
-function updateGanchitoAccessories() {
-    const crown = document.getElementById('hanger-crown');
-    const bowtie = document.getElementById('hanger-bowtie');
-    
-    // Hide all first
-    crown.style.display = 'none';
-    bowtie.style.display = 'none';
-
-    if (STATE.ganchitoPersonality === 'diva') {
-        crown.style.display = 'block';
-    } else if (STATE.ganchitoPersonality === 'classy') {
-        bowtie.style.display = 'block';
-    }
-}
-
 function getRandomQuote() {
-    const quotes = MOCK_DATA.ganchitoQuotes[STATE.ganchitoPersonality] || MOCK_DATA.ganchitoQuotes.classy;
+    const quotes = MOCK_DATA.ariaQuotes[STATE.ariaPersonality] || MOCK_DATA.ariaQuotes.classy;
     return quotes[Math.floor(Math.random() * quotes.length)];
 }
 
-function triggerGanchitoSpeech(text) {
-    const speechEl = document.getElementById('ganchito-speech');
+function triggerAriaSpeech(text) {
+    const speechEl = document.getElementById('aria-speech');
+    const pulseRing = document.querySelector('.aria-pulse-ring');
+    
     speechEl.style.opacity = '0';
     
-    // Animate mouth speaking
-    const mouth = document.getElementById('hanger-mouth');
-    let speakCycles = 6;
-    
-    const speakInterval = setInterval(() => {
-        mouth.setAttribute('d', speakCycles % 2 === 0 ? "M92 105 Q 100 120 108 105" : "M92 108 Q 100 115 108 108");
-        speakCycles--;
-        if (speakCycles <= 0) {
-            clearInterval(speakInterval);
-            mouth.setAttribute('d', "M92 108 Q 100 115 108 108");
-        }
-    }, 150);
+    // Add pulsing border speaking animation
+    if (pulseRing) {
+        pulseRing.classList.add('talking');
+        setTimeout(() => {
+            pulseRing.classList.remove('talking');
+        }, 2500);
+    }
 
     setTimeout(() => {
         speechEl.textContent = text;
@@ -390,25 +407,24 @@ async function handleUserMessage() {
     chatInput.value = '';
     appendChatMessage('user', text);
 
-    // Call API with Ganchito profile
+    // Call API with Aria profile
     try {
-        const response = await fetch(`/api/ganchito/quote?personality=${STATE.ganchitoPersonality}&q=${encodeURIComponent(text)}`);
+        const response = await fetch(`/api/ganchito/quote?personality=${STATE.ariaPersonality}&q=${encodeURIComponent(text)}`);
         if (!response.ok) throw new Error("Fallback");
         const data = await response.json();
         appendChatMessage('bot', data.response);
-        triggerGanchitoSpeech(data.response);
+        triggerAriaSpeech(data.response);
     } catch (e) {
-        // Quick rule-based simulated styling advisory
         setTimeout(() => {
             const botReplies = {
-                classy: `Interesante pregunta sobre "${text}". Sugiero siluetas estructuradas y paletas tierra. Menos es siempre más, querido.`,
-                diva: `¡Ay por favor! Me preguntas por "${text}"... Si no brilla o no cuesta tres salarios mínimos, la respuesta es ¡NO!`,
-                sarcastic: `¿En serio me preguntas por "${text}"? Creo que tu closet y mi paciencia están en crisis simultáneas.`,
-                nervous: `¡Ay no sé! Sobre "${text}"... ¿estás seguro de que no causará controversias? Yo que tú me pondría un suéter clásico.`
+                classy: `Como asesora de tu closet, considero que "${text}" queda excelente con un blazer sastrero clásico. Menos es siempre más.`,
+                diva: `¡Ay, cariño! Sobre "${text}"... Si no te hace resaltar bajo los reflectores de la pasarela, ¡siguiente prenda!`,
+                sarcastic: `¿En serio me preguntas por "${text}"? Aria te aconseja que revisemos esa decisión antes de salir al público.`,
+                nervous: `¡Ay no sé! Sobre "${text}"... espero que no llame demasiado la atención de forma incorrecta. ¿Qué tal un total black?`
             };
-            const reply = botReplies[STATE.ganchitoPersonality] || botReplies.classy;
+            const reply = botReplies[STATE.ariaPersonality] || botReplies.classy;
             appendChatMessage('bot', reply);
-            triggerGanchitoSpeech(reply);
+            triggerAriaSpeech(reply);
         }, 1000);
     }
 }
@@ -433,7 +449,6 @@ function initScanner() {
     const laser = document.getElementById('scan-laser');
     const resultsBox = document.getElementById('scan-results-box');
 
-    // Drag-Drop Events
     dropZone.addEventListener('click', () => fileInput.click());
     
     dropZone.addEventListener('dragover', (e) => {
@@ -471,7 +486,6 @@ function initScanner() {
         reader.readAsDataURL(file);
     }
 
-    // Trigger Scan (Guarantees at least 2 seconds laser scan visual feedback)
     btnScan.addEventListener('click', async () => {
         btnScan.setAttribute('disabled', 'true');
         btnScan.querySelector('.btn-text').textContent = 'Escaneando con Visión IA...';
@@ -479,14 +493,11 @@ function initScanner() {
         laser.classList.add('active');
 
         const startTime = Date.now();
-
-        // Prepare image upload payload (Fetch API setup)
         const formData = new FormData();
         formData.append('image', fileInput.files[0] || 'mock_file');
 
         let scanResultData = null;
         try {
-            // Hit real API endpoint
             const response = await fetch('/api/closet/scan', {
                 method: 'POST',
                 body: formData
@@ -498,7 +509,6 @@ function initScanner() {
             console.log("Using local mock scan data.");
         }
 
-        // Enforce the 2 seconds laser layout presentation
         const elapsed = Date.now() - startTime;
         const remainingDelay = Math.max(2200 - elapsed, 0);
 
@@ -508,12 +518,10 @@ function initScanner() {
             btnScan.querySelector('.btn-text').textContent = 'Iniciar Escaneo';
             btnScan.querySelector('.spinner-small').style.display = 'none';
             
-            // Present Results
             showScanResults(scanResultData || MOCK_DATA.scanResults);
         }, remainingDelay);
     });
 
-    // Save Scanned Garment to Closet
     document.getElementById('btn-save-scanned').addEventListener('click', () => {
         const newGarment = {
             id: 'c_scanned_' + Date.now(),
@@ -537,7 +545,6 @@ function showScanResults(results) {
     document.getElementById('res-confianza').textContent = results.confianza;
     document.getElementById('res-consejo').textContent = results.consejo;
     
-    // Color Swatches render
     const colorBox = document.getElementById('res-colores');
     colorBox.innerHTML = '';
     results.colores.forEach(hex => {
@@ -576,7 +583,6 @@ function renderBoutique() {
             e.dataTransfer.setData('text/plain', JSON.stringify({ source: 'boutique', item }));
         });
         
-        // Touch/Click to add directly to fitting room
         card.addEventListener('click', () => {
             selectForFitting('boutique', item);
         });
@@ -608,7 +614,6 @@ function initFittingRoom() {
     const slotCloset = document.getElementById('slot-closet');
     const slotBoutique = document.getElementById('slot-boutique');
 
-    // Left Panel tabs toggles source list
     sourceTabs.forEach(tab => {
         tab.addEventListener('click', () => {
             sourceTabs.forEach(t => t.classList.remove('active'));
@@ -617,7 +622,6 @@ function initFittingRoom() {
         });
     });
 
-    // Drag Over rules for slots
     [slotCloset, slotBoutique].forEach(slot => {
         slot.addEventListener('dragover', (e) => e.preventDefault());
         slot.addEventListener('drop', (e) => {
@@ -667,7 +671,6 @@ function selectForFitting(type, item) {
         </div>
     `;
 
-    // Try calculating cross styling matching rules
     evaluateFittingMatch();
 }
 
@@ -686,13 +689,12 @@ function evaluateFittingMatch() {
 
     if (!closetItem || !boutiqueItem) return;
 
-    // Simulate compatibility score calculation
     let baseScore = 70;
     if (closetItem.cat !== boutiqueItem.cat) {
-        baseScore += 15; // Mixed matching (top + bottom, or outerwear + top)
+        baseScore += 15;
     }
     if (closetItem.style && boutiqueItem.brand) {
-        baseScore += Math.floor(Math.random() * 11); // Add stylistic variance
+        baseScore += Math.floor(Math.random() * 11);
     }
     const score = Math.min(baseScore, 100);
 
@@ -704,16 +706,14 @@ function evaluateFittingMatch() {
 
     verdictBox.style.display = 'flex';
     
-    // Smooth progress bar update
     setTimeout(() => {
         scoreBar.style.width = `${score}%`;
         scorePct.textContent = `${score}%`;
     }, 100);
 
-    // Ganchito speaks on the combo
     const personalityAdvisories = {
         classy: [
-            `Una combinación refinada. El contraste entre ${closetItem.name} y la pieza ${boutiqueItem.brand} es digno de una editorial parisina.`,
+            `Una combinación refinada. El contraste entre ${closetItem.name} y la pieza de ${boutiqueItem.brand} es digno de una editorial parisina.`,
             `Me convence. La caída estructural de ambas piezas conversa en perfecto equilibrio visual.`
         ],
         diva: [
@@ -729,10 +729,9 @@ function evaluateFittingMatch() {
         ]
     };
 
-    const quotesList = personalityAdvisories[STATE.ganchitoPersonality] || personalityAdvisories.classy;
+    const quotesList = personalityAdvisories[STATE.ariaPersonality] || personalityAdvisories.classy;
     verdictText.textContent = `"${quotesList[Math.floor(Math.random() * quotesList.length)]}"`;
 
-    // Buy Action hookup
     btnPurchase.style.display = 'block';
     btnPurchase.onclick = () => {
         triggerCheckout(boutiqueItem);
@@ -743,7 +742,6 @@ function triggerCheckout(boutiqueItem) {
     const confirmBuy = confirm(`¿Deseas comprar "${boutiqueItem.name}" por ${boutiqueItem.price}?`);
     if (!confirmBuy) return;
 
-    // Simulate order placement
     STATE.currentOrder = {
         id: 'DY-' + Math.floor(Math.random() * 90000 + 10000),
         status: 'Procesado',
@@ -758,18 +756,16 @@ function triggerCheckout(boutiqueItem) {
     switchTab('pedidos');
 }
 
-// 8. Editorial Social Community Feed
+// 8. Editorial Social Community Feed (Style Valuations Tags)
 function initComunidad() {
+    renderComunidadFeed();
+}
+
+function renderComunidadFeed() {
     const feedEl = document.getElementById('comunidad-feed');
     feedEl.innerHTML = '';
 
-    const posts = [
-        { user: 'Alessia V.', initials: 'AV', img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600&auto=format&fit=crop', likes: 142, desc: 'Tarde de lino y champaña con un blazer clásico.' },
-        { user: 'Mateo Garces', initials: 'MG', img: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=600&auto=format&fit=crop', likes: 89, desc: 'Quiet luxury en la ciudad. Paletas crema y botas altas.' },
-        { user: 'Sophia Atelier', initials: 'SA', img: 'https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?q=80&w=600&auto=format&fit=crop', likes: 215, desc: 'Probando el Vestidor de Ganchito. Combinación aprobada al 92%.' }
-    ];
-
-    posts.forEach(post => {
+    MOCK_DATA.posts.forEach((post, index) => {
         const card = document.createElement('div');
         card.className = 'post-card';
         card.innerHTML = `
@@ -783,31 +779,51 @@ function initComunidad() {
             <div class="post-image-wrapper">
                 <img src="${post.img}" alt="Outfit post">
             </div>
-            <div class="post-actions">
-                <button class="post-action-btn like-btn">
-                    <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/></svg>
-                    <span class="like-count">${post.likes}</span>
+            
+            <!-- Fashion style valuation bar -->
+            <div class="valuation-bar">
+                <button class="tag-vote-btn ${post.userVoted.aesthetic ? 'active' : ''}" data-post-idx="${index}" data-tag="aesthetic">
+                    ✨ Aesthetic <span class="vote-count">${post.votes.aesthetic}</span>
+                </button>
+                <button class="tag-vote-btn ${post.userVoted.streetwear ? 'active' : ''}" data-post-idx="${index}" data-tag="streetwear">
+                     Boardwalk 🛹 <span class="vote-count">${post.votes.streetwear}</span>
+                </button>
+                <button class="tag-vote-btn ${post.userVoted.minimalist ? 'active' : ''}" data-post-idx="${index}" data-tag="minimalist">
+                    🖤 Minimalist <span class="vote-count">${post.votes.minimalist}</span>
+                </button>
+                <button class="tag-vote-btn ${post.userVoted.classic ? 'active' : ''}" data-post-idx="${index}" data-tag="classic">
+                    👔 Classic <span class="vote-count">${post.votes.classic}</span>
+                </button>
+                <button class="tag-vote-btn ${post.userVoted.oversize ? 'active' : ''}" data-post-idx="${index}" data-tag="oversize">
+                    🧥 Oversize <span class="vote-count">${post.votes.oversize}</span>
                 </button>
             </div>
+
             <div class="post-body">
                 <p class="post-caption"><strong>@${post.user.toLowerCase().replace(/\s/g, '')}</strong> ${post.desc}</p>
             </div>
         `;
-        
-        // Handle post likes
-        const likeBtn = card.querySelector('.like-btn');
-        likeBtn.addEventListener('click', () => {
-            const countSpan = likeBtn.querySelector('.like-count');
-            let count = parseInt(countSpan.textContent);
-            if (likeBtn.classList.contains('liked')) {
-                likeBtn.classList.remove('liked');
-                likeBtn.style.color = '';
-                countSpan.textContent = count - 1;
-            } else {
-                likeBtn.classList.add('liked');
-                likeBtn.style.color = '#e25c5c';
-                countSpan.textContent = count + 1;
-            }
+
+        // Style tag voting logic
+        card.querySelectorAll('.tag-vote-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tag = btn.getAttribute('data-tag');
+                const postIdx = parseInt(btn.getAttribute('data-post-idx'));
+                const postItem = MOCK_DATA.posts[postIdx];
+
+                if (postItem.userVoted[tag]) {
+                    // Undo vote
+                    postItem.userVoted[tag] = false;
+                    postItem.votes[tag]--;
+                } else {
+                    // Place vote
+                    postItem.userVoted[tag] = true;
+                    postItem.votes[tag]++;
+                }
+
+                // Render update for this post card
+                renderComunidadFeed();
+            });
         });
 
         feedEl.appendChild(card);
@@ -831,7 +847,6 @@ async function fetchOrderStatus(isManual) {
         const data = await response.json();
         updateTrackingUI(data);
     } catch (e) {
-        // Run Client Fallback Update
         updateTrackingUI(STATE.currentOrder);
     }
 }
@@ -845,7 +860,6 @@ function updateTrackingUI(order) {
     progressBar.style.width = `${order.progress}%`;
     truckIcon.style.left = `${order.progress}%`;
 
-    // Toggle Node Activeness
     const statuses = ['Procesado', 'Enviado', 'En Camino', 'Entregado'];
     const currentIdx = statuses.indexOf(order.status);
 
@@ -862,7 +876,6 @@ function updateTrackingUI(order) {
         }
     });
 
-    // Render event logs
     const eventLog = document.getElementById('tracking-events');
     eventLog.innerHTML = '';
 
@@ -877,7 +890,6 @@ function updateTrackingUI(order) {
     });
 }
 
-// Active simulation for demonstration/prototype when tab is active
 function startTrackingSimulation() {
     if (STATE.trackingInterval) return;
 
@@ -889,11 +901,9 @@ function startTrackingSimulation() {
             currentIdx++;
             STATE.currentOrder.status = statuses[currentIdx];
             
-            // Set truck progress coordinates
             const progressSteps = [10, 38, 68, 100];
             STATE.currentOrder.progress = progressSteps[currentIdx];
             
-            // Add event log log
             const now = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             const logTexts = [
                 "Pago y orden validados por el sistema central.",
@@ -909,10 +919,9 @@ function startTrackingSimulation() {
 
             updateTrackingUI(STATE.currentOrder);
         } else {
-            // Reached delivered, stop checking
             stopTrackingSimulation();
         }
-    }, 8000); // Advances stage every 8 seconds when active in testing
+    }, 8000);
 }
 
 function stopTrackingSimulation() {

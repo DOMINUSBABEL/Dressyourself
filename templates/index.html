@@ -71,8 +71,8 @@
             <!-- SECTION 1: CLIMA -->
             <section id="clima" class="tab-content active">
                 <div class="section-header">
-                    <h2 class="editorial-title">Recomendaciones del Clima</h2>
-                    <p class="section-desc">Estilo inteligente adaptado al pulso del viento y la temperatura.</p>
+                    <h2 class="editorial-title">Clima & Silhouette</h2>
+                    <p class="section-desc">Estilo inteligente adaptado a la temperatura exterior, proyectado sobre tu avatar de alta costura.</p>
                 </div>
                 
                 <div class="weather-widget glass-card">
@@ -88,12 +88,70 @@
                     </div>
                 </div>
 
-                <h3 class="subsection-title">Outfit Recomendado para Hoy</h3>
-                <div class="recommendation-showcase" id="clima-recommendation">
-                    <!-- Recommended outfits will go here -->
-                    <div class="loading-spinner-container">
-                        <div class="spinner"></div>
-                        <p>Diseñando combinaciones perfectas...</p>
+                <div class="clima-layout-container">
+                    <!-- Mannequin Column -->
+                    <div class="mannequin-column glass-card">
+                        <h4 class="mannequin-title gold-text">Proyección de Silueta</h4>
+                        <div class="mannequin-svg-wrapper">
+                            <!-- Minimalist High-Fashion Line Mannequin SVG -->
+                            <svg viewBox="0 0 100 240" id="silhouette-svg" class="silhouette-vector">
+                                <defs>
+                                    <filter id="gold-glow" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feGaussianBlur stdDeviation="3" result="blur" />
+                                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                    </filter>
+                                    <linearGradient id="gold-line-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stop-color="#fff" stop-opacity="0.3" />
+                                        <stop offset="50%" stop-color="#d4af37" stop-opacity="0.9" />
+                                        <stop offset="100%" stop-color="#8a6f27" stop-opacity="0.2" />
+                                    </linearGradient>
+                                </defs>
+                                
+                                <g id="mannequin-group">
+                                    <!-- Mannequin base structure stand -->
+                                    <line x1="50" y1="210" x2="50" y2="235" stroke="url(#gold-line-grad)" stroke-width="1.5" stroke-dasharray="2 2" />
+                                    <ellipse cx="50" cy="235" rx="18" ry="4" fill="none" stroke="url(#gold-line-grad)" stroke-width="1" />
+                                    
+                                    <!-- Head & Neck -->
+                                    <ellipse cx="50" cy="30" rx="9" ry="12" fill="none" stroke="#d4af37" stroke-width="1.2" opacity="0.6"/>
+                                    <path d="M47 41 L47 48 M53 41 L53 48" fill="none" stroke="#d4af37" stroke-width="1.2" opacity="0.6"/>
+                                    
+                                    <!-- Outerwear (Shoulders & Jacket lines) -->
+                                    <path id="mannequin-abrigo" class="mannequin-part" d="M33 52 L67 52 L68 75 L62 135 L38 135 L32 75 Z M33 52 C38 60, 62 60, 67 52" fill="none" stroke="#d4af37" stroke-width="1" opacity="0.3"/>
+                                    
+                                    <!-- Top / Upper Body -->
+                                    <path id="mannequin-superior" class="mannequin-part" d="M36 52 L64 52 L61 95 L39 95 Z M36 52 Q50 64 64 52" fill="none" stroke="#d4af37" stroke-width="1.5" opacity="0.5"/>
+                                    
+                                    <!-- Bottom / Lower Body (Trousers/Skirt) -->
+                                    <path id="mannequin-inferior" class="mannequin-part" d="M39 95 L61 95 L63 125 L58 190 L52 190 L50 120 L48 190 L42 190 L37 125 Z" fill="none" stroke="#d4af37" stroke-width="1.5" opacity="0.5"/>
+                                    
+                                    <!-- Shoes / Feet -->
+                                    <g id="mannequin-calzado" class="mannequin-part" opacity="0.4">
+                                        <path d="M40 190 L44 205 L37 207 Z" fill="none" stroke="#d4af37" stroke-width="1.2"/>
+                                        <path d="M60 190 L56 205 L63 207 Z" fill="none" stroke="#d4af37" stroke-width="1.2"/>
+                                    </g>
+                                    
+                                    <!-- Elegant silhouette lines (Couture guidelines) -->
+                                    <path d="M50 30 L50 200" fill="none" stroke="rgba(212, 175, 55, 0.25)" stroke-width="0.8" stroke-dasharray="5 5" />
+                                    <!-- Chest guide -->
+                                    <path d="M33 70 L67 70" fill="none" stroke="rgba(212, 175, 55, 0.15)" stroke-width="0.8" />
+                                    <!-- Waist guide -->
+                                    <path d="M38 95 L62 95" fill="none" stroke="rgba(212, 175, 55, 0.15)" stroke-width="0.8" />
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Recommended Cards Column -->
+                    <div class="cards-column">
+                        <h3 class="subsection-title" style="margin-top: 0;">Outfit Recomendado para Hoy</h3>
+                        <div class="recommendation-showcase" id="clima-recommendation">
+                            <!-- Recommended outfits will go here -->
+                            <div class="loading-spinner-container">
+                                <div class="spinner"></div>
+                                <p>Diseñando combinaciones perfectas...</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -126,70 +184,46 @@
                 </div>
             </section>
 
-            <!-- SECTION 3: ASISTENTE (GANCHITO) -->
+            <!-- SECTION 3: ASISTENTE (ARIA) -->
             <section id="asistente" class="tab-content">
                 <div class="section-header">
-                    <h2 class="editorial-title">Asistente Estilista</h2>
-                    <p class="section-desc">Asesoría de moda de alta costura interactiva con Ganchito.</p>
+                    <h2 class="editorial-title">Aria | Tu Asistente Personal</h2>
+                    <p class="section-desc">Asesoría de moda de alta costura interactiva con Aria.</p>
                 </div>
 
                 <div class="asistente-container glass-card">
-                    <!-- Ganchito Visual Frame -->
-                    <div class="ganchito-frame">
-                        <div class="ganchito-avatar-wrapper">
-                            <!-- Ganchito Animated SVG -->
-                            <svg id="ganchito-svg" viewBox="0 0 200 200">
-                                <defs>
-                                    <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stop-color="#f3e0aa" />
-                                        <stop offset="50%" stop-color="#d4af37" />
-                                        <stop offset="100%" stop-color="#8a6f27" />
-                                    </linearGradient>
-                                </defs>
-                                <!-- The Hanger Body (sways via CSS) -->
-                                <g id="hanger-g">
-                                    <!-- Hook (hook part on top) -->
-                                    <path d="M100 45 C 100 20, 125 20, 125 35 C 125 45, 110 50, 100 55" fill="none" stroke="url(#gold-grad)" stroke-width="8" stroke-linecap="round"/>
-                                    <!-- Bottom triangle -->
-                                    <path d="M100 55 L 40 120 L 160 120 Z" fill="none" stroke="url(#gold-grad)" stroke-width="8" stroke-linejoin="round"/>
-                                    <!-- Bar hooks details -->
-                                    <circle cx="40" cy="120" r="6" fill="url(#gold-grad)"/>
-                                    <circle cx="160" cy="120" r="6" fill="url(#gold-grad)"/>
-                                    
-                                    <!-- Facial Details inside the Hanger triangle -->
-                                    <!-- Eyes (Group for animation) -->
-                                    <g id="hanger-eyes">
-                                        <!-- Left eye -->
-                                        <circle id="left-eye" cx="85" cy="95" r="7" fill="#fff"/>
-                                        <circle id="left-pupil" cx="86" cy="95" r="3.5" fill="#121212"/>
-                                        
-                                        <!-- Right eye -->
-                                        <circle id="right-eye" cx="115" cy="95" r="7" fill="#fff"/>
-                                        <circle id="right-pupil" cx="114" cy="95" r="3.5" fill="#121212"/>
-                                    </g>
-                                    
-                                    <!-- Cute Eyebrows -->
-                                    <path id="left-eyebrow" d="M78 85 Q 85 82 92 86" fill="none" stroke="#d4af37" stroke-width="2.5" stroke-linecap="round"/>
-                                    <path id="right-eyebrow" d="M108 86 Q 115 82 122 85" fill="none" stroke="#d4af37" stroke-width="2.5" stroke-linecap="round"/>
-
-                                    <!-- Animated Mouth -->
-                                    <path id="hanger-mouth" d="M92 108 Q 100 115 108 108" fill="none" stroke="#d4af37" stroke-width="3.5" stroke-linecap="round"/>
-
-                                    <!-- Diva / Sarcastic accessory (Little golden crown or bow tie) -->
-                                    <polygon id="hanger-crown" points="90,45 100,32 110,45 105,48 95,48" fill="url(#gold-grad)" style="display: none;"/>
-                                    <path id="hanger-bowtie" d="M90,55 L110,65 L110,55 L90,65 Z" fill="#d4af37" style="display: none;"/>
-                                </g>
-                            </svg>
+                    <!-- Aria Visual Frame -->
+                    <div class="aria-frame">
+                        <div class="aria-portrait-wrapper">
+                            <!-- Aria Live Character Image -->
+                            <img id="aria-portrait" src="static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Propuesta Animada.png" alt="Aria - Asistente de Estilo">
+                            <div class="aria-pulse-ring"></div>
                         </div>
                         
-                        <div class="ganchito-personality-selector">
-                            <label for="personality">Personalidad:</label>
-                            <select id="personality" class="gold-select">
-                                <option value="classy" selected>Clásico</option>
-                                <option value="diva">Diva</option>
-                                <option value="sarcastic">Sarcástico</option>
-                                <option value="nervous">Nervioso</option>
-                            </select>
+                        <div class="aria-controls">
+                            <!-- Dynamic Hair/Style Selection -->
+                            <div class="control-group">
+                                <label for="aria-look">Estilo de Aria (Look):</label>
+                                <select id="aria-look" class="gold-select">
+                                    <option value="base" selected>Default (Pasarela)</option>
+                                    <option value="castano_corto">Pelo Castaño Corto</option>
+                                    <option value="rojo_corto">Pelo Rojo Corto</option>
+                                    <option value="rojo_largo">Pelo Rojo Largo</option>
+                                    <option value="castano_gafas">Castaño con Gafas</option>
+                                    <option value="castano_medio">Castaño Medio</option>
+                                </select>
+                            </div>
+
+                            <!-- Advisor Personality Tone -->
+                            <div class="control-group">
+                                <label for="personality">Personalidad de Aria:</label>
+                                <select id="personality" class="gold-select">
+                                    <option value="classy" selected>Clásica</option>
+                                    <option value="diva">Diva</option>
+                                    <option value="sarcastic">Sarcástica</option>
+                                    <option value="nervous">Nerviosa</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
@@ -197,7 +231,7 @@
                     <div class="chat-area">
                         <div class="bubble-speech">
                             <div class="bubble-tail"></div>
-                            <p id="ganchito-speech">¡Hola, querido! Soy Ganchito. Selecciona una personalidad arriba y te daré mi veredicto sobre tu estilo actual. O simplemente hazme una pregunta de moda.</p>
+                            <p id="aria-speech">¡Hola! Soy Aria. Selecciona mi estilo y personalidad a la izquierda, y te daré mi veredicto sobre tu estilo actual. O si lo prefieres, hazme una consulta de moda.</p>
                         </div>
 
                         <div class="chat-history" id="chat-history">
@@ -205,7 +239,7 @@
                         </div>
 
                         <div class="chat-input-row">
-                            <input type="text" id="chat-input" placeholder="Pregúntale a Ganchito..." autocomplete="off">
+                            <input type="text" id="chat-input" placeholder="Pregúntale a Aria..." autocomplete="off">
                             <button id="send-chat" class="gold-btn">
                                 <span>Enviar</span>
                             </button>
@@ -349,7 +383,7 @@
                                 <span class="score-pct" id="score-pct">0%</span>
                             </div>
                             <div class="verdict-bubble">
-                                <strong class="gold-text">Veredicto de Ganchito:</strong>
+                                <strong class="gold-text">Veredicto de Aria:</strong>
                                 <p id="verdict-text">"Analizando tu silueta..."</p>
                             </div>
                             <div class="verdict-actions">
@@ -364,7 +398,7 @@
             <section id="comunidad" class="tab-content">
                 <div class="section-header">
                     <h2 class="editorial-title">Comunidad Fashion</h2>
-                    <p class="section-desc">Comparte tus combinaciones favoritas y descubre la inspiración de otros curadores de estilo.</p>
+                    <p class="section-desc">Comparte tus combinaciones favoritas y descubre las valoraciones de estilo de la comunidad.</p>
                 </div>
 
                 <div class="comunidad-feed" id="comunidad-feed">

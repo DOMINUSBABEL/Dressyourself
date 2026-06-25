@@ -50,6 +50,11 @@ def init_db():
             accessory_id INTEGER,
             is_shared INTEGER DEFAULT 0,    -- 1 if shared, 0 if private
             likes INTEGER DEFAULT 0,
+            aesthetic_count INTEGER DEFAULT 0,
+            streetwear_count INTEGER DEFAULT 0,
+            minimalist_count INTEGER DEFAULT 0,
+            classic_count INTEGER DEFAULT 0,
+            oversize_count INTEGER DEFAULT 0,
             justification TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(top_id) REFERENCES clothes(id),
@@ -59,6 +64,14 @@ def init_db():
             FOREIGN KEY(accessory_id) REFERENCES clothes(id)
         )
     ''')
+
+    # Dynamically alter table to add columns if database already exists
+    for col in ['aesthetic_count', 'streetwear_count', 'minimalist_count', 'classic_count', 'oversize_count']:
+        try:
+            cursor.execute(f"ALTER TABLE outfits ADD COLUMN {col} INTEGER DEFAULT 0")
+        except sqlite3.OperationalError:
+            pass
+
 
     # Create orders table
     cursor.execute('''
@@ -118,12 +131,16 @@ def init_db():
         accessory_id = cursor.fetchone()[0]
 
         cursor.execute('''
-            INSERT INTO outfits (name, top_id, bottom_id, footwear_id, outerwear_id, accessory_id, is_shared, likes, justification)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO outfits (
+                name, top_id, bottom_id, footwear_id, outerwear_id, accessory_id, 
+                is_shared, likes, aesthetic_count, streetwear_count, minimalist_count, 
+                classic_count, oversize_count, justification
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             "Look Casual de Fin de Semana", 
             top_id, bottom_id, footwear_id, outerwear_id, accessory_id, 
-            1, 12, 
+            1, 29, 5, 8, 4, 9, 3,
             "Una sinergia infalible de mezclilla sobre mezclilla con acentos urbanos blancos y gafas retro. El epítome del estilo despreocupado pero curado para la primavera."
         ))
         conn.commit()
@@ -235,6 +252,41 @@ def like_outfit(outfit_id):
     row = cursor.fetchone()
     conn.close()
     return row[0] if row else 0
+
+def vote_outfit(outfit_id, style_tag):
+    valid_styles = {
+        "aesthetic": "aesthetic_count",
+        "streetwear": "streetwear_count",
+        "minimalist": "minimalist_count",
+        "classic": "classic_count",
+        "oversize": "oversize_count"
+    }
+    tag = style_tag.lower().strip()
+    if tag not in valid_styles:
+        raise ValueError(f"Invalid style tag: {style_tag}")
+        
+    col_name = valid_styles[tag]
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(f'''
+        UPDATE outfits 
+        SET {col_name} = {col_name} + 1, likes = likes + 1 
+        WHERE id = ?
+    ''', (outfit_id,))
+    conn.commit()
+    
+    cursor.execute('''
+        SELECT aesthetic_count, streetwear_count, minimalist_count, classic_count, oversize_count, likes 
+        FROM outfits 
+        WHERE id = ?
+    ''', (outfit_id,))
+    row = cursor.fetchone()
+    conn.close()
+    
+    if row:
+        return dict(row)
+    return None
 
 def get_all_orders():
     conn = get_db_connection()
