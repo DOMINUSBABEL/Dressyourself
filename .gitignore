@@ -1,0 +1,25 @@
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# SQLite Database
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Virtual Environments
+venv/
+.venv/
+env/
+
+# Uploaded temporary files
+uploads/
+temp/
+static/uploads/

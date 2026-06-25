@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dress Yourself | High Fashion AI</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- CSS Stylesheet -->
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <!-- App Container -->
+    <div class="app-container">
+        
+        <!-- Sidebar Navigation (Desktop) -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <h1>DRESS YOURSELF</h1>
+                <span>HAUTE COUTURE AI</span>
+            </div>
+            
+            <nav class="nav-menu">
+                <button class="nav-btn active" data-tab="clima">
+                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5c.55 0 1 .45 1 1v2c0 .55-.45 1-1 1s-1-.45-1-1V3c0-.55.45-1 1-1zm0 14c.55 0 1 .45 1 1v2c0 .55-.45 1-1 1s-1-.45-1-1v-2c0-.55.45-1 1-1zM5.22 6.64c.39-.39 1.02-.39 1.41 0l1.41 1.41c.39.39.39 1.02 0 1.41s-1.02.39-1.41 0L5.22 8.05c-.39-.39-.39-1.02 0-1.41zm10.6 10.6c.39-.39 1.02-.39 1.41 0l1.41 1.41c.39.39.39 1.02 0 1.41s-1.02.39-1.41 0l-1.41-1.41c-.4-.39-.4-1.03 0-1.42zm-12.6-3.8c.55 0 1 .45 1 1v2c0 .55-.45 1-1 1s-1-.45-1-1v-2c0-.55.45-1 1-1zm14 0c.55 0 1 .45 1 1v2c0 .55-.45 1-1 1s-1-.45-1-1v-2c0-.55.45-1 1-1z" fill="currentColor"/></svg>
+                    <span>Clima</span>
+                </button>
+                <button class="nav-btn" data-tab="closet">
+                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 12.5L7.5 12h9L12 16.5zM20 8H4V6h16v2z" fill="currentColor"/></svg>
+                    <span>Closet</span>
+                </button>
+                <button class="nav-btn" data-tab="asistente">
+                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z" fill="currentColor"/></svg>
+                    <span>Asistente</span>
+                </button>
+                <button class="nav-btn" data-tab="innovaciones">
+                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.07 19.64 10.47 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z" fill="currentColor"/></svg>
+                    <span>Innovaciones</span>
+                </button>
+                <button class="nav-btn" data-tab="boutique">
+                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 6h-4V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v1H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-8-2c.55 0 1 .45 1 1v1h-2V5c0-.55.45-1 1-1zm0 10c-2.76 0-5-2.24-5-5h2c0 1.66 1.34 3 3 3s3-1.34 3-3h2c0 2.76-2.24 5-5 5z" fill="currentColor"/></svg>
+                    <span>Boutique</span>
+                </button>
+                <button class="nav-btn" data-tab="probador">
+                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z" fill="currentColor"/></svg>
+                    <span>Probador</span>
+                </button>
+                <button class="nav-btn" data-tab="comunidad">
+                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 1.34 5 8s1.34 3 8 3zm0 2c-2.33 0-7 1.17-7 3.5V20h14v-3.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V20h6v-3.5c0-2.33-4.67-3.5-7-3.5z" fill="currentColor"/></svg>
+                    <span>Comunidad</span>
+                </button>
+                <button class="nav-btn" data-tab="pedidos">
+                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 8h-3V4H3v12h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 16.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm11.5 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM18 11.5V9h2.25L22 11.5H18z" fill="currentColor"/></svg>
+                    <span>Pedidos</span>
+                </button>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Mobile Header -->
+            <header class="mobile-header">
+                <h2>DRESS YOURSELF</h2>
+                <span class="mobile-subtitle">HAUTE COUTURE AI</span>
+            </header>
+
+            <!-- TABS -->
+            
+            <!-- SECTION 1: CLIMA -->
+            <section id="clima" class="tab-content active">
+                <div class="section-header">
+                    <h2 class="editorial-title">Recomendaciones del Clima</h2>
+                    <p class="section-desc">Estilo inteligente adaptado al pulso del viento y la temperatura.</p>
+                </div>
+                
+                <div class="weather-widget glass-card">
+                    <div class="weather-info">
+                        <div class="weather-city" id="weather-city">Cargando ubicación...</div>
+                        <div class="weather-temp-desc">
+                            <span class="weather-temp" id="weather-temp">--°C</span>
+                            <span class="weather-desc" id="weather-desc">Analizando condiciones...</span>
+                        </div>
+                    </div>
+                    <div class="weather-extra" id="weather-details">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <h3 class="subsection-title">Outfit Recomendado para Hoy</h3>
+                <div class="recommendation-showcase" id="clima-recommendation">
+                    <!-- Recommended outfits will go here -->
+                    <div class="loading-spinner-container">
+                        <div class="spinner"></div>
+                        <p>Diseñando combinaciones perfectas...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: CLOSET -->
+            <section id="closet" class="tab-content">
+                <div class="section-header-row">
+                    <div class="section-header">
+                        <h2 class="editorial-title">Mi Closet Virtual</h2>
+                        <p class="section-desc">Tu colección privada, digitalizada y clasificada por inteligencia artificial.</p>
+                    </div>
+                    <button class="gold-btn trigger-scan" onclick="switchTab('innovaciones')">
+                        <svg class="btn-icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/></svg>
+                        Escanear Prenda
+                    </button>
+                </div>
+
+                <!-- Filters -->
+                <div class="closet-filters">
+                    <button class="filter-btn active" data-filter="all">Todos</button>
+                    <button class="filter-btn" data-filter="superior">Superior</button>
+                    <button class="filter-btn" data-filter="inferior">Inferior</button>
+                    <button class="filter-btn" data-filter="abrigo">Abrigo</button>
+                    <button class="filter-btn" data-filter="calzado">Calzado</button>
+                </div>
+
+                <!-- Grid -->
+                <div class="closet-grid" id="closet-grid">
+                    <!-- Closet Items loaded dynamically -->
+                </div>
+            </section>
+
+            <!-- SECTION 3: ASISTENTE (GANCHITO) -->
+            <section id="asistente" class="tab-content">
+                <div class="section-header">
+                    <h2 class="editorial-title">Asistente Estilista</h2>
+                    <p class="section-desc">Asesoría de moda de alta costura interactiva con Ganchito.</p>
+                </div>
+
+                <div class="asistente-container glass-card">
+                    <!-- Ganchito Visual Frame -->
+                    <div class="ganchito-frame">
+                        <div class="ganchito-avatar-wrapper">
+                            <!-- Ganchito Animated SVG -->
+                            <svg id="ganchito-svg" viewBox="0 0 200 200">
+                                <defs>
+                                    <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#f3e0aa" />
+                                        <stop offset="50%" stop-color="#d4af37" />
+                                        <stop offset="100%" stop-color="#8a6f27" />
+                                    </linearGradient>
+                                </defs>
+                                <!-- The Hanger Body (sways via CSS) -->
+                                <g id="hanger-g">
+                                    <!-- Hook (hook part on top) -->
+                                    <path d="M100 45 C 100 20, 125 20, 125 35 C 125 45, 110 50, 100 55" fill="none" stroke="url(#gold-grad)" stroke-width="8" stroke-linecap="round"/>
+                                    <!-- Bottom triangle -->
+                                    <path d="M100 55 L 40 120 L 160 120 Z" fill="none" stroke="url(#gold-grad)" stroke-width="8" stroke-linejoin="round"/>
+                                    <!-- Bar hooks details -->
+                                    <circle cx="40" cy="120" r="6" fill="url(#gold-grad)"/>
+                                    <circle cx="160" cy="120" r="6" fill="url(#gold-grad)"/>
+                                    
+                                    <!-- Facial Details inside the Hanger triangle -->
+                                    <!-- Eyes (Group for animation) -->
+                                    <g id="hanger-eyes">
+                                        <!-- Left eye -->
+                                        <circle id="left-eye" cx="85" cy="95" r="7" fill="#fff"/>
+                                        <circle id="left-pupil" cx="86" cy="95" r="3.5" fill="#121212"/>
+                                        
+                                        <!-- Right eye -->
+                                        <circle id="right-eye" cx="115" cy="95" r="7" fill="#fff"/>
+                                        <circle id="right-pupil" cx="114" cy="95" r="3.5" fill="#121212"/>
+                                    </g>
+                                    
+                                    <!-- Cute Eyebrows -->
+                                    <path id="left-eyebrow" d="M78 85 Q 85 82 92 86" fill="none" stroke="#d4af37" stroke-width="2.5" stroke-linecap="round"/>
+                                    <path id="right-eyebrow" d="M108 86 Q 115 82 122 85" fill="none" stroke="#d4af37" stroke-width="2.5" stroke-linecap="round"/>
+
+                                    <!-- Animated Mouth -->
+                                    <path id="hanger-mouth" d="M92 108 Q 100 115 108 108" fill="none" stroke="#d4af37" stroke-width="3.5" stroke-linecap="round"/>
+
+                                    <!-- Diva / Sarcastic accessory (Little golden crown or bow tie) -->
+                                    <polygon id="hanger-crown" points="90,45 100,32 110,45 105,48 95,48" fill="url(#gold-grad)" style="display: none;"/>
+                                    <path id="hanger-bowtie" d="M90,55 L110,65 L110,55 L90,65 Z" fill="#d4af37" style="display: none;"/>
+                                </g>
+                            </svg>
+                        </div>
+                        
+                        <div class="ganchito-personality-selector">
+                            <label for="personality">Personalidad:</label>
+                            <select id="personality" class="gold-select">
+                                <option value="classy" selected>Clásico</option>
+                                <option value="diva">Diva</option>
+                                <option value="sarcastic">Sarcástico</option>
+                                <option value="nervous">Nervioso</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Conversation bubble & chat -->
+                    <div class="chat-area">
+                        <div class="bubble-speech">
+                            <div class="bubble-tail"></div>
+                            <p id="ganchito-speech">¡Hola, querido! Soy Ganchito. Selecciona una personalidad arriba y te daré mi veredicto sobre tu estilo actual. O simplemente hazme una pregunta de moda.</p>
+                        </div>
+
+                        <div class="chat-history" id="chat-history">
+                            <!-- Dynamically loaded chat entries -->
+                        </div>
+
+                        <div class="chat-input-row">
+                            <input type="text" id="chat-input" placeholder="Pregúntale a Ganchito..." autocomplete="off">
+                            <button id="send-chat" class="gold-btn">
+                                <span>Enviar</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: INNOVACIONES (ESCÁNER VISIÓN) -->
+            <section id="innovaciones" class="tab-content">
+                <div class="section-header">
+                    <h2 class="editorial-title">Innovación en Visión</h2>
+                    <p class="section-desc">Sube la foto de cualquier prenda para escanear y catalogar su estilo con IA.</p>
+                </div>
+
+                <div class="scanner-container glass-card">
+                    <div class="scanner-upload-box" id="scanner-drop-zone">
+                        <input type="file" id="scanner-file-input" accept="image/*" style="display: none;">
+                        
+                        <div class="upload-placeholder" id="upload-placeholder">
+                            <svg viewBox="0 0 24 24" class="upload-icon"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" fill="currentColor"/></svg>
+                            <p class="upload-text-main">Arrastra una imagen de prenda aquí</p>
+                            <p class="upload-text-sub">o haz clic para explorar tus archivos</p>
+                        </div>
+
+                        <div class="scan-preview-wrapper" id="scan-preview-wrapper" style="display: none;">
+                            <img id="scan-preview-img" src="" alt="Prenda a escanear">
+                            <div class="scan-laser" id="scan-laser"></div>
+                        </div>
+                    </div>
+
+                    <div class="scanner-actions">
+                        <button id="btn-scan" class="gold-btn-large" disabled>
+                            <span class="btn-text">Iniciar Escaneo</span>
+                            <div class="spinner-small" style="display: none;"></div>
+                        </button>
+                    </div>
+
+                    <!-- Results area -->
+                    <div class="scan-results-box glass-card" id="scan-results-box" style="display: none;">
+                        <h3 class="editorial-subtitle gold-text">Análisis de Estilo Completo</h3>
+                        <div class="results-grid">
+                            <div class="result-item">
+                                <span class="result-label">Tipo de Prenda</span>
+                                <strong id="res-tipo" class="result-val">--</strong>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Estilo</span>
+                                <strong id="res-estilo" class="result-val">--</strong>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Paleta de Color</span>
+                                <div id="res-colores" class="color-palette-result">
+                                    <!-- Filled dynamically -->
+                                </div>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Confianza IA</span>
+                                <strong id="res-confianza" class="result-val">--%</strong>
+                            </div>
+                        </div>
+                        <div class="recommendations-box">
+                            <h4>Combinaciones Recomendadas</h4>
+                            <p id="res-consejo">Cargando sugerencias de estilo...</p>
+                        </div>
+                        <div class="scan-action-save">
+                            <button id="btn-save-scanned" class="gold-btn">Guardar en Closet</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 5: BOUTIQUE -->
+            <section id="boutique" class="tab-content">
+                <div class="section-header">
+                    <h2 class="editorial-title">Boutique Curada</h2>
+                    <p class="section-desc">Explora colecciones exclusivas. Agrégalas al probador o realiza una orden directamente.</p>
+                </div>
+
+                <div class="boutique-grid" id="boutique-grid">
+                    <!-- Loaded dynamically via JS -->
+                </div>
+            </section>
+
+            <!-- SECTION 6: PROBADOR (FITTING ROOM) -->
+            <section id="probador" class="tab-content">
+                <div class="section-header">
+                    <h2 class="editorial-title">Fitting Room Interactivo</h2>
+                    <p class="section-desc">Contrasta tus prendas virtuales de closet con piezas exclusivas de nuestra boutique.</p>
+                </div>
+
+                <div class="fitting-room-layout">
+                    <!-- Left Column: Source Selection -->
+                    <div class="fitting-source-panel glass-card">
+                        <div class="panel-tabs">
+                            <button class="source-tab active" data-source="closet">Mi Closet</button>
+                            <button class="source-tab" data-source="boutique">Boutique</button>
+                        </div>
+                        <div class="source-items-scroller" id="fitting-scroller">
+                            <!-- Items populated here. Click to load to active slot -->
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Interactive Fitting Area -->
+                    <div class="fitting-stage glass-card">
+                        <div class="stage-slots-container">
+                            <!-- Slot 1: Closet Garment (Left or Top) -->
+                            <div class="fitting-slot" id="slot-closet" data-empty="true">
+                                <div class="slot-placeholder">
+                                    <svg viewBox="0 0 24 24"><path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z" fill="currentColor"/></svg>
+                                    <span>Prenda de tu Closet</span>
+                                    <span class="slot-tip">Haz clic en tu closet de la izquierda para colocarla aquí</span>
+                                </div>
+                                <div class="slot-content">
+                                    <!-- Selected item image & meta -->
+                                </div>
+                                <button class="clear-slot-btn" onclick="clearFittingSlot('closet')">&times;</button>
+                            </div>
+
+                            <!-- Slot 2: Boutique Garment (Right or Bottom) -->
+                            <div class="fitting-slot" id="slot-boutique" data-empty="true">
+                                <div class="slot-placeholder">
+                                    <svg viewBox="0 0 24 24"><path d="M20 6h-4V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v1H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-8-2c.55 0 1 .45 1 1v1h-2V5c0-.55.45-1 1-1zm0 10c-2.76 0-5-2.24-5-5h2c0 1.66 1.34 3 3 3s3-1.34 3-3h2c0 2.76-2.24 5-5 5z" fill="currentColor"/></svg>
+                                    <span>Prenda de Boutique</span>
+                                    <span class="slot-tip">Haz clic en boutique de la izquierda para colocarla aquí</span>
+                                </div>
+                                <div class="slot-content">
+                                    <!-- Selected item image & meta -->
+                                </div>
+                                <button class="clear-slot-btn" onclick="clearFittingSlot('boutique')">&times;</button>
+                            </div>
+                        </div>
+
+                        <!-- Match Indicator & AI Veredict -->
+                        <div class="fitting-verdict-box" id="fitting-verdict" style="display: none;">
+                            <div class="match-score-row">
+                                <span class="score-label">Compatibilidad:</span>
+                                <div class="score-bar-bg">
+                                    <div class="score-bar-fill" id="score-bar" style="width: 0%"></div>
+                                </div>
+                                <span class="score-pct" id="score-pct">0%</span>
+                            </div>
+                            <div class="verdict-bubble">
+                                <strong class="gold-text">Veredicto de Ganchito:</strong>
+                                <p id="verdict-text">"Analizando tu silueta..."</p>
+                            </div>
+                            <div class="verdict-actions">
+                                <button class="gold-btn" id="btn-purchase-boutique" style="display: none;">Comprar Prenda de Boutique</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 7: COMUNIDAD -->
+            <section id="comunidad" class="tab-content">
+                <div class="section-header">
+                    <h2 class="editorial-title">Comunidad Fashion</h2>
+                    <p class="section-desc">Comparte tus combinaciones favoritas y descubre la inspiración de otros curadores de estilo.</p>
+                </div>
+
+                <div class="comunidad-feed" id="comunidad-feed">
+                    <!-- Community Posts loaded dynamically via JS -->
+                </div>
+            </section>
+
+            <!-- SECTION 8: PEDIDOS (RASTREO) -->
+            <section id="pedidos" class="tab-content">
+                <div class="section-header">
+                    <h2 class="editorial-title">Rastreo de Pedidos</h2>
+                    <p class="section-desc">Monitorea tus órdenes en tiempo real desde la boutique hasta la comodidad de tu hogar.</p>
+                </div>
+
+                <div class="tracking-container glass-card" id="tracking-card">
+                    <div class="tracking-summary">
+                        <div>
+                            <span class="summary-label">Orden ID:</span>
+                            <strong id="track-order-id" class="gold-text">DY-74692</strong>
+                        </div>
+                        <div>
+                            <span class="summary-label">Estimado de Entrega:</span>
+                            <strong id="track-delivery-time">Hoy, 8:00 PM</strong>
+                        </div>
+                    </div>
+
+                    <!-- Progress Stepper -->
+                    <div class="stepper-wrapper">
+                        <div class="stepper-line">
+                            <div class="stepper-progress-fill" id="track-progress-bar" style="width: 0%"></div>
+                            <div class="truck-icon" id="truck-icon" style="left: 0%">
+                                🚚
+                            </div>
+                        </div>
+                        
+                        <div class="step-nodes">
+                            <div class="step-node active" id="node-0" data-label="Procesado">
+                                <div class="node-dot"></div>
+                                <span class="node-text">Procesado</span>
+                            </div>
+                            <div class="step-node" id="node-1" data-label="Enviado">
+                                <div class="node-dot"></div>
+                                <span class="node-text">Enviado</span>
+                            </div>
+                            <div class="step-node" id="node-2" data-label="En Camino">
+                                <div class="node-dot"></div>
+                                <span class="node-text">En Camino</span>
+                            </div>
+                            <div class="step-node" id="node-3" data-label="Entregado">
+                                <div class="node-dot"></div>
+                                <span class="node-text">Entregado</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tracking-status-log glass-card">
+                        <h4>Detalles de Envío</h4>
+                        <ul id="tracking-events">
+                            <!-- Dynamically loaded events -->
+                        </ul>
+                    </div>
+
+                    <div class="tracking-actions">
+                        <button class="gold-btn-outline" id="btn-refresh-tracking">Actualizar Estado</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <!-- Mobile Bottom Navigation Bar -->
+        <nav class="bottom-nav">
+            <button class="bottom-nav-btn active" data-tab="clima">
+                <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5c.55 0 1 .45 1 1v2c0 .55-.45 1-1 1s-1-.45-1-1V3c0-.55.45-1 1-1zm0 14c.55 0 1 .45 1 1v2c0 .55-.45 1-1 1s-1-.45-1-1v-2c0-.55.45-1 1-1z" fill="currentColor"/></svg>
+                <span>Clima</span>
+            </button>
+            <button class="bottom-nav-btn" data-tab="closet">
+                <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM4 6h16v2H4V6z" fill="currentColor"/></svg>
+                <span>Closet</span>
+            </button>
+            <button class="bottom-nav-btn" data-tab="asistente">
+                <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z" fill="currentColor"/></svg>
+                <span>Asistente</span>
+            </button>
+            <button class="bottom-nav-btn" data-tab="innovaciones">
+                <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.07 19.64 10.47 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9z" fill="currentColor"/></svg>
+                <span>Scan</span>
+            </button>
+            <button class="bottom-nav-btn" data-tab="boutique">
+                <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 6h-4V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v1H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z" fill="currentColor"/></svg>
+                <span>Boutique</span>
+            </button>
+            <button class="bottom-nav-btn" data-tab="probador">
+                <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z" fill="currentColor"/></svg>
+                <span>Probar</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Script File -->
+    <script src="static/js/app.js"></script>
+</body>
+</html>

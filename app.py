@@ -1,0 +1,316 @@
+import sys
+import os
+
+# Config standard output encoding for Windows terminal
+sys.stdout.reconfigure(encoding="utf-8")
+
+from flask import Flask, jsonify, request, send_file, send_from_directory
+from flask_cors import CORS
+import time
+import random
+import threading
+
+import database
+import vision_engine
+import styling_engine
+
+# Initialize Flask app
+app = Flask(__name__)
+# Enable CORS for all routes to allow Android APK and external devices to communicate
+CORS(app, resources={r"/*": {"origins": "*"}})
+
+# Ensure database is initialized
+database.init_db()
+
+# --- Order Simulation Worker ---
+def start_order_simulator():
+    """
+    Background worker that updates the delivery progress of pending orders.
+    """
+    def run_simulator():
+        print("[Order Simulator] Thread started successfully.", flush=True)
+        while True:
+            try:
+                # Open database connection within thread
+                conn = database.get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT id, status, delivery_progress FROM orders WHERE status != 'Entregado'")
+                pending_orders = cursor.fetchall()
+                
+                for order in pending_orders:
+                    order_id = order['id']
+                    current_prog = order['delivery_progress']
+                    current_status = order['status']
+                    
+                    # Increment progress randomly (between 8% and 20%)
+                    new_prog = current_prog + random.randint(8, 20)
+                    if new_prog >= 100:
+                        new_prog = 100
+                        new_status = 'Entregado'
+                    elif new_prog >= 40:
+                        new_status = 'En Camino'
+                    else:
+                        new_status = current_status
+                    
+                    cursor.execute('''
+                        UPDATE orders 
+                        SET delivery_progress = ?, status = ? 
+                        WHERE id = ?
+                    ''', (new_prog, new_status, order_id))
+                    print(f"[Order Simulator] Updated Order #{order_id}: Progress {new_prog}%, Status: '{new_status}'", flush=True)
+                    
+                conn.commit()
+                conn.close()
+            except Exception as e:
+                print(f"[Order Simulator Error] {e}", flush=True)
+            
+            # Wait 5 seconds between increments
+            time.sleep(5)
+
+    t = threading.Thread(target=run_simulator, daemon=True)
+    t.start()
+
+# Start background delivery thread
+start_order_simulator()
+
+# --- REST API Endpoints ---
+
+# 1. Clothes CRUD
+@app.route('/api/clothes', methods=['GET'])
+def get_clothes():
+    try:
+        owned_param = request.args.get('owned')
+        owned_filter = None
+        if owned_param is not None:
+            owned_filter = owned_param.lower() in ['true', '1']
+        
+        clothes_list = database.get_all_clothes(owned_filter)
+        return jsonify(clothes_list), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/clothes', methods=['POST'])
+def add_clothing():
+    try:
+        data = request.json or {}
+        if not data.get('name') or not data.get('image_url') or not data.get('category'):
+            return jsonify({"error": "Faltan campos obligatorios: name, image_url, category"}), 400
+            
+        new_id = database.create_clothing(
+            name=data['name'],
+            image_url=data['image_url'],
+            category=data['category'],
+            subcategory=data.get('subcategory'),
+            color_primary=data.get('color_primary'),
+            color_secondary=data.get('color_secondary'),
+            pattern=data.get('pattern'),
+            min_temp=data.get('min_temp'),
+            max_temp=data.get('max_temp'),
+            rain_friendly=int(data.get('rain_friendly', 0)),
+            price=data.get('price'),
+            store_name=data.get('store_name'),
+            is_owned=int(data.get('is_owned', 1)),
+            confidence=data.get('confidence', 1.0)
+        )
+        created_item = database.get_clothing_by_id(new_id)
+        return jsonify(created_item), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/clothes/<int:clothing_id>', methods=['DELETE'])
+def remove_clothing(clothing_id):
+    try:
+        success = database.delete_clothing(clothing_id)
+        if success:
+            return jsonify({"message": f"Prenda {clothing_id} eliminada correctamente."}), 200
+        else:
+            return jsonify({"error": "Prenda no encontrada."}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 2. Vision Scan
+@app.route('/api/scan', methods=['POST'])
+def scan_image():
+    try:
+        if 'image' not in request.files:
+            return jsonify({"error": "No se proporcionó archivo de imagen en la solicitud."}), 400
+            
+        file = request.files['image']
+        if file.filename == '':
+            return jsonify({"error": "Nombre de archivo vacío."}), 400
+            
+        # Create temp folder for scanning
+        temp_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'temp_scans')
+        os.makedirs(temp_dir, exist_ok=True)
+        
+        # Save temp file
+        temp_path = os.path.join(temp_dir, f"scan_{int(time.time())}_{file.filename}")
+        file.save(temp_path)
+        
+        try:
+            # Analyze
+            result = vision_engine.analyze_image(temp_path)
+        finally:
+            # Clean up temp file
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+                
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 3. Recommendation & Innovations
+@app.route('/api/recommend', methods=['GET'])
+def get_recommendation():
+    try:
+        city_index = request.args.get('city_index', 0)
+        occasion = request.args.get('occasion', 'Casual')
+        
+        clothes_list = database.get_all_clothes()
+        rec = styling_engine.recommend_outfit(clothes_list, city_index, occasion)
+        return jsonify(rec), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/innovations', methods=['GET'])
+def get_innovations():
+    try:
+        clothes_list = database.get_all_clothes()
+        innovations = styling_engine.get_style_innovations(clothes_list)
+        return jsonify(innovations), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 4. Outfits Management
+@app.route('/api/outfits', methods=['GET'])
+def get_outfits():
+    try:
+        outfits_list = database.get_all_outfits()
+        return jsonify(outfits_list), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/outfits', methods=['POST'])
+def save_outfit():
+    try:
+        data = request.json or {}
+        if not data.get('name') or not data.get('top_id') or not data.get('bottom_id') or not data.get('footwear_id'):
+            return jsonify({"error": "Faltan campos obligatorios: name, top_id, bottom_id, footwear_id"}), 400
+            
+        new_id = database.save_outfit(
+            name=data['name'],
+            top_id=int(data['top_id']),
+            bottom_id=int(data['bottom_id']),
+            footwear_id=int(data['footwear_id']),
+            outerwear_id=int(data['outerwear_id']) if data.get('outerwear_id') else None,
+            accessory_id=int(data['accessory_id']) if data.get('accessory_id') else None,
+            is_shared=int(data.get('is_shared', 0)),
+            justification=data.get('justification')
+        )
+        return jsonify({"id": new_id, "message": "Combinación guardada con éxito."}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/outfits/<int:outfit_id>', methods=['DELETE'])
+def remove_outfit(outfit_id):
+    try:
+        success = database.delete_outfit(outfit_id)
+        if success:
+            return jsonify({"message": f"Combinación {outfit_id} eliminada correctamente."}), 200
+        else:
+            return jsonify({"error": "Combinación no encontrada."}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/outfits/<int:outfit_id>/share', methods=['POST'])
+def toggle_share_outfit(outfit_id):
+    try:
+        data = request.json or {}
+        share_status = data.get('share', True)
+        success = database.share_outfit(outfit_id, share_status)
+        if success:
+            status_str = "compartido" if share_status else "privado"
+            return jsonify({"message": f"El outfit {outfit_id} ahora es {status_str}."}), 200
+        else:
+            return jsonify({"error": "Outfit no encontrado."}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/outfits/<int:outfit_id>/like', methods=['POST'])
+def add_like_outfit(outfit_id):
+    try:
+        new_likes = database.like_outfit(outfit_id)
+        return jsonify({"id": outfit_id, "likes": new_likes}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 5. Orders Management
+@app.route('/api/orders', methods=['GET'])
+def get_orders():
+    try:
+        orders_list = database.get_all_orders()
+        return jsonify(orders_list), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/orders', methods=['POST'])
+def make_order():
+    try:
+        data = request.json or {}
+        clothing_id = data.get('clothing_id')
+        quantity = int(data.get('quantity', 1))
+        
+        if not clothing_id:
+            return jsonify({"error": "Falta clothing_id."}), 400
+            
+        clothing = database.get_clothing_by_id(clothing_id)
+        if not clothing:
+            return jsonify({"error": "La prenda especificada no existe."}), 404
+            
+        price = clothing.get('price') or 0.0
+        total_price = price * quantity
+        
+        new_id = database.create_order(clothing_id, quantity, total_price)
+        return jsonify({
+            "id": new_id, 
+            "total_price": total_price, 
+            "message": "Orden de compra registrada e inicio de despacho."
+        }), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 6. Weather & Cities
+@app.route('/api/weather', methods=['GET'])
+def get_weather():
+    try:
+        return jsonify(styling_engine.CITIES), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# --- Static Web App Routing ---
+@app.route('/')
+def serve_index():
+    # Serves index.html from workspace root, or static/ directory
+    if os.path.exists('index.html'):
+        return send_file('index.html')
+    elif os.path.exists('static/index.html'):
+        return send_from_directory('static', 'index.html')
+    else:
+        return jsonify({
+            "status": "online",
+            "message": "Dress Yourself REST API is running. Point your client to this server.",
+            "note": "Static frontend files not found at root or static/. Web app GUI is unavailable."
+        }), 200
+
+@app.route('/<path:path>')
+def serve_static_files(path):
+    if os.path.exists(path):
+        return send_file(path)
+    elif os.path.exists(os.path.join('static', path)):
+        return send_from_directory('static', path)
+    else:
+        return "File Not Found", 404
+
+if __name__ == '__main__':
+    # Run on 0.0.0.0 and port 5000 to listen to external calls and Android emulators
+    app.run(host='0.0.0.0', port=5000, debug=True)
