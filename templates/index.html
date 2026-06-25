@@ -163,10 +163,16 @@
                         <h2 class="editorial-title">Mi Closet Virtual</h2>
                         <p class="section-desc">Tu colección privada, digitalizada y clasificada por inteligencia artificial.</p>
                     </div>
-                    <button class="gold-btn trigger-scan" onclick="switchTab('innovaciones')">
-                        <svg class="btn-icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/></svg>
-                        Escanear Prenda
-                    </button>
+                    <div class="closet-actions-row">
+                        <button id="btn-open-outfit-builder" class="gold-btn">
+                            <svg viewBox="0 0 24 24" class="btn-icon"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/></svg>
+                            <span>Diseñar Outfit</span>
+                        </button>
+                        <button class="gold-btn-outline trigger-scan" onclick="switchTab('innovaciones')">
+                            <svg class="btn-icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/></svg>
+                            Escanear Prenda
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Filters -->
@@ -181,6 +187,11 @@
                 <!-- Grid -->
                 <div class="closet-grid" id="closet-grid">
                     <!-- Closet Items loaded dynamically -->
+                </div>
+
+                <h3 class="subsection-title">Mis Combinaciones Diseñadas</h3>
+                <div class="combinations-grid" id="combinations-grid">
+                    <!-- Saved combinations loaded dynamically -->
                 </div>
             </section>
 
@@ -496,6 +507,156 @@
             </button>
         </nav>
     </div>
+
+    <!-- OUTFIT BUILDER MODAL -->
+    <div id="outfit-builder-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-content glass-card">
+            <button class="close-modal-btn" id="btn-close-outfit-builder">&times;</button>
+            
+            <div class="modal-body-layout">
+                <!-- Left Column: Slotted Garment Selector -->
+                <div class="builder-selection-pane">
+                    <h3 class="editorial-subtitle gold-text">Creador de Outfits</h3>
+                    <p class="builder-tip">Selecciona las prendas de tu armario para conformar tu combinación:</p>
+                    
+                    <div class="slots-list">
+                        <!-- Slot 1: Superior (Obligatorio) -->
+                        <div class="builder-slot" id="bslot-superior" data-category="superior" data-empty="true">
+                            <div class="bslot-header">
+                                <span class="slot-badge required">Obligatorio</span>
+                                <span class="slot-title">Prenda Superior (Top)</span>
+                            </div>
+                            <div class="bslot-selector-trigger">
+                                <span class="trigger-label">Elegir de tu Armario</span>
+                                <div class="selected-item-preview"></div>
+                            </div>
+                        </div>
+
+                        <!-- Slot 2: Inferior (Obligatorio) -->
+                        <div class="builder-slot" id="bslot-inferior" data-category="inferior" data-empty="true">
+                            <div class="bslot-header">
+                                <span class="slot-badge required">Obligatorio</span>
+                                <span class="slot-title">Prenda Inferior (Bottom)</span>
+                            </div>
+                            <div class="bslot-selector-trigger">
+                                <span class="trigger-label">Elegir de tu Armario</span>
+                                <div class="selected-item-preview"></div>
+                            </div>
+                        </div>
+
+                        <!-- Slot 3: Calzado (Obligatorio) -->
+                        <div class="builder-slot" id="bslot-calzado" data-category="calzado" data-empty="true">
+                            <div class="bslot-header">
+                                <span class="slot-badge required">Obligatorio</span>
+                                <span class="slot-title">Calzado (Footwear)</span>
+                            </div>
+                            <div class="bslot-selector-trigger">
+                                <span class="trigger-label">Elegir de tu Armario</span>
+                                <div class="selected-item-preview"></div>
+                            </div>
+                        </div>
+
+                        <!-- Slot 4: Abrigo (Opcional) -->
+                        <div class="builder-slot" id="bslot-abrigo" data-category="abrigo" data-empty="true">
+                            <div class="bslot-header">
+                                <span class="slot-badge optional">Opcional</span>
+                                <span class="slot-title">Abrigo (Outerwear)</span>
+                            </div>
+                            <div class="bslot-selector-trigger">
+                                <span class="trigger-label">Elegir de tu Armario</span>
+                                <div class="selected-item-preview"></div>
+                            </div>
+                            <button class="clear-bslot-btn" style="display:none;">&times;</button>
+                        </div>
+
+                        <!-- Slot 5: Accesorio (Opcional) -->
+                        <div class="builder-slot" id="bslot-accesorio" data-category="accesorio" data-empty="true">
+                            <div class="bslot-header">
+                                <span class="slot-badge optional">Opcional</span>
+                                <span class="slot-title">Accesorio (Accessory)</span>
+                            </div>
+                            <div class="bslot-selector-trigger">
+                                <span class="trigger-label">Elegir de tu Armario</span>
+                                <div class="selected-item-preview"></div>
+                            </div>
+                            <button class="clear-bslot-btn" style="display:none;">&times;</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Mannequin Preview & Metadata Form -->
+                <div class="builder-preview-pane">
+                    <div class="builder-mannequin-frame">
+                        <svg viewBox="0 0 100 240" id="builder-silhouette-svg" class="silhouette-vector">
+                            <g id="bmannequin-group">
+                                <line x1="50" y1="210" x2="50" y2="235" stroke="rgba(212, 175, 55, 0.4)" stroke-width="1.5" stroke-dasharray="2 2" />
+                                <ellipse cx="50" cy="235" rx="18" ry="4" fill="none" stroke="rgba(212, 175, 55, 0.4)" stroke-width="1" />
+                                
+                                <ellipse cx="50" cy="30" rx="9" ry="12" fill="none" stroke="#d4af37" stroke-width="1.2" opacity="0.4"/>
+                                <path d="M47 41 L47 48 M53 41 L53 48" fill="none" stroke="#d4af37" stroke-width="1.2" opacity="0.4"/>
+                                
+                                <!-- Mannequin parts we highlight when clothing is loaded in builder slots -->
+                                <path id="bmannequin-abrigo" class="mannequin-part" d="M33 52 L67 52 L68 75 L62 135 L38 135 L32 75 Z M33 52 C38 60, 62 60, 67 52" fill="none" stroke="#d4af37" stroke-width="1" opacity="0.2"/>
+                                <path id="bmannequin-superior" class="mannequin-part" d="M36 52 L64 52 L61 95 L39 95 Z M36 52 Q50 64 64 52" fill="none" stroke="#d4af37" stroke-width="1.2" opacity="0.2"/>
+                                <path id="bmannequin-inferior" class="mannequin-part" d="M39 95 L61 95 L63 125 L58 190 L52 190 L50 120 L48 190 L42 190 L37 125 Z" fill="none" stroke="#d4af37" stroke-width="1.2" opacity="0.2"/>
+                                <g id="bmannequin-calzado" class="mannequin-part" opacity="0.2">
+                                    <path d="M40 190 L44 205 L37 207 Z" fill="none" stroke="#d4af37" stroke-width="1.2"/>
+                                    <path d="M60 190 L56 205 L63 207 Z" fill="none" stroke="#d4af37" stroke-width="1.2"/>
+                                </g>
+                                <!-- Accessory visual dot around neck/chest -->
+                                <circle id="bmannequin-accesorio" cx="50" cy="46" r="3" fill="none" stroke="#d4af37" stroke-width="1" opacity="0.2" />
+                            </g>
+                        </svg>
+                        
+                        <!-- Floating previews of the actual clothes on the silhouette -->
+                        <div class="avatar-layer-previews">
+                            <div id="player-abrigo" class="layer-img-container" style="display:none;"><img src="" alt="Abrigo layer"></div>
+                            <div id="player-superior" class="layer-img-container" style="display:none;"><img src="" alt="Superior layer"></div>
+                            <div id="player-inferior" class="layer-img-container" style="display:none;"><img src="" alt="Inferior layer"></div>
+                            <div id="player-calzado" class="layer-img-container" style="display:none;"><img src="" alt="Calzado layer"></div>
+                            <div id="player-accesorio" class="layer-img-container" style="display:none;"><img src="" alt="Accesorio layer"></div>
+                        </div>
+                    </div>
+
+                    <!-- Meta Form -->
+                    <div class="builder-meta-form">
+                        <div class="control-group">
+                            <label for="outfit-name">Nombre de la Combinación:</label>
+                            <input type="text" id="outfit-name" placeholder="Ej. Urban Style Primavera" class="gold-input" autocomplete="off">
+                        </div>
+                        <div class="control-group">
+                            <label for="outfit-occasion">Ocasión:</label>
+                            <select id="outfit-occasion" class="gold-select">
+                                <option value="Casual" selected>Casual</option>
+                                <option value="Formal">Formal</option>
+                                <option value="Deportivo">Deportivo</option>
+                                <option value="Fiesta">Fiesta</option>
+                            </select>
+                        </div>
+                        <button class="gold-btn-large" id="btn-save-outfit" style="margin-top: 15px;">
+                            <span>Guardar Combinación</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INNER DRAWER FOR GARMENT SELECTION INSIDE MODAL -->
+    <div id="garment-select-drawer" class="drawer-overlay" style="display:none;">
+        <div class="drawer-content glass-card animate-slide-up">
+            <div class="drawer-header">
+                <h4 class="gold-text" id="drawer-title-category">Selecciona una prenda</h4>
+                <button class="close-drawer-btn" id="btn-close-drawer">&times;</button>
+            </div>
+            <div class="drawer-grid" id="drawer-items-grid">
+                <!-- Filled dynamically by JS with clothes matching category -->
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="toast-container"></div>
 
     <!-- Script File -->
     <script src="static/js/app.js"></script>

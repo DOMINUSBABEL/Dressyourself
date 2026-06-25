@@ -2,7 +2,7 @@
  * Dress Yourself - Client Interactive Engine
  * Handles asynchronous API connections, state management, vision scanning, 
  * interactive fitting room, Aria's styles/personalities, silhouette hover highlight,
- * and real-time community fashion tags.
+ * real-time community fashion tags, and personalized Outfit Builder.
  */
 
 // App State Configuration
@@ -26,7 +26,18 @@ const STATE = {
             { time: '15:10', text: 'Prendas curadas y preparadas en el empaque de seda.' }
         ]
     },
-    trackingInterval: null
+    trackingInterval: null,
+    
+    // Outfit Builder State
+    builderSlots: {
+        superior: null,
+        inferior: null,
+        calzado: null,
+        abrigo: null,
+        accesorio: null
+    },
+    activeBuilderSlot: null,
+    savedCombinations: []
 };
 
 // Look image map for Aria
@@ -82,7 +93,9 @@ const MOCK_DATA = {
         { id: 'c2', cat: 'inferior', name: 'Pantalón Sastrero Crema', style: 'Modern Editorial', image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?q=80&w=500&auto=format&fit=crop' },
         { id: 'c3', cat: 'abrigo', name: 'Blazer Negro Estructurado', style: 'Modern Classic', image: 'https://images.unsplash.com/photo-1548883354-7622d03aca27?q=80&w=500&auto=format&fit=crop' },
         { id: 'c4', cat: 'calzado', name: 'Mocasines de Cuero Miel', style: 'Heritage Classic', image: 'https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?q=80&w=500&auto=format&fit=crop' },
-        { id: 'c5', cat: 'superior', name: 'Body Knit Cuello Tortuga', style: 'Minimalist', image: 'https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=500&auto=format&fit=crop' }
+        { id: 'c5', cat: 'superior', name: 'Body Knit Cuello Tortuga', style: 'Minimalist', image: 'https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=500&auto=format&fit=crop' },
+        { id: 'c6', cat: 'accesorio', name: 'Gafas de Sol Gold Style', style: 'High-Fashion Accent', image: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=500&auto=format&fit=crop' },
+        { id: 'c7', cat: 'accesorio', name: 'Bolso Atelier de Cuero', style: 'Classic Editorial', image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=500&auto=format&fit=crop' }
     ],
     boutique: [
         { id: 'b1', cat: 'superior', brand: 'VALENTINO', name: 'Vestido Golden Glow Lurex', price: '$450', image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=500&auto=format&fit=crop' },
@@ -128,6 +141,30 @@ const MOCK_DATA = {
         { id: 1, user: 'Alessia V.', initials: 'AV', img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600&auto=format&fit=crop', desc: 'Tarde de lino y champaña con un blazer clásico.', votes: { aesthetic: 42, streetwear: 5, minimalist: 24, classic: 53, oversize: 8 }, userVoted: {} },
         { id: 2, user: 'Mateo Garces', initials: 'MG', img: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=600&auto=format&fit=crop', desc: 'Quiet luxury en la ciudad. Paletas crema y botas altas.', votes: { aesthetic: 18, streetwear: 35, minimalist: 62, classic: 41, oversize: 27 }, userVoted: {} },
         { id: 3, user: 'Sophia Atelier', initials: 'SA', img: 'https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?q=80&w=600&auto=format&fit=crop', desc: 'Probando el Vestidor de Aria. Combinación aprobada al 92%.', votes: { aesthetic: 75, streetwear: 12, minimalist: 19, classic: 25, oversize: 33 }, userVoted: {} }
+    ],
+    initialOutfits: [
+        {
+            id: 'o1',
+            name: 'Atelier Minimal Crema',
+            occasion: 'Formal',
+            items: [
+                { cat: 'superior', name: 'Camisa Seda Champagne', image: 'https://images.unsplash.com/photo-1603252109303-2751441dd157?q=80&w=150&auto=format&fit=crop' },
+                { cat: 'inferior', name: 'Pantalón Sastrero Crema', image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?q=80&w=150&auto=format&fit=crop' },
+                { cat: 'abrigo', name: 'Blazer Negro Estructurado', image: 'https://images.unsplash.com/photo-1548883354-7622d03aca27?q=80&w=150&auto=format&fit=crop' },
+                { cat: 'calzado', name: 'Mocasines de Cuero Miel', image: 'https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?q=80&w=150&auto=format&fit=crop' }
+            ]
+        },
+        {
+            id: 'o2',
+            name: 'Paseo de Otoño',
+            occasion: 'Casual',
+            items: [
+                { cat: 'superior', name: 'Body Knit Cuello Tortuga', image: 'https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=150&auto=format&fit=crop' },
+                { cat: 'inferior', name: 'Pantalón Sastrero Crema', image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?q=80&w=150&auto=format&fit=crop' },
+                { cat: 'calzado', name: 'Mocasines de Cuero Miel', image: 'https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?q=80&w=150&auto=format&fit=crop' },
+                { cat: 'accesorio', name: 'Bolso Atelier de Cuero', image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=150&auto=format&fit=crop' }
+            ]
+        }
     ]
 };
 
@@ -142,6 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initFittingRoom();
     initComunidad();
     initTracking();
+    initOutfitBuilder();
 });
 
 // 1. Dynamic Tab Navigation (Responsive support)
@@ -160,7 +198,6 @@ function switchTab(tabName) {
     if (!tabName) return;
     STATE.currentTab = tabName;
     
-    // Update active class on all nav elements (desktop + mobile tabs synced)
     document.querySelectorAll('.nav-btn, .bottom-nav-btn').forEach(btn => {
         if (btn.getAttribute('data-tab') === tabName) {
             btn.classList.add('active');
@@ -169,7 +206,6 @@ function switchTab(tabName) {
         }
     });
 
-    // Update visibility of tab content sections
     document.querySelectorAll('.tab-content').forEach(section => {
         section.classList.remove('active');
     });
@@ -180,7 +216,6 @@ function switchTab(tabName) {
         document.querySelector('.main-content').scrollTop = 0;
     }
     
-    // Custom behaviors on tab enter
     if (tabName === 'pedidos') {
         startTrackingSimulation();
     } else {
@@ -242,7 +277,6 @@ function renderRecommendations(items) {
             </div>
         `;
 
-        // Mannequin interactive hover highlight binders
         card.addEventListener('mouseenter', () => {
             const partId = card.getAttribute('data-part');
             const mannequinPart = document.getElementById(partId);
@@ -268,6 +302,7 @@ async function initCloset() {
     const filterButtons = document.querySelectorAll('.filter-btn');
 
     await loadClosetItems();
+    await loadSavedOutfits();
 
     filterButtons.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -333,6 +368,96 @@ function renderCloset(category) {
     });
 }
 
+// Saved combinations loaders
+async function loadSavedOutfits() {
+    try {
+        const response = await fetch('/api/outfits');
+        if (!response.ok) throw new Error("Fallback");
+        STATE.savedCombinations = await response.json();
+    } catch (e) {
+        STATE.savedCombinations = [...MOCK_DATA.initialOutfits];
+    }
+    renderSavedCombinations();
+}
+
+function renderSavedCombinations() {
+    const grid = document.getElementById('combinations-grid');
+    grid.innerHTML = '';
+
+    if (STATE.savedCombinations.length === 0) {
+        grid.innerHTML = `
+            <div class="loading-spinner-container" style="grid-column: 1 / -1; padding: 30px;">
+                <p style="font-size:0.9rem; color:var(--text-muted);">Aún no has diseñado ninguna combinación. ¡Haz clic arriba en "Diseñar Outfit" para comenzar!</p>
+            </div>
+        `;
+        return;
+    }
+
+    STATE.savedCombinations.forEach(combo => {
+        const card = document.createElement('div');
+        card.className = 'combination-card animate-fade-in';
+        
+        // Build items HTML thumbnails
+        let thumbsHTML = '';
+        combo.items.forEach(itm => {
+            if (itm && itm.image) {
+                thumbsHTML += `
+                    <div class="combo-item-thumb" title="${itm.name}">
+                        <img src="${itm.image}" alt="${itm.name}">
+                    </div>
+                `;
+            }
+        });
+
+        card.innerHTML = `
+            <div class="combo-header">
+                <h4 class="combo-name">${combo.name}</h4>
+                <span class="combo-occasion">${combo.occasion}</span>
+            </div>
+            <div class="combo-elements-previews">
+                ${thumbsHTML}
+            </div>
+            <div class="combo-actions">
+                <button class="combo-tryon-btn" data-id="${combo.id}">Probar Outfit</button>
+                <button class="delete-combo-btn" data-id="${combo.id}">&times;</button>
+            </div>
+        `;
+
+        // Click on "Probar Outfit" places top/bottom in fitting slots automatically
+        card.querySelector('.combo-tryon-btn').addEventListener('click', () => {
+            const top = combo.items.find(i => i.cat === 'superior');
+            const bottom = combo.items.find(i => i.cat === 'inferior');
+
+            if (top) selectForFitting('closet', top);
+            
+            // For Boutique slot, let's load a random matching boutique item to keep fitting room full
+            if (MOCK_DATA.boutique.length) {
+                selectForFitting('boutique', MOCK_DATA.boutique[Math.floor(Math.random() * MOCK_DATA.boutique.length)]);
+            }
+
+            switchTab('probador');
+            showToast("Prendas cargadas en el probador interactivo.");
+        });
+
+        // Delete button
+        card.querySelector('.delete-combo-btn').addEventListener('click', async () => {
+            if (!confirm(`¿Eliminar la combinación "${combo.name}"?`)) return;
+
+            try {
+                await fetch(`/api/outfits/${combo.id}`, { method: 'DELETE' });
+            } catch (err) {
+                // fall through
+            }
+
+            STATE.savedCombinations = STATE.savedCombinations.filter(c => c.id !== combo.id);
+            renderSavedCombinations();
+            showToast("Combinación eliminada con éxito.");
+        });
+
+        grid.appendChild(card);
+    });
+}
+
 // 4. Aria Assistant Engine
 function initAria() {
     const lookSelector = document.getElementById('aria-look');
@@ -341,12 +466,10 @@ function initAria() {
     const sendBtn = document.getElementById('send-chat');
     const chatInput = document.getElementById('chat-input');
 
-    // Look/Style selection
     lookSelector.addEventListener('change', (e) => {
         const lookKey = e.target.value;
         STATE.ariaLook = lookKey;
         
-        // Transition fade out/in
         portraitImg.style.opacity = '0';
         setTimeout(() => {
             portraitImg.src = ARIA_LOOK_IMAGES[lookKey] || ARIA_LOOK_IMAGES.base;
@@ -356,18 +479,15 @@ function initAria() {
         triggerAriaSpeech(`He cambiado mi apariencia a ${e.target.options[e.target.selectedIndex].text}. ¿Qué tal me queda?`);
     });
 
-    // Advisor Personality Selection
     personalitySelector.addEventListener('change', (e) => {
         STATE.ariaPersonality = e.target.value;
         triggerAriaSpeech(getRandomQuote());
     });
 
-    // Clicking Aria triggers quote and pulse animation
     portraitImg.addEventListener('click', () => {
         triggerAriaSpeech(getRandomQuote());
     });
 
-    // Chat events
     sendBtn.addEventListener('click', handleUserMessage);
     chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') handleUserMessage();
@@ -385,7 +505,6 @@ function triggerAriaSpeech(text) {
     
     speechEl.style.opacity = '0';
     
-    // Add pulsing border speaking animation
     if (pulseRing) {
         pulseRing.classList.add('talking');
         setTimeout(() => {
@@ -407,7 +526,6 @@ async function handleUserMessage() {
     chatInput.value = '';
     appendChatMessage('user', text);
 
-    // Call API with Aria profile
     try {
         const response = await fetch(`/api/ganchito/quote?personality=${STATE.ariaPersonality}&q=${encodeURIComponent(text)}`);
         if (!response.ok) throw new Error("Fallback");
@@ -763,6 +881,7 @@ function initComunidad() {
 
 function renderComunidadFeed() {
     const feedEl = document.getElementById('comunidad-feed');
+    if (!feedEl) return;
     feedEl.innerHTML = '';
 
     MOCK_DATA.posts.forEach((post, index) => {
@@ -780,13 +899,12 @@ function renderComunidadFeed() {
                 <img src="${post.img}" alt="Outfit post">
             </div>
             
-            <!-- Fashion style valuation bar -->
             <div class="valuation-bar">
                 <button class="tag-vote-btn ${post.userVoted.aesthetic ? 'active' : ''}" data-post-idx="${index}" data-tag="aesthetic">
                     ✨ Aesthetic <span class="vote-count">${post.votes.aesthetic}</span>
                 </button>
                 <button class="tag-vote-btn ${post.userVoted.streetwear ? 'active' : ''}" data-post-idx="${index}" data-tag="streetwear">
-                     Boardwalk 🛹 <span class="vote-count">${post.votes.streetwear}</span>
+                    🛹 Streetwear <span class="vote-count">${post.votes.streetwear}</span>
                 </button>
                 <button class="tag-vote-btn ${post.userVoted.minimalist ? 'active' : ''}" data-post-idx="${index}" data-tag="minimalist">
                     🖤 Minimalist <span class="vote-count">${post.votes.minimalist}</span>
@@ -804,7 +922,6 @@ function renderComunidadFeed() {
             </div>
         `;
 
-        // Style tag voting logic
         card.querySelectorAll('.tag-vote-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const tag = btn.getAttribute('data-tag');
@@ -812,16 +929,13 @@ function renderComunidadFeed() {
                 const postItem = MOCK_DATA.posts[postIdx];
 
                 if (postItem.userVoted[tag]) {
-                    // Undo vote
                     postItem.userVoted[tag] = false;
                     postItem.votes[tag]--;
                 } else {
-                    // Place vote
                     postItem.userVoted[tag] = true;
                     postItem.votes[tag]++;
                 }
 
-                // Render update for this post card
                 renderComunidadFeed();
             });
         });
@@ -833,10 +947,11 @@ function renderComunidadFeed() {
 // 9. Real-Time Order Tracking Logic (Fetch Polling & Simulations)
 function initTracking() {
     const refreshBtn = document.getElementById('btn-refresh-tracking');
-    refreshBtn.addEventListener('click', () => {
-        fetchOrderStatus(true);
-    });
-
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            fetchOrderStatus(true);
+        });
+    }
     fetchOrderStatus(false);
 }
 
@@ -852,7 +967,10 @@ async function fetchOrderStatus(isManual) {
 }
 
 function updateTrackingUI(order) {
-    document.getElementById('track-order-id').textContent = order.id;
+    const orderIdEl = document.getElementById('track-order-id');
+    if (!orderIdEl) return;
+    
+    orderIdEl.textContent = order.id;
     
     const progressBar = document.getElementById('track-progress-bar');
     const truckIcon = document.getElementById('truck-icon');
@@ -929,4 +1047,324 @@ function stopTrackingSimulation() {
         clearInterval(STATE.trackingInterval);
         STATE.trackingInterval = null;
     }
+}
+
+// 10. Personalized Outfit Builder Engine
+function initOutfitBuilder() {
+    const btnOpen = document.getElementById('btn-open-outfit-builder');
+    const btnClose = document.getElementById('btn-close-outfit-builder');
+    const modal = document.getElementById('outfit-builder-modal');
+    
+    const slots = document.querySelectorAll('.builder-slot');
+    const drawer = document.getElementById('garment-select-drawer');
+    const btnCloseDrawer = document.getElementById('btn-close-drawer');
+    const btnSave = document.getElementById('btn-save-outfit');
+
+    if (!btnOpen) return;
+
+    // Show / Hide Modal
+    btnOpen.addEventListener('click', () => {
+        modal.style.display = 'flex';
+        resetBuilder();
+    });
+
+    btnClose.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
+    // Close on overlay click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+
+    // Setup slot triggers
+    slots.forEach(slot => {
+        // Main slot selector click
+        slot.querySelector('.bslot-selector-trigger').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const cat = slot.getAttribute('data-category');
+            openGarmentDrawer(cat);
+        });
+
+        // Clear button listener for optional slots
+        const clearBtn = slot.querySelector('.clear-bslot-btn');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const cat = slot.getAttribute('data-category');
+                clearBuilderSlot(cat);
+            });
+        }
+    });
+
+    // Drawer Close rules
+    btnCloseDrawer.addEventListener('click', () => {
+        drawer.style.display = 'none';
+    });
+    drawer.addEventListener('click', (e) => {
+        if (e.target === drawer) drawer.style.display = 'none';
+    });
+
+    // Save Action
+    btnSave.addEventListener('click', saveCombination);
+}
+
+function openGarmentDrawer(category) {
+    STATE.activeBuilderSlot = category;
+    
+    const drawer = document.getElementById('garment-select-drawer');
+    const title = document.getElementById('drawer-title-category');
+    const grid = document.getElementById('drawer-items-grid');
+
+    const catLabels = {
+        superior: 'Prenda Superior (Top)',
+        inferior: 'Prenda Inferior (Bottom)',
+        calzado: 'Calzado (Footwear)',
+        abrigo: 'Abrigo (Outerwear)',
+        accesorio: 'Accesorio (Accessory)'
+    };
+
+    title.textContent = `Selecciona tu ${catLabels[category] || 'Prenda'}`;
+    grid.innerHTML = '';
+
+    // Filter clothes by category
+    const filtered = STATE.closetItems.filter(item => item.cat === category);
+
+    if (filtered.length === 0) {
+        grid.innerHTML = `
+            <div style="grid-column:1/-1; text-align:center; padding: 30px; color: var(--text-muted);">
+                No tienes prendas subidas en esta categoría.<br>
+                <span class="gold-text" style="cursor:pointer;" onclick="document.getElementById('garment-select-drawer').style.display='none'; document.getElementById('outfit-builder-modal').style.display='none'; switchTab('innovaciones');">
+                    Escanear prenda nueva &rarr;
+                </span>
+            </div>
+        `;
+        drawer.style.display = 'flex';
+        return;
+    }
+
+    filtered.forEach(item => {
+        const itemCard = document.createElement('div');
+        itemCard.className = 'drawer-item-card animate-fade-in';
+        itemCard.innerHTML = `
+            <div class="drawer-item-img">
+                <img src="${item.image}" alt="${item.name}">
+            </div>
+            <div class="drawer-item-name">${item.name}</div>
+        `;
+        itemCard.addEventListener('click', () => {
+            selectGarmentForBuilder(category, item);
+            drawer.style.display = 'none';
+        });
+        grid.appendChild(itemCard);
+    });
+
+    drawer.style.display = 'flex';
+}
+
+function selectGarmentForBuilder(category, item) {
+    STATE.builderSlots[category] = item;
+
+    const slot = document.getElementById(`bslot-${category}`);
+    slot.setAttribute('data-empty', 'false');
+    
+    // Render info inside slot
+    const preview = slot.querySelector('.selected-item-preview');
+    preview.innerHTML = `
+        <img class="preview-thumb" src="${item.image}" alt="${item.name}">
+        <span class="preview-name">${item.name}</span>
+    `;
+
+    // Show clear button if optional
+    const clearBtn = slot.querySelector('.clear-bslot-btn');
+    if (clearBtn) clearBtn.style.display = 'flex';
+
+    // Highlight silhouette part in modal mannequin
+    const mannequinPart = document.getElementById(`bmannequin-${category}`);
+    if (mannequinPart) {
+        mannequinPart.style.opacity = '0.85';
+        mannequinPart.style.strokeWidth = '2px';
+    }
+
+    // Display image overlay on the mannequin
+    const playerContainer = document.getElementById(`player-${category}`);
+    if (playerContainer) {
+        playerContainer.querySelector('img').src = item.image;
+        playerContainer.style.display = 'flex';
+        playerContainer.classList.add('animate-fade-in');
+    }
+}
+
+function clearBuilderSlot(category) {
+    STATE.builderSlots[category] = null;
+
+    const slot = document.getElementById(`bslot-${category}`);
+    slot.setAttribute('data-empty', 'true');
+    
+    // Hide clear button
+    const clearBtn = slot.querySelector('.clear-bslot-btn');
+    if (clearBtn) clearBtn.style.display = 'none';
+
+    // Reset mannequin vector highlight
+    const mannequinPart = document.getElementById(`bmannequin-${category}`);
+    if (mannequinPart) {
+        mannequinPart.style.opacity = '0.2';
+        mannequinPart.style.strokeWidth = '1.2px';
+    }
+
+    // Hide overlay layer image
+    const playerContainer = document.getElementById(`player-${category}`);
+    if (playerContainer) {
+        playerContainer.style.display = 'none';
+        playerContainer.querySelector('img').src = '';
+    }
+}
+
+function resetBuilder() {
+    Object.keys(STATE.builderSlots).forEach(category => {
+        clearBuilderSlot(category);
+    });
+    document.getElementById('outfit-name').value = '';
+    document.getElementById('outfit-occasion').value = 'Casual';
+}
+
+async function saveCombination() {
+    const nameInput = document.getElementById('outfit-name');
+    const occasionSelect = document.getElementById('outfit-occasion');
+    
+    const name = nameInput.value.trim();
+    const occasion = occasionSelect.value;
+
+    // Validate mandatory categories
+    if (!STATE.builderSlots.superior) {
+        showToast("Por favor selecciona una prenda superior (Top).", "error");
+        return;
+    }
+    if (!STATE.builderSlots.inferior) {
+        showToast("Por favor selecciona una prenda inferior (Bottom).", "error");
+        return;
+    }
+    if (!STATE.builderSlots.calzado) {
+        showToast("Por favor selecciona el calzado (Footwear).", "error");
+        return;
+    }
+
+    if (!name) {
+        showToast("Por favor ingresa un nombre para el outfit.", "error");
+        nameInput.focus();
+        return;
+    }
+
+    // Format payload
+    const payload = {
+        name: name,
+        occasion: occasion,
+        top_id: STATE.builderSlots.superior.id,
+        bottom_id: STATE.builderSlots.inferior.id,
+        footwear_id: STATE.builderSlots.calzado.id,
+        outerwear_id: STATE.builderSlots.abrigo ? STATE.builderSlots.abrigo.id : null,
+        accessory_id: STATE.builderSlots.accesorio ? STATE.builderSlots.accesorio.id : null
+    };
+
+    // UI Loading state
+    const btnSave = document.getElementById('btn-save-outfit');
+    const oldHTML = btnSave.innerHTML;
+    btnSave.setAttribute('disabled', 'true');
+    btnSave.innerHTML = `<span>Guardando Combinación...</span>`;
+
+    let success = false;
+    let newOutfitObject = null;
+
+    try {
+        const response = await fetch('/api/outfits', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        if (response.ok) {
+            newOutfitObject = await response.json();
+            success = true;
+        }
+    } catch (e) {
+        console.log("Using fallback mock for outfit save.");
+    }
+
+    // Fallback Mock save
+    if (!success) {
+        // Collect selected items list for immediate rendering
+        const selectedItems = [];
+        Object.keys(STATE.builderSlots).forEach(key => {
+            const item = STATE.builderSlots[key];
+            if (item) {
+                selectedItems.push({
+                    cat: key,
+                    name: item.name,
+                    image: item.image
+                });
+            }
+        });
+
+        newOutfitObject = {
+            id: 'o_saved_' + Date.now(),
+            name: name,
+            occasion: occasion,
+            items: selectedItems
+        };
+        success = true;
+    }
+
+    // Wrap save operation
+    setTimeout(() => {
+        btnSave.removeAttribute('disabled');
+        btnSave.innerHTML = oldHTML;
+
+        if (success) {
+            STATE.savedCombinations.unshift(newOutfitObject);
+            renderSavedCombinations();
+            
+            // Close modal
+            document.getElementById('outfit-builder-modal').style.display = 'none';
+            
+            // Show toast notification
+            showToast(`¡Outfit "${name}" guardado exitosamente!`);
+        } else {
+            showToast("Hubo un error al guardar la combinación. Inténtalo de nuevo.", "error");
+        }
+    }, 1200);
+}
+
+// Toast Alert Helper
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    if (type === 'error') {
+        toast.style.borderColor = '#e25c5c';
+        toast.innerHTML = `
+            <span style="color:#e25c5c; font-weight:bold;">✕</span>
+            <span>${message}</span>
+        `;
+    } else {
+        toast.innerHTML = `
+            <span class="toast-success-icon">✓</span>
+            <span>${message}</span>
+        `;
+    }
+
+    container.appendChild(toast);
+
+    // Fade out out after 3 seconds
+    setTimeout(() => {
+        toast.classList.add('hide');
+        setTimeout(() => {
+            toast.remove();
+        }, 350);
+    }, 3000);
 }
