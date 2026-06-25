@@ -290,8 +290,10 @@ def get_weather():
 # --- Static Web App Routing ---
 @app.route('/')
 def serve_index():
-    # Serves index.html from workspace root, or static/ directory
-    if os.path.exists('index.html'):
+    # Serves index.html from templates/, workspace root, or static/ directory
+    if os.path.exists('templates/index.html'):
+        return send_file('templates/index.html')
+    elif os.path.exists('index.html'):
         return send_file('index.html')
     elif os.path.exists('static/index.html'):
         return send_from_directory('static', 'index.html')
@@ -299,7 +301,7 @@ def serve_index():
         return jsonify({
             "status": "online",
             "message": "Dress Yourself REST API is running. Point your client to this server.",
-            "note": "Static frontend files not found at root or static/. Web app GUI is unavailable."
+            "note": "Static frontend files not found at templates/, root or static/. Web app GUI is unavailable."
         }), 200
 
 @app.route('/<path:path>')
