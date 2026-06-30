@@ -2371,7 +2371,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     
     .main-content {
         padding: 20px;
-        padding-bottom: 90px; /* Space for bottom navigation bar */
+        padding-bottom: 105px; /* Space for taller bottom navigation bar */
         height: calc(100vh - 65px); /* Window minus mobile header */
     }
     
@@ -2379,21 +2379,23 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
         font-size: 1.8rem;
     }
     
-    /* Bottom Navigation Bar styled like Native iOS/Android navbar */
+    /* Bottom Navigation Bar styled like Native iOS/Android navbar with Safe Area Insets */
     .bottom-nav {
         display: flex;
         position: absolute;
         bottom: 0;
         left: 0;
         right: 0;
-        height: 65px;
+        height: calc(65px + env(safe-area-inset-bottom, 12px));
+        padding-bottom: env(safe-area-inset-bottom, 12px);
         background: rgba(18, 18, 18, 0.95);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border-top: 1px solid var(--border-color);
         justify-content: space-around;
         align-items: center;
-        padding: 0 8px;
+        padding-left: 8px;
+        padding-right: 8px;
         z-index: 15;
     }
     
