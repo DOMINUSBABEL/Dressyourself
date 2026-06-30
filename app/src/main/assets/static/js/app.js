@@ -2206,4 +2206,3 @@ function simulatePriceTrackerFluctuations() {
 function showDiscountToast(item, currentPrice, originalPrice) {
     showToast(`¡Alerta de Descuento! "${item.name}" de ${item.brand} bajó a $${currentPrice} (era ${originalPrice}).`, 'success');
 }
-}
