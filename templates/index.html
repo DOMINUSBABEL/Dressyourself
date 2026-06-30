@@ -35,6 +35,14 @@
                     <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z" fill="currentColor"/></svg>
                     <span>Asistente</span>
                 </button>
+                <button class="nav-btn" data-tab="lienzo">
+                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor"/></svg>
+                    <span>Lienzo Libre</span>
+                </button>
+                <button class="nav-btn" data-tab="maleta">
+                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 6h-3V5c0-1.1-.9-2-2-2h-6c-1.1 0-2 .9-2 2v1H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM9 5c0-.55.45-1 1-1h4c.55 0 1 .45 1 1v1H9V5zm11 14H4V8h16v11z" fill="currentColor"/></svg>
+                    <span>Maleta de Viaje</span>
+                </button>
                 <button class="nav-btn" data-tab="innovaciones">
                     <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.07 19.64 10.47 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z" fill="currentColor"/></svg>
                     <span>Innovaciones</span>
@@ -66,6 +74,21 @@
                 <span class="mobile-subtitle">HAUTE COUTURE AI</span>
             </header>
 
+            <!-- Top Header Profile Bar -->
+            <div class="top-profile-bar glass-card" id="btn-open-profile-modal">
+                <div class="user-greeting">
+                    <span class="welcome-text">Bienvenida, <span id="header-user-name">Invitada</span></span>
+                    <span class="user-subtext">Tu estilo, tu esencia.</span>
+                </div>
+                <div class="profile-summary-badge">
+                    <div class="profile-avatar">✨</div>
+                    <div class="profile-info-mini">
+                        <span class="profile-lvl-mini" id="mini-user-level">Novicia</span>
+                        <span class="profile-xp-mini" id="mini-user-xp">XP: 0 / 100</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- TABS -->
             
             <!-- SECTION 1: CLIMA -->
@@ -86,6 +109,23 @@
                     <div class="weather-extra" id="weather-details">
                         <!-- Filled by JS -->
                     </div>
+                </div>
+
+                <!-- Clima semantic contexts & recalculate button -->
+                <div class="clima-controls glass-card">
+                    <h4 class="control-title gold-text" style="font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Contexto de Outfit</h4>
+                    <div class="context-selectors" style="margin-bottom: 15px;">
+                        <button class="context-btn active" data-context="Casual">Casual</button>
+                        <button class="context-btn" data-context="Oficina">Oficina</button>
+                        <button class="context-btn" data-context="Gimnasio">Gimnasio</button>
+                        <button class="context-btn" data-context="Gala">Gala</button>
+                        <button class="context-btn" data-context="Deportivo">Deportivo</button>
+                        <button class="context-btn" data-context="Urbano">Urbano</button>
+                    </div>
+                    <button id="btn-recalculate-ootd" class="gold-btn" style="width: 100%; justify-content: center; padding: 14px;">
+                        <svg viewBox="0 0 24 24" class="btn-icon" style="width: 18px; height: 18px;"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/></svg>
+                        <span>Refrescar / Recalcular Outfit</span>
+                    </button>
                 </div>
 
                 <div class="clima-layout-container">
@@ -195,26 +235,26 @@
                 </div>
             </section>
 
-            <!-- SECTION 3: ASISTENTE (ARIA) -->
+            <!-- SECTION 3: ASISTENTE (ISA) -->
             <section id="asistente" class="tab-content">
                 <div class="section-header">
-                    <h2 class="editorial-title">Aria | Tu Asistente Personal</h2>
-                    <p class="section-desc">Asesoría de moda de alta costura interactiva con Aria.</p>
+                    <h2 class="editorial-title">Isa | Tu Asistente Personal</h2>
+                    <p class="section-desc">Asesoría de moda de alta costura interactiva con Isa.</p>
                 </div>
 
                 <div class="asistente-container glass-card">
-                    <!-- Aria Visual Frame -->
+                    <!-- Isa Visual Frame -->
                     <div class="aria-frame">
                         <div class="aria-portrait-wrapper">
-                            <!-- Aria Live Character Image -->
-                            <img id="aria-portrait" src="static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Propuesta Animada.png" alt="Aria - Asistente de Estilo">
+                            <!-- Isa Live Character Image -->
+                            <img id="aria-portrait" src="static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Propuesta Animada.png" alt="Isa - Asistente de Estilo">
                             <div class="aria-pulse-ring"></div>
                         </div>
                         
                         <div class="aria-controls">
                             <!-- Dynamic Hair/Style Selection -->
                             <div class="control-group">
-                                <label for="aria-look">Estilo de Aria (Look):</label>
+                                <label for="aria-look">Estilo de Isa (Look):</label>
                                 <select id="aria-look" class="gold-select">
                                     <option value="base" selected>Default (Pasarela)</option>
                                     <option value="castano_corto">Pelo Castaño Corto</option>
@@ -227,7 +267,7 @@
 
                             <!-- Advisor Personality Tone -->
                             <div class="control-group">
-                                <label for="personality">Personalidad de Aria:</label>
+                                <label for="personality">Personalidad de Isa:</label>
                                 <select id="personality" class="gold-select">
                                     <option value="classy" selected>Clásica</option>
                                     <option value="diva">Diva</option>
@@ -242,7 +282,7 @@
                     <div class="chat-area">
                         <div class="bubble-speech">
                             <div class="bubble-tail"></div>
-                            <p id="aria-speech">¡Hola! Soy Aria. Selecciona mi estilo y personalidad a la izquierda, y te daré mi veredicto sobre tu estilo actual. O si lo prefieres, hazme una consulta de moda.</p>
+                            <p id="aria-speech">¡Hola! Soy Isa. Selecciona mi estilo y personalidad a la izquierda, y te daré mi veredicto sobre tu estilo actual. O si lo prefieres, hazme una consulta de moda.</p>
                         </div>
 
                         <div class="chat-history" id="chat-history">
@@ -250,10 +290,119 @@
                         </div>
 
                         <div class="chat-input-row">
-                            <input type="text" id="chat-input" placeholder="Pregúntale a Aria..." autocomplete="off">
+                            <input type="text" id="chat-input" placeholder="Pregúntale a Isa..." autocomplete="off">
                             <button id="send-chat" class="gold-btn">
                                 <span>Enviar</span>
                             </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: LIENZO LIBRE -->
+            <section id="lienzo" class="tab-content">
+                <div class="section-header">
+                    <h2 class="editorial-title">Lienzo Libre de Vestidor</h2>
+                    <p class="section-desc">Diseña tu propio outfit visual combinando tus prendas en un canvas libre de alta moda.</p>
+                </div>
+                
+                <div class="lienzo-container">
+                    <!-- Left: Control panel / Garment selector -->
+                    <div class="lienzo-sidebar glass-card">
+                        <h4 class="gold-text" style="font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">Tus Prendas</h4>
+                        <p class="section-desc-small">Haz clic en una prenda para añadirla al lienzo:</p>
+                        <div class="lienzo-garments-scroller" id="lienzo-garments-scroller">
+                            <!-- Populated with closet items by JS -->
+                        </div>
+                    </div>
+                    
+                    <!-- Center: Workspace Canvas -->
+                    <div class="lienzo-workspace-wrapper">
+                        <div class="lienzo-canvas" id="lienzo-canvas">
+                            <div class="canvas-grid-lines"></div>
+                            <span class="canvas-placeholder">Selecciona prendas de la izquierda para comenzar a diseñar tu look en el lienzo libre</span>
+                        </div>
+                        
+                        <!-- Floating controls -->
+                        <div class="lienzo-controls-bar glass-card">
+                            <div class="control-item">
+                                <label>Escala</label>
+                                <input type="range" id="lienzo-scale" min="0.2" max="2" step="0.1" value="1">
+                            </div>
+                            <div class="control-item">
+                                <label>Rotación</label>
+                                <input type="range" id="lienzo-rotate" min="0" max="360" step="5" value="0">
+                            </div>
+                            <div class="control-actions">
+                                <button class="gold-btn-icon" id="btn-lienzo-front" title="Traer al frente">▲</button>
+                                <button class="gold-btn-icon" id="btn-lienzo-back" title="Enviar atrás">▼</button>
+                                <button class="gold-btn-icon" id="btn-lienzo-delete" title="Eliminar seleccionado">✖</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Save Look Form -->
+                    <div class="lienzo-save-pane glass-card">
+                        <h4 class="gold-text" style="font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">Guardar Look</h4>
+                        <div class="control-group">
+                            <label for="lienzo-look-name">Nombre del Look:</label>
+                            <input type="text" id="lienzo-look-name" class="gold-input" placeholder="Ej: Look de Invierno Chic" autocomplete="off" style="margin-top: 8px;">
+                        </div>
+                        <button class="gold-btn" id="btn-save-lienzo-look" style="width:100%; justify-content:center; margin-top: 15px;">Guardar Look</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: MALETA DE VIAJE -->
+            <section id="maleta" class="tab-content">
+                <div class="section-header">
+                    <h2 class="editorial-title">Maleta de Viaje</h2>
+                    <p class="section-desc">Planifica tu equipaje y genera una maleta inteligente (Armario Cápsula) para tu próximo destino.</p>
+                </div>
+                
+                <div class="maleta-layout">
+                    <!-- Left Column: Form -->
+                    <div class="maleta-form-card glass-card">
+                        <h3 class="subsection-title gold-text" style="margin-top: 0; font-size: 1.25rem; text-transform: uppercase; letter-spacing: 1px;">Planifica tu Viaje</h3>
+                        <form id="maleta-form" onsubmit="event.preventDefault();" style="display:flex; flex-direction:column; gap: 15px;">
+                            <div class="control-group">
+                                <label for="maleta-destino">Destino:</label>
+                                <input type="text" id="maleta-destino" class="gold-input" placeholder="Ej. París, Francia" required autocomplete="off" style="margin-top: 6px;">
+                            </div>
+                            <div class="control-group">
+                                <label for="maleta-dias">Cantidad de Días:</label>
+                                <input type="number" id="maleta-dias" class="gold-input" min="1" max="30" value="3" required style="margin-top: 6px;">
+                            </div>
+                            <div class="control-group">
+                                <label for="maleta-clima">Clima Esperado:</label>
+                                <select id="maleta-clima" class="gold-select" style="margin-top: 6px;">
+                                    <option value="Fresco" selected>Fresco / Templado</option>
+                                    <option value="Cálido">Cálido / Tropical</option>
+                                    <option value="Frío">Frío / Invernal</option>
+                                    <option value="Lluvioso">Lluvioso</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label for="maleta-capacidad">Capacidad de Equipaje:</label>
+                                <select id="maleta-capacidad" class="gold-select" style="margin-top: 6px;">
+                                    <option value="Mano" selected>Maleta de Mano (Cabin Bag)</option>
+                                    <option value="Mediana">Maleta Mediana (15kg)</option>
+                                    <option value="Grande">Maleta Grande (23kg)</option>
+                                </select>
+                            </div>
+                            <button type="submit" id="btn-generar-maleta" class="gold-btn-large" style="margin-top: 10px; padding: 14px;">Generar Maleta Cápsula</button>
+                        </form>
+                    </div>
+                    
+                    <!-- Right Column: Interactive Checklist -->
+                    <div class="maleta-result-card glass-card">
+                        <h3 class="subsection-title gold-text" style="margin-top: 0; font-size: 1.25rem; text-transform: uppercase; letter-spacing: 1px;">Tu Checklist de Equipaje</h3>
+                        <p class="section-desc-small">Tacha las prendas a medida que las empacas físicamente:</p>
+                        
+                        <div class="maleta-checklist" id="maleta-checklist">
+                            <div class="checklist-empty-state">
+                                <p>Rellena el formulario de la izquierda y haz clic en "Generar Maleta Cápsula" para armar tu maleta.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -326,12 +475,27 @@
             <!-- SECTION 5: BOUTIQUE -->
             <section id="boutique" class="tab-content">
                 <div class="section-header">
-                    <h2 class="editorial-title">Boutique Curada</h2>
-                    <p class="section-desc">Explora colecciones exclusivas. Agrégalas al probador o realiza una orden directamente.</p>
+                    <h2 class="editorial-title">Boutique Curada & Price Tracker</h2>
+                    <p class="section-desc">Explora colecciones exclusivas, monitorea la fluctuación de precios de tus prendas favoritas y aprovecha alertas de descuento instantáneas.</p>
                 </div>
 
-                <div class="boutique-grid" id="boutique-grid">
-                    <!-- Loaded dynamically via JS -->
+                <div class="boutique-layout">
+                    <div class="boutique-main">
+                        <h3 class="subsection-title gold-text" style="margin-top: 0; font-size: 1.25rem; text-transform: uppercase; letter-spacing: 1px;">Colección Exclusiva</h3>
+                        <div class="boutique-grid" id="boutique-grid">
+                            <!-- Loaded dynamically via JS -->
+                        </div>
+                    </div>
+                    
+                    <div class="boutique-price-tracker glass-card">
+                        <h3 class="subsection-title gold-text" style="margin-top: 0; font-size: 1.25rem; text-transform: uppercase; letter-spacing: 1px;">Price Tracker</h3>
+                        <p class="section-desc-small">Monitorea los precios históricos de las prendas que te interesan:</p>
+                        
+                        <div class="tracker-items-list" id="tracker-items-list">
+                            <!-- Populated dynamically via JS -->
+                            <p class="empty-tracker">Haz clic en el icono de favorito (♥) de cualquier prenda de la boutique para activar el rastreo de precio.</p>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -394,7 +558,7 @@
                                 <span class="score-pct" id="score-pct">0%</span>
                             </div>
                             <div class="verdict-bubble">
-                                <strong class="gold-text">Veredicto de Aria:</strong>
+                                <strong class="gold-text">Veredicto de Isa:</strong>
                                 <p id="verdict-text">"Analizando tu silueta..."</p>
                             </div>
                             <div class="verdict-actions">
@@ -493,9 +657,13 @@
                 <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z" fill="currentColor"/></svg>
                 <span>Asistente</span>
             </button>
-            <button class="bottom-nav-btn" data-tab="innovaciones">
-                <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.07 19.64 10.47 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9z" fill="currentColor"/></svg>
-                <span>Scan</span>
+            <button class="bottom-nav-btn" data-tab="lienzo">
+                <svg viewBox="0 0 24 24" class="nav-icon"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor"/></svg>
+                <span>Lienzo</span>
+            </button>
+            <button class="bottom-nav-btn" data-tab="maleta">
+                <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 6h-3V5c0-1.1-.9-2-2-2h-6c-1.1 0-2 .9-2 2v1H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM9 5c0-.55.45-1 1-1h4c.55 0 1 .45 1 1v1H9V5zm11 14H4V8h16v11z" fill="currentColor"/></svg>
+                <span>Maleta</span>
             </button>
             <button class="bottom-nav-btn" data-tab="boutique">
                 <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 6h-4V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v1H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z" fill="currentColor"/></svg>
@@ -657,6 +825,115 @@
 
     <!-- TOAST NOTIFICATION CONTAINER -->
     <div id="toast-container" class="toast-container"></div>
+
+    <!-- ONBOARDING / SPLASH SCREEN MODAL -->
+    <div id="onboarding-modal" class="modal-overlay" style="display:none; z-index: 1000;">
+        <div class="modal-content onboarding-modal-content glass-card">
+            <div class="onboarding-logo">DRESS YOURSELF</div>
+            <div class="onboarding-subtitle">Haute Couture AI</div>
+            <div class="onboarding-welcome-msg">
+                Hola, soy <strong>Isa</strong>, tu asesora de imagen y voy a ayudarte a mejorar tu estilo.
+            </div>
+            
+            <form id="onboarding-form" onsubmit="event.preventDefault();" style="display:flex; flex-direction:column; gap:18px; text-align: left;">
+                <div class="control-group">
+                    <label for="onboarding-name">Tu Nombre:</label>
+                    <input type="text" id="onboarding-name" class="gold-input" placeholder="Ej. Valeria" required autocomplete="off" style="margin-top: 6px;">
+                </div>
+                
+                <div class="control-group">
+                    <label>Preferencia de Estilo:</label>
+                    <div class="onboarding-style-options" style="margin-top: 8px;">
+                        <label>
+                            <input type="radio" name="onboarding-style" value="Cómodo" checked>
+                            <span>Cómodo</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="onboarding-style" value="Elegante">
+                            <span>Elegante</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="onboarding-style" value="Romántico">
+                            <span>Romántico</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="onboarding-city">Ciudad por defecto:</label>
+                    <input type="text" id="onboarding-city" class="gold-input" placeholder="Ej. Bogotá, Colombia" required autocomplete="off" style="margin-top: 6px;">
+                </div>
+                
+                <button type="submit" id="btn-save-onboarding" class="gold-btn-large" style="margin-top: 15px; padding: 15px;">Comenzar mi Experiencia</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- GAMIFICATION & PROFILE MODAL -->
+    <div id="profile-modal" class="modal-overlay" style="display:none; z-index: 500;">
+        <div class="modal-content profile-modal-content glass-card">
+            <button class="close-modal-btn" id="btn-close-profile-modal">&times;</button>
+            <div class="profile-dashboard-layout">
+                <div class="profile-header-main">
+                    <div class="profile-avatar-large">✨</div>
+                    <h2 class="editorial-title" id="profile-user-name" style="margin-bottom: 0;">Tu Nombre</h2>
+                    <span class="profile-level-badge" id="profile-user-level" style="margin-top: 5px;">Novicia</span>
+                </div>
+                
+                <div class="xp-progress-section">
+                    <div class="xp-labels">
+                        <span>Puntos de Experiencia</span>
+                        <span id="profile-xp-text" class="gold-text">0 / 100 XP</span>
+                    </div>
+                    <div class="xp-bar-bg">
+                        <div class="xp-bar-fill" id="profile-xp-bar" style="width: 0%"></div>
+                    </div>
+                    <p class="xp-tip">Sube prendas a tu armario, recalcula tu outfit o compra en boutique para obtener XP e insignias de Isa.</p>
+                </div>
+                
+                <div class="medallas-section">
+                    <h4 class="gold-text" style="font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1px;">Tus Medallas de Logro</h4>
+                    <div class="medallas-grid">
+                        <div class="medalla-card locked" id="medal-onboarding">
+                            <div class="medalla-icon">👑</div>
+                            <span class="medalla-title">Onboarding</span>
+                            <span class="medalla-desc">Perfil inicial creado</span>
+                        </div>
+                        <div class="medalla-card locked" id="medal-fiel-estilo">
+                            <div class="medalla-icon">🌟</div>
+                            <span class="medalla-title">Fiel del Estilo</span>
+                            <span class="medalla-desc">5 consultas del clima</span>
+                        </div>
+                        <div class="medalla-card locked" id="medal-boutique-premium">
+                            <div class="medalla-icon">🛍️</div>
+                            <span class="medalla-title">Boutique Premium</span>
+                            <span class="medalla-desc">Compraste una prenda</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="cupones-section">
+                    <h4 class="gold-text" style="font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1px;">Cupones & Recompensas</h4>
+                    <div class="cupones-list">
+                        <div class="cupon-card locked" id="coupon-cashback">
+                            <div class="cupon-details">
+                                <span class="cupon-title">15% Cashback</span>
+                                <span class="cupon-desc">Desbloqueado al nivel Estilista</span>
+                            </div>
+                            <div class="cupon-code">ESTILISTA15</div>
+                        </div>
+                        <div class="cupon-card locked" id="coupon-shipping">
+                            <div class="cupon-details">
+                                <span class="cupon-title">Envíos Gratis</span>
+                                <span class="cupon-desc">Desbloqueado al nivel Trendsetter</span>
+                            </div>
+                            <div class="cupon-code">FREESHIP</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Script File -->
     <script src="static/js/app.js"></script>

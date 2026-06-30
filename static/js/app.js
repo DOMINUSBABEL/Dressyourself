@@ -37,7 +37,13 @@ const STATE = {
         accesorio: null
     },
     activeBuilderSlot: null,
-    savedCombinations: []
+    savedCombinations: [],
+    
+    // Custom Redesign Features State
+    userProfile: null,
+    weatherClicks: 0,
+    favorites: [],
+    selectedCanvasItem: null
 };
 
 // Look image map for Aria
@@ -104,7 +110,7 @@ const MOCK_DATA = {
         { id: 'b4', cat: 'calzado', brand: 'PRADA', name: 'Tacones Velvet Emerald', price: '$340', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=500&auto=format&fit=crop' },
         { id: 'b5', cat: 'superior', brand: 'JIL SANDER', name: 'Camisa Oversize Silk Sage', price: '$160', image: 'https://images.unsplash.com/photo-1551854838-212c50b4c184?q=80&w=500&auto=format&fit=crop' }
     ],
-    ariaQuotes: {
+    isaQuotes: {
         classy: [
             "La sencillez es la clave de la verdadera elegancia, querido.",
             "Una silueta limpia nunca pasa de moda. Agrega textura antes que logos.",
@@ -140,7 +146,7 @@ const MOCK_DATA = {
     posts: [
         { id: 1, user: 'Alessia V.', initials: 'AV', img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600&auto=format&fit=crop', desc: 'Tarde de lino y champaña con un blazer clásico.', votes: { aesthetic: 42, streetwear: 5, minimalist: 24, classic: 53, oversize: 8 }, userVoted: {} },
         { id: 2, user: 'Mateo Garces', initials: 'MG', img: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=600&auto=format&fit=crop', desc: 'Quiet luxury en la ciudad. Paletas crema y botas altas.', votes: { aesthetic: 18, streetwear: 35, minimalist: 62, classic: 41, oversize: 27 }, userVoted: {} },
-        { id: 3, user: 'Sophia Atelier', initials: 'SA', img: 'https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?q=80&w=600&auto=format&fit=crop', desc: 'Probando el Vestidor de Aria. Combinación aprobada al 92%.', votes: { aesthetic: 75, streetwear: 12, minimalist: 19, classic: 25, oversize: 33 }, userVoted: {} }
+        { id: 3, user: 'Sophia Atelier', initials: 'SA', img: 'https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?q=80&w=600&auto=format&fit=crop', desc: 'Probando el Vestidor de Isa. Combinación aprobada al 92%.', votes: { aesthetic: 75, streetwear: 12, minimalist: 19, classic: 25, oversize: 33 }, userVoted: {} }
     ],
     initialOutfits: [
         {
@@ -170,6 +176,7 @@ const MOCK_DATA = {
 
 // Document Lifecycle Init
 document.addEventListener('DOMContentLoaded', () => {
+    initOnboarding();
     initNavigation();
     initWeather();
     initCloset();
@@ -180,6 +187,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initComunidad();
     initTracking();
     initOutfitBuilder();
+    initLienzoLibre();
+    initMaletaViaje();
+    initGamification();
+    initPriceTracker();
 });
 
 // 1. Dynamic Tab Navigation (Responsive support)
@@ -224,15 +235,76 @@ function switchTab(tabName) {
 }
 
 // 2. Weather & Daily Recommendations Integration (with interactive mannequin highlights)
+let weatherSelectorsBound = false;
+
 async function initWeather() {
+    const city = STATE.userProfile ? STATE.userProfile.city : 'Bogotá, Colombia';
+    const occasionBtn = document.querySelector('.context-btn.active');
+    const occasion = occasionBtn ? occasionBtn.getAttribute('data-context') : 'Casual';
+    
+    // Bind context selectors once
+    if (!weatherSelectorsBound) {
+        setupWeatherContextSelectors();
+        weatherSelectorsBound = true;
+    }
+
     try {
-        const response = await fetch('/api/clima');
+        const response = await fetch(`/api/weather/live?city=${encodeURIComponent(city)}`);
         if (!response.ok) throw new Error("Fallback to mock");
         const data = await response.json();
         renderWeather(data);
+        
+        // Fetch recommendations from API based on location/context
+        const recResponse = await fetch(`/api/recommend?city_index=0&occasion=${encodeURIComponent(occasion)}`);
+        if (recResponse.ok) {
+            const recData = await recResponse.json();
+            const recommended = [];
+            if (recData.recommended_clothes) {
+                const catMap = { 'Top': 'mannequin-superior', 'Bottom': 'mannequin-inferior', 'Outerwear': 'mannequin-abrigo', 'Footwear': 'mannequin-calzado' };
+                recData.recommended_clothes.forEach(rc => {
+                    recommended.push({
+                        type: rc.category,
+                        name: rc.name,
+                        part: catMap[rc.category] || 'mannequin-superior',
+                        why: recData.justification || 'Prenda seleccionada especialmente por Isa.',
+                        image: rc.image_url || 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=200',
+                        badge: rc.style || 'Isa Choice'
+                    });
+                });
+            }
+            renderRecommendations(recommended.length ? recommended : MOCK_DATA.climaRecommendation);
+        } else {
+            renderRecommendations(MOCK_DATA.climaRecommendation);
+        }
     } catch (e) {
         renderWeather(MOCK_DATA.weather);
         renderRecommendations(MOCK_DATA.climaRecommendation);
+    }
+}
+
+function setupWeatherContextSelectors() {
+    const ctxButtons = document.querySelectorAll('.context-btn');
+    ctxButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            ctxButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Increment clicks for gamification
+            STATE.weatherClicks++;
+            checkGamificationMilestones();
+            
+            initWeather();
+        });
+    });
+    
+    const recalculateBtn = document.getElementById('btn-recalculate-ootd');
+    if (recalculateBtn) {
+        recalculateBtn.addEventListener('click', () => {
+            STATE.weatherClicks++;
+            checkGamificationMilestones();
+            initWeather();
+            showToast("Outfit recalculado para el clima de hoy.");
+        });
     }
 }
 
@@ -458,7 +530,7 @@ function renderSavedCombinations() {
     });
 }
 
-// 4. Aria Assistant Engine
+// 4. Isa Assistant Engine
 function initAria() {
     const lookSelector = document.getElementById('aria-look');
     const personalitySelector = document.getElementById('personality');
@@ -495,7 +567,7 @@ function initAria() {
 }
 
 function getRandomQuote() {
-    const quotes = MOCK_DATA.ariaQuotes[STATE.ariaPersonality] || MOCK_DATA.ariaQuotes.classy;
+    const quotes = MOCK_DATA.isaQuotes[STATE.ariaPersonality] || MOCK_DATA.isaQuotes.classy;
     return quotes[Math.floor(Math.random() * quotes.length)];
 }
 
@@ -537,7 +609,7 @@ async function handleUserMessage() {
             const botReplies = {
                 classy: `Como asesora de tu closet, considero que "${text}" queda excelente con un blazer sastrero clásico. Menos es siempre más.`,
                 diva: `¡Ay, cariño! Sobre "${text}"... Si no te hace resaltar bajo los reflectores de la pasarela, ¡siguiente prenda!`,
-                sarcastic: `¿En serio me preguntas por "${text}"? Aria te aconseja que revisemos esa decisión antes de salir al público.`,
+                sarcastic: `¿En serio me preguntas por "${text}"? Isa te aconseja que revisemos esa decisión antes de salir al público.`,
                 nervous: `¡Ay no sé! Sobre "${text}"... espero que no llame demasiado la atención de forma incorrecta. ¿Qué tal un total black?`
             };
             const reply = botReplies[STATE.ariaPersonality] || botReplies.classy;
@@ -691,6 +763,7 @@ async function initBoutique() {
 
 function renderBoutique() {
     const boutiqueGrid = document.getElementById('boutique-grid');
+    if (!boutiqueGrid) return;
     boutiqueGrid.innerHTML = '';
 
     STATE.boutiqueItems.forEach(item => {
@@ -701,11 +774,16 @@ function renderBoutique() {
             e.dataTransfer.setData('text/plain', JSON.stringify({ source: 'boutique', item }));
         });
         
-        card.addEventListener('click', () => {
+        card.addEventListener('click', (e) => {
+            if (e.target.closest('.btn-fav-boutique')) return;
             selectForFitting('boutique', item);
         });
 
+        const isFav = STATE.favorites.some(fav => fav.id === item.id);
+        const favClass = isFav ? 'active' : '';
+
         card.innerHTML = `
+            <button class="btn-fav-boutique ${favClass}" title="Rastrear Precio">♥</button>
             <div class="boutique-img-wrapper">
                 <img src="${item.image}" alt="${item.name}">
                 <div class="boutique-card-overlay">
@@ -722,6 +800,12 @@ function renderBoutique() {
                 </div>
             </div>
         `;
+
+        card.querySelector('.btn-fav-boutique').addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleFavoriteBoutique(item);
+        });
+
         boutiqueGrid.appendChild(card);
     });
 }
@@ -1358,8 +1442,6 @@ function showToast(message, type = 'success') {
         `;
     }
 
-    container.appendChild(toast);
-
     // Fade out out after 3 seconds
     setTimeout(() => {
         toast.classList.add('hide');
@@ -1367,4 +1449,761 @@ function showToast(message, type = 'success') {
             toast.remove();
         }, 350);
     }, 3000);
+}
+
+// --- NEW REDESIGN FEATURES: ONBOARDING, LIENZO LIBRE, MALETA, GAMIFICATION & PRICE TRACKER ---
+
+// 11. Onboarding & Profile Initialization
+function initOnboarding() {
+    const modal = document.getElementById('onboarding-modal');
+    const form = document.getElementById('onboarding-form');
+    
+    if (!modal || !form) return;
+
+    // Check if profile exists in server or localStorage
+    checkProfileExists().then(profile => {
+        if (profile) {
+            STATE.userProfile = profile;
+            updateProfileUI();
+            checkGamificationMilestones();
+        } else {
+            // Force onboarding splash screen modal
+            modal.style.display = 'flex';
+        }
+    });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('onboarding-name').value.trim();
+        const style = document.querySelector('input[name="onboarding-style"]:checked').value;
+        const city = document.getElementById('onboarding-city').value.trim();
+
+        if (!name || !city) return;
+
+        const newProfile = {
+            name: name,
+            preferences: style,
+            city: city,
+            level: 'Novicia',
+            xp: 20 // 20 XP initially for onboarding
+        };
+
+        // Save profile to server
+        try {
+            await fetch('/api/profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newProfile)
+            });
+        } catch (err) {
+            console.log("Saving profile locally (fallback)");
+        }
+
+        localStorage.setItem('user_profile', JSON.stringify(newProfile));
+        STATE.userProfile = newProfile;
+        
+        modal.style.display = 'none';
+        updateProfileUI();
+        
+        // Unlock Onboarding medal
+        unlockMedal('medal-onboarding');
+        showToast("¡Bienvenida! Isa ha configurado tu perfil de estilo.");
+        
+        // Reload weather with user city
+        initWeather();
+    });
+}
+
+async function checkProfileExists() {
+    try {
+        const response = await fetch('/api/profile');
+        if (response.ok) {
+            return await response.json();
+        }
+    } catch (e) {
+        // fall through
+    }
+    
+    // Local fallback
+    const local = localStorage.getItem('user_profile');
+    return local ? JSON.parse(local) : null;
+}
+
+function updateProfileUI() {
+    if (!STATE.userProfile) return;
+    
+    // Header welcome greeting
+    const greetingName = document.getElementById('header-user-name');
+    if (greetingName) greetingName.textContent = STATE.userProfile.name;
+    
+    // Mini stats in top header bar
+    const miniLevel = document.getElementById('mini-user-level');
+    const miniXP = document.getElementById('mini-user-xp');
+    if (miniLevel) miniLevel.textContent = STATE.userProfile.level;
+    if (miniXP) miniXP.textContent = `XP: ${STATE.userProfile.xp} / ${getNextLevelXP()}`;
+
+    // Full Profile modal dashboard
+    const profName = document.getElementById('profile-user-name');
+    const profLvl = document.getElementById('profile-user-level');
+    const profXPText = document.getElementById('profile-xp-text');
+    const profXPBar = document.getElementById('profile-xp-bar');
+
+    if (profName) profName.textContent = STATE.userProfile.name;
+    if (profLvl) profLvl.textContent = STATE.userProfile.level;
+    if (profXPText) profXPText.textContent = `${STATE.userProfile.xp} / ${getNextLevelXP()} XP`;
+    
+    if (profXPBar) {
+        const pct = Math.min((STATE.userProfile.xp / getNextLevelXP()) * 100, 100);
+        profXPBar.style.width = `${pct}%`;
+    }
+}
+
+function getNextLevelXP() {
+    if (!STATE.userProfile) return 100;
+    const lvl = STATE.userProfile.level;
+    if (lvl === 'Novicia') return 50;
+    if (lvl === 'Estilista') return 100;
+    if (lvl === 'Trendsetter') return 150;
+    return 300;
+}
+
+// 12. Gamification Achievements
+function initGamification() {
+    const openBtn = document.getElementById('btn-open-profile-modal');
+    const closeBtn = document.getElementById('btn-close-profile-modal');
+    const modal = document.getElementById('profile-modal');
+
+    if (openBtn && modal) {
+        openBtn.addEventListener('click', () => {
+            updateProfileUI();
+            modal.style.display = 'flex';
+        });
+    }
+
+    if (closeBtn && modal) {
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.style.display = 'none';
+        });
+    }
+
+    // Initialize local favorites if any
+    const savedFavs = localStorage.getItem('boutique_favorites');
+    if (savedFavs) {
+        STATE.favorites = JSON.parse(savedFavs);
+    }
+}
+
+function gainXP(amount) {
+    if (!STATE.userProfile) return;
+    STATE.userProfile.xp += amount;
+    
+    // Check level up
+    let oldLevel = STATE.userProfile.level;
+    let xp = STATE.userProfile.xp;
+    let level = 'Novicia';
+    
+    if (xp >= 150) {
+        level = 'Icono';
+    } else if (xp >= 100) {
+        level = 'Trendsetter';
+    } else if (xp >= 50) {
+        level = 'Estilista';
+    }
+    
+    STATE.userProfile.level = level;
+    
+    if (level !== oldLevel) {
+        showLevelUpToast(level);
+    }
+    
+    // Save updated profile
+    localStorage.setItem('user_profile', JSON.stringify(STATE.userProfile));
+    updateProfileUI();
+    
+    fetch('/api/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(STATE.userProfile)
+    }).catch(() => {});
+}
+
+function showLevelUpToast(newLevel) {
+    const levelNames = {
+        'Estilista': 'Estilista de Moda 🌟',
+        'Trendsetter': 'Trendsetter de Vanguardia 🔥',
+        'Icono': 'Ícono Eterno de la Pasarela 👑'
+    };
+    
+    // Congratulate user with Isa popup speech
+    setTimeout(() => {
+        triggerAriaSpeech(`¡Felicidades, cariño! Has alcanzado el nivel de ${levelNames[newLevel] || newLevel}. Sigue refinando tu guardarropa.`);
+    }, 1000);
+    
+    showToast(`¡Subiste de Nivel! Ahora eres ${levelNames[newLevel] || newLevel}.`, 'success');
+}
+
+function checkGamificationMilestones(forceBoutique = false) {
+    if (!STATE.userProfile) return;
+    
+    // 1. Onboarding Visual
+    if (STATE.userProfile.xp >= 20) {
+        unlockMedal('medal-onboarding');
+    }
+    
+    // 2. Fiel del Estilo: weather clicks >= 5
+    if (STATE.weatherClicks >= 5) {
+        unlockMedal('medal-fiel-estilo');
+    }
+    
+    // 3. Boutique Premium: closet length > 15 OR boutique purchase
+    if (STATE.closetItems.length > 15 || forceBoutique) {
+        unlockMedal('medal-boutique-premium');
+    }
+}
+
+function unlockMedal(medalId) {
+    const card = document.getElementById(medalId);
+    if (card && card.classList.contains('locked')) {
+        card.classList.remove('locked');
+        card.classList.add('unlocked');
+        
+        // Unlock corresponding coupon
+        if (medalId === 'medal-fiel-estilo') {
+            unlockCoupon('coupon-cashback');
+            gainXP(30);
+        } else if (medalId === 'medal-boutique-premium') {
+            unlockCoupon('coupon-shipping');
+            gainXP(50);
+        }
+        
+        showToast("¡Medalla Desbloqueada y recompensas reclamadas!");
+    }
+}
+
+function unlockCoupon(couponId) {
+    const card = document.getElementById(couponId);
+    if (card && card.classList.contains('locked')) {
+        card.classList.remove('locked');
+        card.classList.add('unlocked');
+    }
+}
+
+
+// 13. Lienzo Libre (Lienzo de Vestidor)
+function initLienzoLibre() {
+    const scroller = document.getElementById('lienzo-garments-scroller');
+    const canvas = document.getElementById('lienzo-canvas');
+    
+    if (!scroller || !canvas) return;
+
+    // Load garments list to select from
+    renderLienzoSidebar();
+
+    // Scale & rotate sliders
+    const scaleSlider = document.getElementById('lienzo-scale');
+    const rotateSlider = document.getElementById('lienzo-rotate');
+    
+    scaleSlider.addEventListener('input', (e) => {
+        if (!STATE.selectedCanvasItem) return;
+        const scaleVal = e.target.value;
+        STATE.selectedCanvasItem.dataset.scale = scaleVal;
+        updateCanvasItemTransform(STATE.selectedCanvasItem);
+    });
+
+    rotateSlider.addEventListener('input', (e) => {
+        if (!STATE.selectedCanvasItem) return;
+        const rotateVal = e.target.value;
+        STATE.selectedCanvasItem.dataset.rotate = rotateVal;
+        updateCanvasItemTransform(STATE.selectedCanvasItem);
+    });
+
+    // Layer orders (Z-index)
+    document.getElementById('btn-lienzo-front').addEventListener('click', () => {
+        if (!STATE.selectedCanvasItem) return;
+        let z = parseInt(STATE.selectedCanvasItem.style.zIndex) || 10;
+        STATE.selectedCanvasItem.style.zIndex = z + 1;
+    });
+
+    document.getElementById('btn-lienzo-back').addEventListener('click', () => {
+        if (!STATE.selectedCanvasItem) return;
+        let z = parseInt(STATE.selectedCanvasItem.style.zIndex) || 10;
+        STATE.selectedCanvasItem.style.zIndex = Math.max(1, z - 1);
+    });
+
+    // Delete item
+    document.getElementById('btn-lienzo-delete').addEventListener('click', () => {
+        if (!STATE.selectedCanvasItem) return;
+        STATE.selectedCanvasItem.remove();
+        STATE.selectedCanvasItem = null;
+        
+        scaleSlider.value = 1;
+        rotateSlider.value = 0;
+    });
+
+    // Canvas click clears selection
+    canvas.addEventListener('click', (e) => {
+        if (e.target === canvas || e.target.classList.contains('canvas-grid-lines') || e.target.classList.contains('canvas-placeholder')) {
+            clearCanvasSelection();
+        }
+    });
+
+    // Save look trigger
+    document.getElementById('btn-save-lienzo-look').addEventListener('click', saveCanvasLook);
+}
+
+function renderLienzoSidebar() {
+    const scroller = document.getElementById('lienzo-garments-scroller');
+    if (!scroller) return;
+    scroller.innerHTML = '';
+
+    STATE.closetItems.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'lienzo-garment-item animate-fade-in';
+        div.innerHTML = `
+            <img src="${item.image}" alt="${item.name}">
+            <div class="lienzo-garment-info">
+                <span class="lienzo-garment-cat">${item.cat}</span>
+                <span class="lienzo-garment-name">${item.name}</span>
+            </div>
+        `;
+        div.addEventListener('click', () => {
+            addGarmentToCanvas(item);
+        });
+        scroller.appendChild(div);
+    });
+}
+
+function addGarmentToCanvas(item) {
+    const canvas = document.getElementById('lienzo-canvas');
+    if (!canvas) return;
+
+    // Remove placeholder if present
+    const placeholder = canvas.querySelector('.canvas-placeholder');
+    if (placeholder) placeholder.style.display = 'none';
+
+    const canvasItem = document.createElement('div');
+    canvasItem.className = 'canvas-item';
+    canvasItem.style.width = '120px';
+    canvasItem.style.height = '160px';
+    canvasItem.style.left = '80px';
+    canvasItem.style.top = '80px';
+    canvasItem.style.zIndex = '10';
+    
+    canvasItem.dataset.id = item.id;
+    canvasItem.dataset.scale = '1.0';
+    canvasItem.dataset.rotate = '0';
+
+    canvasItem.innerHTML = `<img src="${item.image}" alt="${item.name}">`;
+
+    // Click to select
+    canvasItem.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectCanvasItem(canvasItem);
+    });
+
+    // Implement Drag & Drop with touch/mouse
+    setupCanvasItemDrag(canvasItem, canvas);
+
+    canvas.appendChild(canvasItem);
+    selectCanvasItem(canvasItem);
+}
+
+function selectCanvasItem(el) {
+    clearCanvasSelection();
+    STATE.selectedCanvasItem = el;
+    el.classList.add('selected');
+
+    // Sync sliders
+    document.getElementById('lienzo-scale').value = el.dataset.scale || 1.0;
+    document.getElementById('lienzo-rotate').value = el.dataset.rotate || 0;
+}
+
+function clearCanvasSelection() {
+    if (STATE.selectedCanvasItem) {
+        STATE.selectedCanvasItem.classList.remove('selected');
+    }
+    STATE.selectedCanvasItem = null;
+}
+
+function updateCanvasItemTransform(el) {
+    const scale = el.dataset.scale || 1.0;
+    const rotate = el.dataset.rotate || 0;
+    el.style.transform = `scale(${scale}) rotate(${rotate}deg)`;
+}
+
+function setupCanvasItemDrag(el, container) {
+    let isDragging = false;
+    let startX, startY;
+    let leftStart, topStart;
+
+    const dragStart = (e) => {
+        isDragging = true;
+        
+        // Handle touch vs mouse
+        const clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
+        const clientY = e.type.startsWith('touch') ? e.touches[0].clientY : e.clientY;
+
+        startX = clientX;
+        startY = clientY;
+
+        leftStart = parseInt(el.style.left) || 0;
+        topStart = parseInt(el.style.top) || 0;
+
+        selectCanvasItem(el);
+        
+        e.preventDefault();
+    };
+
+    const dragMove = (e) => {
+        if (!isDragging) return;
+
+        const clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
+        const clientY = e.type.startsWith('touch') ? e.touches[0].clientY : e.clientY;
+
+        const dx = clientX - startX;
+        const dy = clientY - startY;
+
+        // Boundaries check
+        let newLeft = leftStart + dx;
+        let newTop = topStart + dy;
+
+        el.style.left = `${newLeft}px`;
+        el.style.top = `${newTop}px`;
+    };
+
+    const dragEnd = () => {
+        isDragging = false;
+    };
+
+    // Mouse listeners
+    el.addEventListener('mousedown', dragStart);
+    window.addEventListener('mousemove', dragMove);
+    window.addEventListener('mouseup', dragEnd);
+
+    // Touch listeners
+    el.addEventListener('touchstart', dragStart, { passive: false });
+    window.addEventListener('touchmove', dragMove, { passive: false });
+    window.addEventListener('touchend', dragEnd);
+}
+
+async function saveCanvasLook() {
+    const lookName = document.getElementById('lienzo-look-name').value.trim();
+    if (!lookName) {
+        showToast("Ingresa un nombre para tu Look de lienzo.", "error");
+        return;
+    }
+
+    const canvas = document.getElementById('lienzo-canvas');
+    const items = [];
+    
+    canvas.querySelectorAll('.canvas-item').forEach(el => {
+        items.push({
+            clothing_id: el.dataset.id,
+            left: el.style.left,
+            top: el.style.top,
+            scale: el.dataset.scale,
+            rotate: el.dataset.rotate,
+            zIndex: el.style.zIndex
+        });
+    });
+
+    if (items.length === 0) {
+        showToast("Añade al menos una prenda al lienzo antes de guardar.", "error");
+        return;
+    }
+
+    const payload = {
+        name: lookName,
+        items: items
+    };
+
+    try {
+        const response = await fetch('/api/canvas-looks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (response.ok) {
+            showToast(`Look "${lookName}" guardado en el vestidor.`);
+            document.getElementById('lienzo-look-name').value = '';
+            
+            // Add some XP for saving canvas designs!
+            gainXP(25);
+        } else {
+            throw new Error("Save error");
+        }
+    } catch (e) {
+        showToast(`Look "${lookName}" guardado en memoria local.`);
+        // Fallback local save
+        const savedLooks = JSON.parse(localStorage.getItem('canvas_looks') || '[]');
+        savedLooks.push(payload);
+        localStorage.setItem('canvas_looks', JSON.stringify(savedLooks));
+        document.getElementById('lienzo-look-name').value = '';
+        gainXP(25);
+    }
+}
+
+
+// 14. Maleta de Viaje (Armario Cápsula Checklist)
+function initMaletaViaje() {
+    const form = document.getElementById('maleta-form');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const destino = document.getElementById('maleta-destino').value.trim();
+        const dias = parseInt(document.getElementById('maleta-dias').value);
+        const clima = document.getElementById('maleta-clima').value;
+        const capacidad = document.getElementById('maleta-capacidad').value;
+
+        if (!destino || !dias) return;
+
+        const btnGen = document.getElementById('btn-generar-maleta');
+        const oldText = btnGen.textContent;
+        btnGen.setAttribute('disabled', 'true');
+        btnGen.textContent = 'Creando Maleta Cápsula...';
+
+        try {
+            const response = await fetch('/api/travel-capsule', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ destino, dias, clima, capacidad })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                renderMaletaChecklist(data);
+            } else {
+                throw new Error("Server error");
+            }
+        } catch (err) {
+            // Mock capsule generation fallback
+            generateMockTravelCapsule(destino, dias, clima, capacidad);
+        } finally {
+            btnGen.removeAttribute('disabled');
+            btnGen.textContent = oldText;
+        }
+    });
+}
+
+function renderMaletaChecklist(data) {
+    const checklistContainer = document.getElementById('maleta-checklist');
+    if (!checklistContainer) return;
+    
+    checklistContainer.innerHTML = '';
+    
+    const title = document.createElement('h4');
+    title.className = 'gold-text';
+    title.style.fontSize = '1.05rem';
+    title.style.marginBottom = '10px';
+    title.textContent = `Maleta para ${data.destino} (${data.dias} días - Clima ${data.clima})`;
+    checklistContainer.appendChild(title);
+
+    if (!data.items || data.items.length === 0) {
+        checklistContainer.innerHTML += `<p style="color:var(--text-muted);">No hay suficientes prendas en el armario para la maleta.</p>`;
+        return;
+    }
+
+    // Load packed states from localStorage
+    const storageKey = `packed_${data.destino}_${data.dias}`;
+    const packedList = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+    data.items.forEach(item => {
+        const itemEl = document.createElement('div');
+        const isPacked = packedList.includes(item.id);
+        
+        itemEl.className = `checklist-item ${isPacked ? 'packed' : ''}`;
+        itemEl.dataset.id = item.id;
+        
+        itemEl.innerHTML = `
+            <div class="checklist-checkbox">${isPacked ? '✓' : ''}</div>
+            <img class="checklist-thumb" src="${item.image}" alt="${item.name}">
+            <div class="checklist-item-details">
+                <span class="checklist-item-cat">${item.cat}</span>
+                <span class="checklist-item-name">${item.name}</span>
+            </div>
+        `;
+
+        itemEl.addEventListener('click', () => {
+            const packed = togglePackedState(storageKey, item.id);
+            if (packed) {
+                itemEl.classList.add('packed');
+                itemEl.querySelector('.checklist-checkbox').textContent = '✓';
+            } else {
+                itemEl.classList.remove('packed');
+                itemEl.querySelector('.checklist-checkbox').textContent = '';
+            }
+        });
+
+        checklistContainer.appendChild(itemEl);
+    });
+
+    gainXP(10); // Gain XP for travel planning!
+    showToast("¡Maleta inteligente generada con éxito!");
+}
+
+function togglePackedState(key, itemId) {
+    const packedList = JSON.parse(localStorage.getItem(key) || '[]');
+    const idx = packedList.indexOf(itemId);
+    let packed = false;
+    
+    if (idx > -1) {
+        packedList.splice(idx, 1);
+    } else {
+        packedList.push(itemId);
+        packed = true;
+    }
+    
+    localStorage.setItem(key, JSON.stringify(packedList));
+    return packed;
+}
+
+function generateMockTravelCapsule(destino, dias, clima, capacidad) {
+    // Generate intelligent capsule based on local state owned items
+    const capsuleTops = STATE.closetItems.filter(i => i.cat === 'superior');
+    const capsuleBottoms = STATE.closetItems.filter(i => i.cat === 'inferior');
+    const capsuleFootwear = STATE.closetItems.filter(i => i.cat === 'calzado');
+    const capsuleOuterwear = STATE.closetItems.filter(i => i.cat === 'abrigo');
+
+    const selected = [];
+    
+    // Choose count based on days
+    const topCount = Math.min(capsuleTops.length, maxItems(dias, 1.2));
+    const bottomCount = Math.min(capsuleBottoms.length, maxItems(dias, 0.6));
+    const shoeCount = Math.min(capsuleFootwear.length, 2);
+
+    for (let i = 0; i < topCount; i++) selected.push(capsuleTops[i]);
+    for (let i = 0; i < bottomCount; i++) selected.push(capsuleBottoms[i]);
+    for (let i = 0; i < shoeCount; i++) selected.push(capsuleFootwear[i]);
+
+    if (clima === 'Frío' || clima === 'Fresco' || clima === 'Lluvioso') {
+        if (capsuleOuterwear.length) selected.push(capsuleOuterwear[0]);
+    }
+
+    const payload = {
+        destino: destino,
+        dias: dias,
+        clima: clima,
+        items: selected.map(s => ({
+            id: s.id,
+            name: s.name,
+            cat: s.cat,
+            image: s.image
+        }))
+    };
+
+    renderMaletaChecklist(payload);
+}
+
+function maxItems(dias, factor) {
+    return Math.max(1, Math.round(dias * factor));
+}
+
+
+// 15. Price Tracker Favorites and Fluctuations
+function initPriceTracker() {
+    renderPriceTracker();
+
+    // Start interval loop to audit discount fluctuations every 18 seconds
+    setInterval(simulatePriceTrackerFluctuations, 18000);
+}
+
+function renderPriceTracker() {
+    const list = document.getElementById('tracker-items-list');
+    if (!list) return;
+
+    if (STATE.favorites.length === 0) {
+        list.innerHTML = `<p class="empty-tracker">Haz clic en el corazón (♥) de cualquier prenda en la boutique para activar su rastreo de precio.</p>`;
+        return;
+    }
+
+    list.innerHTML = '';
+    
+    STATE.favorites.forEach(item => {
+        // Mock current price from item price string (e.g. "$450")
+        const priceNum = parseFloat(item.price.replace('$', ''));
+        
+        // If simulated price is stored
+        const currentPrice = item.currentPrice || priceNum;
+        const isDiscounted = currentPrice < priceNum;
+        const discountPct = isDiscounted ? Math.round(((priceNum - currentPrice) / priceNum) * 100) : 0;
+
+        const trackerEl = document.createElement('div');
+        trackerEl.className = `tracker-item ${isDiscounted ? 'alert-discount' : ''}`;
+        
+        trackerEl.innerHTML = `
+            <img class="tracker-thumb" src="${item.image}" alt="${item.name}">
+            <div class="tracker-info">
+                <div class="tracker-name-brand">
+                    <span class="tracker-brand">${item.brand}</span>
+                    <span class="tracker-name">${item.name}</span>
+                </div>
+                ${isDiscounted ? `<span class="tracker-discount-badge">¡Alerta de Descuento!</span>` : ''}
+            </div>
+            <div class="tracker-prices">
+                <span class="tracker-price-current">$${currentPrice}</span>
+                ${isDiscounted ? `<span class="tracker-price-original">${item.price}</span>` : ''}
+                ${isDiscounted ? `<span style="color:var(--accent-gold); font-size:0.75rem; font-weight:600;">-${discountPct}%</span>` : ''}
+            </div>
+        `;
+        list.appendChild(trackerEl);
+    });
+}
+
+function toggleFavoriteBoutique(item) {
+    const idx = STATE.favorites.findIndex(fav => fav.id === item.id);
+    
+    if (idx > -1) {
+        STATE.favorites.splice(idx, 1);
+        showToast("Prenda quitada de favoritos.");
+    } else {
+        STATE.favorites.push(item);
+        showToast("¡Prenda añadida a favoritos y Price Tracker activo!");
+    }
+
+    localStorage.setItem('boutique_favorites', JSON.stringify(STATE.favorites));
+    
+    // Rerender both lists
+    renderBoutique();
+    renderPriceTracker();
+    
+    // Gamification hook
+    checkGamificationMilestones();
+}
+
+function simulatePriceTrackerFluctuations() {
+    if (STATE.favorites.length === 0) return;
+
+    // Pick a random favorite
+    const randIdx = Math.floor(Math.random() * STATE.favorites.length);
+    const item = STATE.favorites[randIdx];
+    
+    // Simulate drop or recovery
+    const originalPrice = parseFloat(item.price.replace('$', ''));
+    const isDiscounted = item.currentPrice && item.currentPrice < originalPrice;
+
+    if (isDiscounted && Math.random() > 0.4) {
+        // Recover original price
+        item.currentPrice = originalPrice;
+    } else {
+        // Drop price by 10% - 30%
+        const discount = Math.round(originalPrice * (0.10 + Math.random() * 0.20));
+        item.currentPrice = originalPrice - discount;
+        
+        // Trigger Toast warning
+        showDiscountToast(item, item.currentPrice, item.price);
+    }
+
+    // Save changes
+    localStorage.setItem('boutique_favorites', JSON.stringify(STATE.favorites));
+    renderPriceTracker();
+}
+
+function showDiscountToast(item, currentPrice, originalPrice) {
+    showToast(`¡Alerta de Descuento! "${item.name}" de ${item.brand} bajó a $${currentPrice} (era ${originalPrice}).`, 'success');
+}
 }
