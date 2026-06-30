@@ -3427,3 +3427,91 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     border-color: var(--accent-gold);
 }
 
+/* MEDIA PRINT EXPORT STYLES */
+@media print {
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-family: 'Montserrat', sans-serif !important;
+    }
+    
+    .app-container,
+    .sidebar,
+    .bottom-nav,
+    .maleta-form-card,
+    .no-print,
+    .close-modal-btn,
+    .gold-btn,
+    .gold-btn-large,
+    .section-desc-small,
+    .section-header {
+        display: none !important;
+    }
+
+    #maleta {
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100% !important;
+    }
+
+    #print-section-maleta {
+        background: #ffffff !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        color: #000000 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .gold-text {
+        color: #000000 !important;
+        font-family: 'Playfair Display', serif !important;
+        border-bottom: 2px solid #000000 !important;
+        padding-bottom: 10px !important;
+        margin-bottom: 20px !important;
+    }
+
+    .checklist-item {
+        background: none !important;
+        border: none !important;
+        border-bottom: 1px solid #e0e0e0 !important;
+        padding: 12px 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 15px !important;
+        page-break-inside: avoid !important;
+    }
+
+    .checklist-checkbox {
+        border: 1px solid #000000 !important;
+        color: #000000 !important;
+        background: none !important;
+    }
+
+    .checklist-item.packed .checklist-checkbox {
+        background: #000000 !important;
+        color: #ffffff !important;
+    }
+
+    .checklist-item-name {
+        color: #000000 !important;
+        font-size: 1rem !important;
+    }
+
+    .checklist-item-cat {
+        color: #666666 !important;
+    }
+
+    .checklist-thumb {
+        border: 1px solid #e0e0e0 !important;
+        width: 50px !important;
+        height: 65px !important;
+    }
+}
+

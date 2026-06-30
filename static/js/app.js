@@ -2079,6 +2079,13 @@ function initMaletaViaje() {
             btnGen.textContent = oldText;
         }
     });
+
+    const printBtn = document.getElementById('btn-print-maleta');
+    if (printBtn) {
+        printBtn.addEventListener('click', () => {
+            window.print();
+        });
+    }
 }
 
 function renderMaletaChecklist(data) {
@@ -2086,6 +2093,11 @@ function renderMaletaChecklist(data) {
     if (!checklistContainer) return;
     
     checklistContainer.innerHTML = '';
+
+    const printBtn = document.getElementById('btn-print-maleta');
+    if (printBtn) {
+        printBtn.style.display = 'block';
+    }
     
     const title = document.createElement('h4');
     title.className = 'gold-text';

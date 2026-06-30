@@ -403,8 +403,11 @@
                     </div>
                     
                     <!-- Right Column: Interactive Checklist -->
-                    <div class="maleta-result-card glass-card">
-                        <h3 class="subsection-title gold-text" style="margin-top: 0; font-size: 1.25rem; text-transform: uppercase; letter-spacing: 1px;">Tu Checklist de Equipaje</h3>
+                    <div class="maleta-result-card glass-card" id="print-section-maleta">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(212,175,55,0.1); padding-bottom: 8px;" class="no-print">
+                            <h3 class="subsection-title gold-text" style="margin-top: 0; margin-bottom: 0; font-size: 1.25rem; text-transform: uppercase; letter-spacing: 1px;">Tu Checklist de Equipaje</h3>
+                            <button id="btn-print-maleta" class="gold-btn" style="padding: 6px 12px; font-size: 0.75rem; border-radius: 12px; height: auto; margin-top: 0; min-height: unset; display: none;">🖨️ Exportar PDF</button>
+                        </div>
                         <p class="section-desc-small">Tacha las prendas a medida que las empacas físicamente:</p>
                         
                         <div class="maleta-checklist" id="maleta-checklist">
