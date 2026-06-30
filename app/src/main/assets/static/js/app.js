@@ -43,7 +43,9 @@ const STATE = {
     userProfile: null,
     weatherClicks: 0,
     favorites: [],
-    selectedCanvasItem: null
+    selectedCanvasItem: null,
+    gpsCoords: null,
+    canvasSource: 'closet'
 };
 
 // Look image map for Aria
@@ -249,7 +251,11 @@ async function initWeather() {
     }
 
     try {
-        const response = await fetch(`/api/weather/live?city=${encodeURIComponent(city)}`);
+        let weatherUrl = `/api/weather/live?city=${encodeURIComponent(city)}`;
+        if (STATE.gpsCoords) {
+            weatherUrl = `/api/weather/live?lat=${STATE.gpsCoords.lat}&lon=${STATE.gpsCoords.lon}&city_name=Ubicación GPS`;
+        }
+        const response = await fetch(weatherUrl);
         if (!response.ok) throw new Error("Fallback to mock");
         const data = await response.json();
         renderWeather(data);
@@ -304,6 +310,35 @@ function setupWeatherContextSelectors() {
             checkGamificationMilestones();
             initWeather();
             showToast("Outfit recalculado para el clima de hoy.");
+        });
+    }
+
+    const gpsBtn = document.getElementById('btn-gps');
+    if (gpsBtn) {
+        gpsBtn.addEventListener('click', () => {
+            if (navigator.geolocation) {
+                gpsBtn.disabled = true;
+                gpsBtn.textContent = "📍 Buscando...";
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        STATE.gpsCoords = {
+                            lat: position.coords.latitude,
+                            lon: position.coords.longitude
+                        };
+                        gpsBtn.disabled = false;
+                        gpsBtn.textContent = "📍 Usar GPS";
+                        initWeather();
+                        showToast("Ubicación GPS sincronizada correctamente.", "success");
+                    },
+                    (error) => {
+                        gpsBtn.disabled = false;
+                        gpsBtn.textContent = "📍 Usar GPS";
+                        showToast("Error de geolocalización: " + error.message, "error");
+                    }
+                );
+            } else {
+                showToast("Geolocalización no soportada por este navegador.", "error");
+            }
         });
     }
 }
@@ -767,6 +802,31 @@ function renderBoutique() {
     boutiqueGrid.innerHTML = '';
 
     STATE.boutiqueItems.forEach(item => {
+        // Calculate dynamic wardrobe gap compatibility based on current closet inventory
+        let matchingCount = 0;
+        let unlockCount = 0;
+        const tops = STATE.closetItems.filter(c => c.category === 'Top').length;
+        const bottoms = STATE.closetItems.filter(c => c.category === 'Bottom').length;
+        const footwear = STATE.closetItems.filter(c => c.category === 'Footwear').length;
+        const outerwear = STATE.closetItems.filter(c => c.category === 'Outerwear').length;
+
+        if (item.category === 'Top') {
+            matchingCount = bottoms + outerwear;
+            unlockCount = bottoms * Math.max(1, footwear);
+        } else if (item.category === 'Bottom') {
+            matchingCount = tops + footwear;
+            unlockCount = tops * Math.max(1, footwear);
+        } else if (item.category === 'Outerwear') {
+            matchingCount = tops + bottoms;
+            unlockCount = tops * bottoms;
+        } else if (item.category === 'Footwear') {
+            matchingCount = bottoms;
+            unlockCount = bottoms * Math.max(1, tops);
+        } else {
+            matchingCount = tops;
+            unlockCount = tops;
+        }
+
         const card = document.createElement('div');
         card.className = 'boutique-card';
         card.setAttribute('draggable', 'true');
@@ -797,6 +857,9 @@ function renderBoutique() {
                         <h4 class="boutique-title">${item.name}</h4>
                     </div>
                     <span class="boutique-price">${item.price}</span>
+                </div>
+                <div class="boutique-compatibility" style="margin-top: 8px; font-size: 0.7rem; color: var(--accent-gold); display: flex; align-items: center; gap: 4px; border-top: 1px solid rgba(212,175,55,0.1); padding-top: 6px; font-family: 'Montserrat', sans-serif;">
+                    <span>✨ Combina con <strong>${matchingCount}</strong> prendas y desbloquea <strong>${unlockCount}</strong> outfits</span>
                 </div>
             </div>
         `;
@@ -1556,6 +1619,31 @@ function updateProfileUI() {
         const pct = Math.min((STATE.userProfile.xp / getNextLevelXP()) * 100, 100);
         profXPBar.style.width = `${pct}%`;
     }
+
+    // Enable/Unlock Visual Themes based on level
+    const optVelvet = document.getElementById('opt-theme-velvet');
+    const optEsmeralda = document.getElementById('opt-theme-esmeralda');
+    const xp = STATE.userProfile.xp;
+
+    if (optVelvet) {
+        if (xp >= 50) {
+            optVelvet.removeAttribute('disabled');
+            optVelvet.textContent = "🌟 Velvet Noir (Desbloqueado)";
+        } else {
+            optVelvet.setAttribute('disabled', 'true');
+            optVelvet.textContent = "🔒 Velvet Noir (Nivel Estilista)";
+        }
+    }
+
+    if (optEsmeralda) {
+        if (xp >= 100) {
+            optEsmeralda.removeAttribute('disabled');
+            optEsmeralda.textContent = "🌟 Esmeralda Premium (Desbloqueado)";
+        } else {
+            optEsmeralda.setAttribute('disabled', 'true');
+            optEsmeralda.textContent = "🔒 Esmeralda Premium (Nivel Trendsetter)";
+        }
+    }
 }
 
 function getNextLevelXP() {
@@ -1589,11 +1677,63 @@ function initGamification() {
         });
     }
 
+    // Theme Select handler
+    const themeSelect = document.getElementById('profile-theme-select');
+    if (themeSelect) {
+        // Load saved theme
+        const savedTheme = localStorage.getItem('user_theme') || 'default';
+        themeSelect.value = savedTheme;
+        applySelectedTheme(savedTheme);
+
+        themeSelect.addEventListener('change', (e) => {
+            applySelectedTheme(e.target.value);
+            showToast("Tema de interfaz actualizado.");
+        });
+    }
+
     // Initialize local favorites if any
     const savedFavs = localStorage.getItem('boutique_favorites');
     if (savedFavs) {
         STATE.favorites = JSON.parse(savedFavs);
     }
+}
+
+function applySelectedTheme(themeId) {
+    const root = document.documentElement;
+    const themes = {
+        default: {
+            '--bg-primary': '#0a0a0a',
+            '--bg-secondary': '#121212',
+            '--bg-tertiary': '#1e1e1e',
+            '--accent-gold': '#d4af37',
+            '--accent-gold-hover': '#e5c158',
+            '--border-gold': 'rgba(212, 175, 55, 0.25)'
+        },
+        velvet: {
+            '--bg-primary': '#0e0b16',
+            '--bg-secondary': '#18122B',
+            '--bg-tertiary': '#2B1B4D',
+            '--accent-gold': '#A555EC',
+            '--accent-gold-hover': '#D376FF',
+            '--border-gold': 'rgba(165, 85, 236, 0.3)'
+        },
+        esmeralda: {
+            '--bg-primary': '#051911',
+            '--bg-secondary': '#0b291d',
+            '--bg-tertiary': '#143d2d',
+            '--accent-gold': '#cfb53b',
+            '--accent-gold-hover': '#dfc54b',
+            '--border-gold': 'rgba(207, 181, 59, 0.3)'
+        }
+    };
+
+    const vars = themes[themeId] || themes.default;
+    for (const [key, value] of Object.entries(vars)) {
+        root.style.setProperty(key, value);
+    }
+    
+    // Save theme selection in localStorage
+    localStorage.setItem('user_theme', themeId);
 }
 
 function gainXP(amount) {
@@ -1702,6 +1842,32 @@ function initLienzoLibre() {
     // Load garments list to select from
     renderLienzoSidebar();
 
+    // Bind source filter tabs
+    const btnCloset = document.getElementById('btn-canvas-source-closet');
+    const btnBoutique = document.getElementById('btn-canvas-source-boutique');
+    if (btnCloset && btnBoutique) {
+        btnCloset.addEventListener('click', () => {
+            STATE.canvasSource = 'closet';
+            btnCloset.classList.add('active');
+            btnCloset.style.background = 'rgba(212,175,55,0.1)';
+            btnCloset.style.color = '#fff';
+            btnBoutique.classList.remove('active');
+            btnBoutique.style.background = 'none';
+            btnBoutique.style.color = '#aaa';
+            renderLienzoSidebar();
+        });
+        btnBoutique.addEventListener('click', () => {
+            STATE.canvasSource = 'boutique';
+            btnBoutique.classList.add('active');
+            btnBoutique.style.background = 'rgba(212,175,55,0.1)';
+            btnBoutique.style.color = '#fff';
+            btnCloset.classList.remove('active');
+            btnCloset.style.background = 'none';
+            btnCloset.style.color = '#aaa';
+            renderLienzoSidebar();
+        });
+    }
+
     // Scale & rotate sliders
     const scaleSlider = document.getElementById('lienzo-scale');
     const rotateSlider = document.getElementById('lienzo-rotate');
@@ -1759,13 +1925,15 @@ function renderLienzoSidebar() {
     if (!scroller) return;
     scroller.innerHTML = '';
 
-    STATE.closetItems.forEach(item => {
+    const list = STATE.canvasSource === 'closet' ? STATE.closetItems : STATE.boutiqueItems;
+
+    list.forEach(item => {
         const div = document.createElement('div');
         div.className = 'lienzo-garment-item animate-fade-in';
         div.innerHTML = `
             <img src="${item.image}" alt="${item.name}">
             <div class="lienzo-garment-info">
-                <span class="lienzo-garment-cat">${item.cat}</span>
+                <span class="lienzo-garment-cat">${item.brand || item.cat || 'Prenda'}</span>
                 <span class="lienzo-garment-name">${item.name}</span>
             </div>
         `;
@@ -1988,6 +2156,13 @@ function initMaletaViaje() {
             btnGen.textContent = oldText;
         }
     });
+
+    const printBtn = document.getElementById('btn-print-maleta');
+    if (printBtn) {
+        printBtn.addEventListener('click', () => {
+            window.print();
+        });
+    }
 }
 
 function renderMaletaChecklist(data) {
@@ -1995,6 +2170,11 @@ function renderMaletaChecklist(data) {
     if (!checklistContainer) return;
     
     checklistContainer.innerHTML = '';
+
+    const printBtn = document.getElementById('btn-print-maleta');
+    if (printBtn) {
+        printBtn.style.display = 'block';
+    }
     
     const title = document.createElement('h4');
     title.className = 'gold-text';
