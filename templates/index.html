@@ -100,7 +100,10 @@
                 
                 <div class="weather-widget glass-card">
                     <div class="weather-info">
-                        <div class="weather-city" id="weather-city">Cargando ubicación...</div>
+                        <div class="weather-city-wrapper" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                            <div class="weather-city" id="weather-city" style="margin-bottom: 0;">Cargando ubicación...</div>
+                            <button id="btn-gps" class="gold-btn" style="padding: 6px 12px; font-size: 0.75rem; border-radius: 12px; height: auto; margin-top: 0; min-height: unset; margin-left: 10px;">📍 Usar GPS</button>
+                        </div>
                         <div class="weather-temp-desc">
                             <span class="weather-temp" id="weather-temp">--°C</span>
                             <span class="weather-desc" id="weather-desc">Analizando condiciones...</span>

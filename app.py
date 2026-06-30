@@ -347,16 +347,27 @@ CITY_COORDINATES = {
 @app.route('/api/weather/live', methods=['GET'])
 def get_live_weather():
     try:
-        city_index_val = request.args.get('city_index', '0')
-        try:
-            city_index = int(city_index_val)
-        except ValueError:
-            city_index = 0
-            
-        city_data = CITY_COORDINATES.get(city_index, CITY_COORDINATES[0])
-        lat = city_data["lat"]
-        lon = city_data["lon"]
-        name = city_data["name"]
+        lat_param = request.args.get('lat')
+        lon_param = request.args.get('lon')
+        
+        if lat_param is not None and lon_param is not None:
+            try:
+                lat = float(lat_param)
+                lon = float(lon_param)
+                name = request.args.get('city_name', 'Mi Ubicación')
+                city_index = -1
+            except ValueError:
+                lat, lon, name, city_index = 4.7110, -74.0721, "Bogotá", 0
+        else:
+            city_index_val = request.args.get('city_index', '0')
+            try:
+                city_index = int(city_index_val)
+            except ValueError:
+                city_index = 0
+            city_data = CITY_COORDINATES.get(city_index, CITY_COORDINATES[0])
+            lat = city_data["lat"]
+            lon = city_data["lon"]
+            name = city_data["name"]
         
         # Real HTTP call to Open-Meteo
         url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,weather_code"
@@ -371,10 +382,15 @@ def get_live_weather():
         except Exception as e:
             # Fallback to static defaults if network request fails
             print(f"[Weather API Error] Fallback to static defaults: {e}", flush=True)
-            static_city = next((c for c in styling_engine.CITIES if c["index"] == city_index), styling_engine.CITIES[0])
-            temp = static_city["temp"]
-            weather_code = 0 if static_city["rain"] == 0 else 61
-            humidity = 80 if static_city["rain"] == 1 else 50
+            if city_index == -1:
+                temp = 18.0
+                weather_code = 0
+                humidity = 60
+            else:
+                static_city = next((c for c in styling_engine.CITIES if c["index"] == city_index), styling_engine.CITIES[0])
+                temp = static_city["temp"]
+                weather_code = 0 if static_city["rain"] == 0 else 61
+                humidity = 80 if static_city["rain"] == 1 else 50
 
         # Determine if it is raining
         rain_codes = [51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99]

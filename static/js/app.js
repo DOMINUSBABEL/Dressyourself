@@ -43,7 +43,8 @@ const STATE = {
     userProfile: null,
     weatherClicks: 0,
     favorites: [],
-    selectedCanvasItem: null
+    selectedCanvasItem: null,
+    gpsCoords: null
 };
 
 // Look image map for Aria
@@ -249,7 +250,11 @@ async function initWeather() {
     }
 
     try {
-        const response = await fetch(`/api/weather/live?city=${encodeURIComponent(city)}`);
+        let weatherUrl = `/api/weather/live?city=${encodeURIComponent(city)}`;
+        if (STATE.gpsCoords) {
+            weatherUrl = `/api/weather/live?lat=${STATE.gpsCoords.lat}&lon=${STATE.gpsCoords.lon}&city_name=Ubicación GPS`;
+        }
+        const response = await fetch(weatherUrl);
         if (!response.ok) throw new Error("Fallback to mock");
         const data = await response.json();
         renderWeather(data);
@@ -304,6 +309,35 @@ function setupWeatherContextSelectors() {
             checkGamificationMilestones();
             initWeather();
             showToast("Outfit recalculado para el clima de hoy.");
+        });
+    }
+
+    const gpsBtn = document.getElementById('btn-gps');
+    if (gpsBtn) {
+        gpsBtn.addEventListener('click', () => {
+            if (navigator.geolocation) {
+                gpsBtn.disabled = true;
+                gpsBtn.textContent = "📍 Buscando...";
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        STATE.gpsCoords = {
+                            lat: position.coords.latitude,
+                            lon: position.coords.longitude
+                        };
+                        gpsBtn.disabled = false;
+                        gpsBtn.textContent = "📍 Usar GPS";
+                        initWeather();
+                        showToast("Ubicación GPS sincronizada correctamente.", "success");
+                    },
+                    (error) => {
+                        gpsBtn.disabled = false;
+                        gpsBtn.textContent = "📍 Usar GPS";
+                        showToast("Error de geolocalización: " + error.message, "error");
+                    }
+                );
+            } else {
+                showToast("Geolocalización no soportada por este navegador.", "error");
+            }
         });
     }
 }
