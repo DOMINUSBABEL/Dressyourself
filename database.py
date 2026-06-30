@@ -72,7 +72,6 @@ def init_db():
         except sqlite3.OperationalError:
             pass
 
-
     # Create orders table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS orders (
@@ -86,6 +85,46 @@ def init_db():
             FOREIGN KEY(clothing_id) REFERENCES clothes(id)
         )
     ''')
+
+    # Create profiles table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS profiles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            estilo_preferido TEXT,          -- Comodo, Elegante, Romantico
+            ciudad_default TEXT,
+            puntos INTEGER DEFAULT 0,
+            nivel TEXT DEFAULT 'Novicio',
+            insignias TEXT DEFAULT '[]'     -- JSON string list of badges
+        )
+    ''')
+
+    # Create canvas_looks table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS canvas_looks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            prendas_json TEXT NOT NULL,      -- JSON list of dicts with id_prenda, x, y, scale, rotation
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # Create price_history table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS price_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            clothing_id INTEGER NOT NULL,
+            price REAL NOT NULL,
+            recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(clothing_id) REFERENCES clothes(id)
+        )
+    ''')
+
+    # Dynamically alter clothes table to add original_price if it doesn't exist
+    try:
+        cursor.execute("ALTER TABLE clothes ADD COLUMN original_price REAL")
+    except sqlite3.OperationalError:
+        pass
 
     # Check if table is empty to prepopulate
     cursor.execute('SELECT COUNT(*) FROM clothes')
@@ -143,6 +182,30 @@ def init_db():
             1, 29, 5, 8, 4, 9, 3,
             "Una sinergia infalible de mezclilla sobre mezclilla con acentos urbanos blancos y gafas retro. El epítome del estilo despreocupado pero curado para la primavera."
         ))
+        conn.commit()
+
+    # Unconditional updates for original_price and price_history
+    cursor.execute("UPDATE clothes SET original_price = price WHERE is_owned = 0 AND original_price IS NULL")
+    conn.commit()
+
+    cursor.execute('SELECT COUNT(*) FROM price_history')
+    if cursor.fetchone()[0] == 0:
+        cursor.execute('SELECT id, price FROM clothes WHERE is_owned = 0')
+        boutique_items = cursor.fetchall()
+        for item in boutique_items:
+            cursor.execute('''
+                INSERT INTO price_history (clothing_id, price)
+                VALUES (?, ?)
+            ''', (item['id'], item['price']))
+        conn.commit()
+
+    # Prepopulate profiles table if empty
+    cursor.execute('SELECT COUNT(*) FROM profiles')
+    if cursor.fetchone()[0] == 0:
+        cursor.execute('''
+            INSERT INTO profiles (nombre, estilo_preferido, ciudad_default, puntos, nivel, insignias)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', ("Usuario Invitado", "Comodo", "Bogotá", 0, "Novicio", "[]"))
         conn.commit()
 
     conn.close()
@@ -319,5 +382,117 @@ def update_order_progress(order_id, progress, status):
     cursor.execute('''
         UPDATE orders SET delivery_progress = ?, status = ? WHERE id = ?
     ''', (progress, status, order_id))
+    conn.commit()
+    conn.close()
+
+# --- Profiles CRUD ---
+def get_profile():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM profiles LIMIT 1')
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+def save_profile(nombre, estilo_preferido, ciudad_default, puntos=None, nivel=None, insignias=None):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT id FROM profiles LIMIT 1')
+    row = cursor.fetchone()
+    if row:
+        profile_id = row[0]
+        cursor.execute('SELECT puntos, nivel, insignias FROM profiles WHERE id = ?', (profile_id,))
+        curr = cursor.fetchone()
+        
+        pts = puntos if puntos is not None else curr['puntos']
+        nvl = nivel if nivel is not None else curr['nivel']
+        ins = insignias if insignias is not None else curr['insignias']
+        
+        cursor.execute('''
+            UPDATE profiles
+            SET nombre = ?, estilo_preferido = ?, ciudad_default = ?, puntos = ?, nivel = ?, insignias = ?
+            WHERE id = ?
+        ''', (nombre, estilo_preferido, ciudad_default, pts, nvl, ins, profile_id))
+    else:
+        pts = puntos if puntos is not None else 0
+        nvl = nivel if nivel is not None else 'Novicio'
+        ins = insignias if insignias is not None else '[]'
+        cursor.execute('''
+            INSERT INTO profiles (nombre, estilo_preferido, ciudad_default, puntos, nivel, insignias)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (nombre, estilo_preferido, ciudad_default, pts, nvl, ins))
+    conn.commit()
+    conn.close()
+    return get_profile()
+
+# --- Canvas Looks CRUD ---
+def get_all_canvas_looks():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM canvas_looks ORDER BY created_at DESC')
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+def get_canvas_look_by_id(look_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM canvas_looks WHERE id = ?', (look_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+def create_canvas_look(nombre, prendas_json):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO canvas_looks (nombre, prendas_json)
+        VALUES (?, ?)
+    ''', (nombre, prendas_json))
+    conn.commit()
+    new_id = cursor.lastrowid
+    conn.close()
+    return new_id
+
+def delete_canvas_look(look_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM canvas_looks WHERE id = ?', (look_id,))
+    conn.commit()
+    changes = conn.total_changes
+    conn.close()
+    return changes > 0
+
+# --- Price Tracker CRUD ---
+def get_price_tracker_data():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM clothes WHERE is_owned = 0')
+    rows = cursor.fetchall()
+    
+    tracker_data = []
+    for row in rows:
+        item = dict(row)
+        cursor.execute('''
+            SELECT price, recorded_at 
+            FROM price_history 
+            WHERE clothing_id = ? 
+            ORDER BY recorded_at ASC
+        ''', (item['id'],))
+        history_rows = cursor.fetchall()
+        item['price_history'] = [dict(h) for h in history_rows]
+        tracker_data.append(item)
+        
+    conn.close()
+    return tracker_data
+
+def update_clothing_price(clothing_id, new_price):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('UPDATE clothes SET price = ? WHERE id = ?', (new_price, clothing_id))
+    cursor.execute('''
+        INSERT INTO price_history (clothing_id, price)
+        VALUES (?, ?)
+    ''', (clothing_id, new_price))
     conn.commit()
     conn.close()

@@ -1,5 +1,7 @@
 import sys
 import os
+import urllib.request
+import json
 
 # Config standard output encoding for Windows terminal
 sys.stdout.reconfigure(encoding="utf-8")
@@ -22,18 +24,22 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 # Ensure database is initialized
 database.init_db()
 
-# --- Order Simulation Worker ---
+# --- Order & Price Simulation Worker ---
 def start_order_simulator():
     """
-    Background worker that updates the delivery progress of pending orders.
+    Background worker that updates delivery progress of pending orders
+    and periodically simulates price drops on boutique items.
     """
     def run_simulator():
-        print("[Order Simulator] Thread started successfully.", flush=True)
+        print("[Simulator] Thread started successfully.", flush=True)
+        tick = 0
         while True:
             try:
                 # Open database connection within thread
                 conn = database.get_db_connection()
                 cursor = conn.cursor()
+                
+                # 1. Order delivery simulation (every 5 seconds)
                 cursor.execute("SELECT id, status, delivery_progress FROM orders WHERE status != 'Entregado'")
                 pending_orders = cursor.fetchall()
                 
@@ -58,19 +64,36 @@ def start_order_simulator():
                         WHERE id = ?
                     ''', (new_prog, new_status, order_id))
                     print(f"[Order Simulator] Updated Order #{order_id}: Progress {new_prog}%, Status: '{new_status}'", flush=True)
-                    
+                
                 conn.commit()
+
+                # 2. Price drop simulation (every 30 seconds / 6 ticks)
+                if tick % 6 == 0:
+                    cursor.execute("SELECT id, name, price, original_price FROM clothes WHERE is_owned = 0")
+                    boutique_items = [dict(row) for row in cursor.fetchall()]
+                    if boutique_items and random.random() < 0.5:
+                        item = random.choice(boutique_items)
+                        discount_pct = random.randint(15, 30)
+                        orig_price = item['original_price'] if item['original_price'] is not None else item['price']
+                        new_price = round(orig_price * (1 - discount_pct / 100.0), 2)
+                        
+                        # Update price and insert into history
+                        cursor.execute("UPDATE clothes SET price = ?, original_price = ? WHERE id = ?", (new_price, orig_price, item['id']))
+                        cursor.execute("INSERT INTO price_history (clothing_id, price) VALUES (?, ?)", (item['id'], new_price))
+                        conn.commit()
+                        print(f"[Price Simulator] Item '{item['name']}' rebajado {discount_pct}% a ${new_price} (precio original: ${orig_price})", flush=True)
+                
                 conn.close()
             except Exception as e:
-                print(f"[Order Simulator Error] {e}", flush=True)
+                print(f"[Simulator Error] {e}", flush=True)
             
-            # Wait 5 seconds between increments
+            tick += 1
             time.sleep(5)
 
     t = threading.Thread(target=run_simulator, daemon=True)
     t.start()
 
-# Start background delivery thread
+# Start background simulation thread
 start_order_simulator()
 
 # --- REST API Endpoints ---
@@ -306,6 +329,192 @@ def make_order():
 def get_weather():
     try:
         return jsonify(styling_engine.CITIES), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
+# 6b. Live Weather API integration
+CITY_COORDINATES = {
+    0: {"name": "Bogotá", "lat": 4.7110, "lon": -74.0721},
+    1: {"name": "Medellín", "lat": 6.2442, "lon": -75.5812},
+    2: {"name": "Cartagena", "lat": 10.3910, "lon": -75.4794},
+    3: {"name": "Cali", "lat": 3.4516, "lon": -76.5320},
+    4: {"name": "Londres", "lat": 51.5074, "lon": -0.1278},
+    5: {"name": "Nueva York", "lat": 40.7128, "lon": -74.0060}
+}
+
+@app.route('/api/weather/live', methods=['GET'])
+def get_live_weather():
+    try:
+        city_index_val = request.args.get('city_index', '0')
+        try:
+            city_index = int(city_index_val)
+        except ValueError:
+            city_index = 0
+            
+        city_data = CITY_COORDINATES.get(city_index, CITY_COORDINATES[0])
+        lat = city_data["lat"]
+        lon = city_data["lon"]
+        name = city_data["name"]
+        
+        # Real HTTP call to Open-Meteo
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,weather_code"
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': 'DressYourselfApp/1.0'})
+            with urllib.request.urlopen(req, timeout=5.0) as response:
+                data = json.loads(response.read().decode('utf-8'))
+                current = data.get("current", {})
+                temp = current.get("temperature_2m", 15.0)
+                humidity = current.get("relative_humidity_2m", 70)
+                weather_code = current.get("weather_code", 0)
+        except Exception as e:
+            # Fallback to static defaults if network request fails
+            print(f"[Weather API Error] Fallback to static defaults: {e}", flush=True)
+            static_city = next((c for c in styling_engine.CITIES if c["index"] == city_index), styling_engine.CITIES[0])
+            temp = static_city["temp"]
+            weather_code = 0 if static_city["rain"] == 0 else 61
+            humidity = 80 if static_city["rain"] == 1 else 50
+
+        # Determine if it is raining
+        rain_codes = [51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99]
+        is_raining = weather_code in rain_codes
+        
+        return jsonify({
+            "city_name": name,
+            "latitude": lat,
+            "longitude": lon,
+            "temperature": temp,
+            "weather_code": weather_code,
+            "humidity": humidity,
+            "is_raining": is_raining
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 7. User Profile Management
+@app.route('/api/profile', methods=['GET'])
+def get_user_profile():
+    try:
+        prof = database.get_profile()
+        if not prof:
+            prof = database.save_profile("Usuario Invitado", "Comodo", "Bogotá", 0, "Novicio", "[]")
+        
+        # Deserialize insignias
+        if prof and isinstance(prof.get('insignias'), str):
+            try:
+                prof['insignias'] = json.loads(prof['insignias'])
+            except Exception:
+                prof['insignias'] = []
+        return jsonify(prof), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/profile', methods=['POST'])
+def save_user_profile():
+    try:
+        data = request.json or {}
+        if not data.get('nombre'):
+            return jsonify({"error": "El campo 'nombre' es obligatorio."}), 400
+        
+        estilo = data.get('estilo_preferido', 'Comodo')
+        if estilo not in ['Comodo', 'Elegante', 'Romantico']:
+            estilo = 'Comodo'
+            
+        # Serialize insignias list
+        insignias_val = data.get('insignias', [])
+        if isinstance(insignias_val, list):
+            insignias_str = json.dumps(insignias_val)
+        else:
+            insignias_str = "[]"
+            
+        updated_prof = database.save_profile(
+            nombre=data['nombre'],
+            estilo_preferido=estilo,
+            ciudad_default=data.get('ciudad_default', 'Bogotá'),
+            puntos=data.get('puntos', 0),
+            nivel=data.get('nivel', 'Novicio'),
+            insignias=insignias_str
+        )
+        
+        # Deserialize for response
+        if updated_prof and isinstance(updated_prof.get('insignias'), str):
+            try:
+                updated_prof['insignias'] = json.loads(updated_prof['insignias'])
+            except Exception:
+                updated_prof['insignias'] = []
+                
+        return jsonify(updated_prof), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 8. Canvas Looks (Lienzo Libre) Management
+@app.route('/api/canvas-looks', methods=['GET'])
+def get_canvas_looks():
+    try:
+        looks = database.get_all_canvas_looks()
+        for look in looks:
+            if isinstance(look.get('prendas_json'), str):
+                try:
+                    look['prendas'] = json.loads(look['prendas_json'])
+                except Exception:
+                    look['prendas'] = []
+        return jsonify(looks), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/canvas-looks', methods=['POST'])
+def save_canvas_look():
+    try:
+        data = request.json or {}
+        if not data.get('nombre'):
+            return jsonify({"error": "El campo 'nombre' es obligatorio."}), 400
+            
+        prendas = data.get('prendas')
+        if prendas is None:
+            return jsonify({"error": "Debe proporcionar el campo 'prendas' como una lista."}), 400
+            
+        prendas_json = json.dumps(prendas)
+        new_id = database.create_canvas_look(data['nombre'], prendas_json)
+        
+        return jsonify({"id": new_id, "message": "Collage de Lienzo Libre guardado con éxito."}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 9. Travel Capsule Wardrobe Generator
+@app.route('/api/travel-capsule', methods=['POST'])
+def get_travel_capsule():
+    try:
+        data = request.json or {}
+        days = data.get('days')
+        dest_type = data.get('destination_type')
+        climate = data.get('climate')
+        
+        if not days or not dest_type or not climate:
+            return jsonify({"error": "Faltan campos obligatorios: days, destination_type, climate"}), 400
+            
+        clothes_list = database.get_all_clothes()
+        capsule = styling_engine.generate_travel_capsule(clothes_list, days, dest_type, climate)
+        return jsonify(capsule), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 10. Price Tracker Auditor
+@app.route('/api/price-tracker', methods=['GET'])
+def get_price_tracker():
+    try:
+        tracker_data = database.get_price_tracker_data()
+        for item in tracker_data:
+            orig = item.get('original_price') or item.get('price')
+            curr = item.get('price')
+            if orig and curr and curr < orig:
+                discount_pct = round((orig - curr) / orig * 100)
+                item['discount_percentage'] = discount_pct
+                item['on_sale'] = True
+            else:
+                item['discount_percentage'] = 0
+                item['on_sale'] = False
+        return jsonify(tracker_data), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
