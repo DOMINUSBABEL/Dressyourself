@@ -802,6 +802,31 @@ function renderBoutique() {
     boutiqueGrid.innerHTML = '';
 
     STATE.boutiqueItems.forEach(item => {
+        // Calculate dynamic wardrobe gap compatibility based on current closet inventory
+        let matchingCount = 0;
+        let unlockCount = 0;
+        const tops = STATE.closetItems.filter(c => c.category === 'Top').length;
+        const bottoms = STATE.closetItems.filter(c => c.category === 'Bottom').length;
+        const footwear = STATE.closetItems.filter(c => c.category === 'Footwear').length;
+        const outerwear = STATE.closetItems.filter(c => c.category === 'Outerwear').length;
+
+        if (item.category === 'Top') {
+            matchingCount = bottoms + outerwear;
+            unlockCount = bottoms * Math.max(1, footwear);
+        } else if (item.category === 'Bottom') {
+            matchingCount = tops + footwear;
+            unlockCount = tops * Math.max(1, footwear);
+        } else if (item.category === 'Outerwear') {
+            matchingCount = tops + bottoms;
+            unlockCount = tops * bottoms;
+        } else if (item.category === 'Footwear') {
+            matchingCount = bottoms;
+            unlockCount = bottoms * Math.max(1, tops);
+        } else {
+            matchingCount = tops;
+            unlockCount = tops;
+        }
+
         const card = document.createElement('div');
         card.className = 'boutique-card';
         card.setAttribute('draggable', 'true');
@@ -832,6 +857,9 @@ function renderBoutique() {
                         <h4 class="boutique-title">${item.name}</h4>
                     </div>
                     <span class="boutique-price">${item.price}</span>
+                </div>
+                <div class="boutique-compatibility" style="margin-top: 8px; font-size: 0.7rem; color: var(--accent-gold); display: flex; align-items: center; gap: 4px; border-top: 1px solid rgba(212,175,55,0.1); padding-top: 6px; font-family: 'Montserrat', sans-serif;">
+                    <span>✨ Combina con <strong>${matchingCount}</strong> prendas y desbloquea <strong>${unlockCount}</strong> outfits</span>
                 </div>
             </div>
         `;
