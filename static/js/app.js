@@ -1619,6 +1619,31 @@ function updateProfileUI() {
         const pct = Math.min((STATE.userProfile.xp / getNextLevelXP()) * 100, 100);
         profXPBar.style.width = `${pct}%`;
     }
+
+    // Enable/Unlock Visual Themes based on level
+    const optVelvet = document.getElementById('opt-theme-velvet');
+    const optEsmeralda = document.getElementById('opt-theme-esmeralda');
+    const xp = STATE.userProfile.xp;
+
+    if (optVelvet) {
+        if (xp >= 50) {
+            optVelvet.removeAttribute('disabled');
+            optVelvet.textContent = "🌟 Velvet Noir (Desbloqueado)";
+        } else {
+            optVelvet.setAttribute('disabled', 'true');
+            optVelvet.textContent = "🔒 Velvet Noir (Nivel Estilista)";
+        }
+    }
+
+    if (optEsmeralda) {
+        if (xp >= 100) {
+            optEsmeralda.removeAttribute('disabled');
+            optEsmeralda.textContent = "🌟 Esmeralda Premium (Desbloqueado)";
+        } else {
+            optEsmeralda.setAttribute('disabled', 'true');
+            optEsmeralda.textContent = "🔒 Esmeralda Premium (Nivel Trendsetter)";
+        }
+    }
 }
 
 function getNextLevelXP() {
@@ -1652,11 +1677,63 @@ function initGamification() {
         });
     }
 
+    // Theme Select handler
+    const themeSelect = document.getElementById('profile-theme-select');
+    if (themeSelect) {
+        // Load saved theme
+        const savedTheme = localStorage.getItem('user_theme') || 'default';
+        themeSelect.value = savedTheme;
+        applySelectedTheme(savedTheme);
+
+        themeSelect.addEventListener('change', (e) => {
+            applySelectedTheme(e.target.value);
+            showToast("Tema de interfaz actualizado.");
+        });
+    }
+
     // Initialize local favorites if any
     const savedFavs = localStorage.getItem('boutique_favorites');
     if (savedFavs) {
         STATE.favorites = JSON.parse(savedFavs);
     }
+}
+
+function applySelectedTheme(themeId) {
+    const root = document.documentElement;
+    const themes = {
+        default: {
+            '--bg-primary': '#0a0a0a',
+            '--bg-secondary': '#121212',
+            '--bg-tertiary': '#1e1e1e',
+            '--accent-gold': '#d4af37',
+            '--accent-gold-hover': '#e5c158',
+            '--border-gold': 'rgba(212, 175, 55, 0.25)'
+        },
+        velvet: {
+            '--bg-primary': '#0e0b16',
+            '--bg-secondary': '#18122B',
+            '--bg-tertiary': '#2B1B4D',
+            '--accent-gold': '#A555EC',
+            '--accent-gold-hover': '#D376FF',
+            '--border-gold': 'rgba(165, 85, 236, 0.3)'
+        },
+        esmeralda: {
+            '--bg-primary': '#051911',
+            '--bg-secondary': '#0b291d',
+            '--bg-tertiary': '#143d2d',
+            '--accent-gold': '#cfb53b',
+            '--accent-gold-hover': '#dfc54b',
+            '--border-gold': 'rgba(207, 181, 59, 0.3)'
+        }
+    };
+
+    const vars = themes[themeId] || themes.default;
+    for (const [key, value] of Object.entries(vars)) {
+        root.style.setProperty(key, value);
+    }
+    
+    // Save theme selection in localStorage
+    localStorage.setItem('user_theme', themeId);
 }
 
 function gainXP(amount) {
