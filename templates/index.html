@@ -312,10 +312,15 @@
                 <div class="lienzo-container">
                     <!-- Left: Control panel / Garment selector -->
                     <div class="lienzo-sidebar glass-card">
-                        <h4 class="gold-text" style="font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">Tus Prendas</h4>
-                        <p class="section-desc-small">Haz clic en una prenda para añadirla al lienzo:</p>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                            <h4 class="gold-text" style="font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0;">Prendas</h4>
+                        </div>
+                        <div class="tab-filters-canvas" style="display: flex; gap: 5px; margin-bottom: 12px; background: rgba(0,0,0,0.2); padding: 3px; border-radius: 8px; border: 1px solid rgba(212,175,55,0.1);">
+                            <button id="btn-canvas-source-closet" class="canvas-tab-btn active" style="flex: 1; font-size: 0.7rem; padding: 6px 4px; border-radius: 6px; background: rgba(212,175,55,0.1); border: none; color: #fff; cursor: pointer; font-family: 'Montserrat', sans-serif;">Mi Clóset</button>
+                            <button id="btn-canvas-source-boutique" class="canvas-tab-btn" style="flex: 1; font-size: 0.7rem; padding: 6px 4px; border-radius: 6px; background: none; border: none; color: #aaa; cursor: pointer; font-family: 'Montserrat', sans-serif;">Boutique</button>
+                        </div>
                         <div class="lienzo-garments-scroller" id="lienzo-garments-scroller">
-                            <!-- Populated with closet items by JS -->
+                            <!-- Populated with items by JS -->
                         </div>
                     </div>
                     

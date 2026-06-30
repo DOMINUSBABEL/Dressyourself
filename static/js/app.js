@@ -44,7 +44,8 @@ const STATE = {
     weatherClicks: 0,
     favorites: [],
     selectedCanvasItem: null,
-    gpsCoords: null
+    gpsCoords: null,
+    canvasSource: 'closet'
 };
 
 // Look image map for Aria
@@ -1736,6 +1737,32 @@ function initLienzoLibre() {
     // Load garments list to select from
     renderLienzoSidebar();
 
+    // Bind source filter tabs
+    const btnCloset = document.getElementById('btn-canvas-source-closet');
+    const btnBoutique = document.getElementById('btn-canvas-source-boutique');
+    if (btnCloset && btnBoutique) {
+        btnCloset.addEventListener('click', () => {
+            STATE.canvasSource = 'closet';
+            btnCloset.classList.add('active');
+            btnCloset.style.background = 'rgba(212,175,55,0.1)';
+            btnCloset.style.color = '#fff';
+            btnBoutique.classList.remove('active');
+            btnBoutique.style.background = 'none';
+            btnBoutique.style.color = '#aaa';
+            renderLienzoSidebar();
+        });
+        btnBoutique.addEventListener('click', () => {
+            STATE.canvasSource = 'boutique';
+            btnBoutique.classList.add('active');
+            btnBoutique.style.background = 'rgba(212,175,55,0.1)';
+            btnBoutique.style.color = '#fff';
+            btnCloset.classList.remove('active');
+            btnCloset.style.background = 'none';
+            btnCloset.style.color = '#aaa';
+            renderLienzoSidebar();
+        });
+    }
+
     // Scale & rotate sliders
     const scaleSlider = document.getElementById('lienzo-scale');
     const rotateSlider = document.getElementById('lienzo-rotate');
@@ -1793,13 +1820,15 @@ function renderLienzoSidebar() {
     if (!scroller) return;
     scroller.innerHTML = '';
 
-    STATE.closetItems.forEach(item => {
+    const list = STATE.canvasSource === 'closet' ? STATE.closetItems : STATE.boutiqueItems;
+
+    list.forEach(item => {
         const div = document.createElement('div');
         div.className = 'lienzo-garment-item animate-fade-in';
         div.innerHTML = `
             <img src="${item.image}" alt="${item.name}">
             <div class="lienzo-garment-info">
-                <span class="lienzo-garment-cat">${item.cat}</span>
+                <span class="lienzo-garment-cat">${item.brand || item.cat || 'Prenda'}</span>
                 <span class="lienzo-garment-name">${item.name}</span>
             </div>
         `;
