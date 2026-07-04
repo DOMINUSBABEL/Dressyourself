@@ -374,25 +374,85 @@ GANCHITO_QUOTES = {
 
 @app.route('/api/clima', methods=['GET'])
 def get_clima():
-    """Frontend expects { city, temp, desc, details[] }."""
+    """Frontend expects { city, temp, desc, details[] }.
+    Accepts optional GPS coordinates: ?lat=X&lon=Y to find the nearest city.
+    Falls back to city_index parameter or first city if no GPS coords provided.
+    """
     try:
-        city_index = int(request.args.get('city_index', 0))
         cities = styling_engine.CITIES
-        city = next((c for c in cities if c["index"] == city_index), cities[0])
+        city = None
+        gps_active = False
+
+        # Check if GPS coordinates were provided
+        lat_param = request.args.get('lat')
+        lon_param = request.args.get('lon')
+
+        if lat_param and lon_param:
+            try:
+                lat = float(lat_param)
+                lon = float(lon_param)
+                gps_active = True
+
+                # GPS coordinate mapping for Colombian cities in the CITIES array
+                # Approximate coordinates for nearest-city lookup
+                city_coords = {
+                    "Bogotá": (4.7110, -74.0721),
+                    "Medellín": (6.2442, -75.5812),
+                    "Cali": (3.4516, -76.5320),
+                    "Barranquilla": (10.9685, -74.7813),
+                    "Cartagena": (10.3910, -75.5144),
+                    "Bucaramanga": (7.1254, -73.1198),
+                    "Pereira": (4.8087, -75.6906),
+                    "Santa Marta": (11.2408, -74.1990),
+                    "Manizales": (5.0689, -75.5174),
+                    "Ibagué": (4.4389, -75.2322),
+                }
+
+                # Find the nearest city by simple Euclidean distance
+                best_dist = float('inf')
+                best_city_name = None
+                for name, (clat, clon) in city_coords.items():
+                    dist = ((lat - clat) ** 2 + (lon - clon) ** 2) ** 0.5
+                    if dist < best_dist:
+                        best_dist = dist
+                        best_city_name = name
+
+                # Try to find the matched city in the CITIES array
+                if best_city_name:
+                    city = next((c for c in cities if c["name"] == best_city_name), None)
+            except (ValueError, TypeError):
+                pass  # Invalid GPS coords, fall through to default
+
+        # Fallback: use city_index parameter or first city
+        if city is None:
+            city_index = int(request.args.get('city_index', 0))
+            city = next((c for c in cities if c["index"] == city_index), cities[0])
 
         rain_label = "Lluvia" if city["rain"] else "Despejado"
+        desc = f"{rain_label}, temperatura de {city['temp']}°C"
+        if gps_active:
+            desc += f" (GPS: {float(lat_param):.4f}°, {float(lon_param):.4f}°)"
+
+        details = [
+            {"label": "Condición", "value": rain_label},
+            {"label": "Temp", "value": f"{city['temp']}°C"},
+        ]
+        if gps_active:
+            details.append({"label": "GPS", "value": f"📍 {float(lat_param):.2f}°, {float(lon_param):.2f}°"})
+            details.append({"label": "Precisión", "value": "Alta (GPS)"})
+        else:
+            details.append({"label": "Índice", "value": str(city["index"])})
+
         return jsonify({
             "city": city["name"],
             "temp": f"{city['temp']}°C",
-            "desc": f"{rain_label}, temperatura de {city['temp']}°C",
-            "details": [
-                {"label": "Condición", "value": rain_label},
-                {"label": "Temp", "value": f"{city['temp']}°C"},
-                {"label": "Índice", "value": str(city["index"])},
-            ]
+            "desc": desc,
+            "details": details,
+            "gps_active": gps_active
         }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 @app.route('/api/closet', methods=['GET'])
