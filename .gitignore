@@ -22,4 +22,8 @@ env/
 # Uploaded temporary files
 uploads/
 temp/
+temp_scans/
 static/uploads/
+
+# Android APK builds
+*.apk

@@ -186,7 +186,7 @@ def delete_clothing(clothing_id):
     cursor = conn.cursor()
     cursor.execute('DELETE FROM clothes WHERE id = ?', (clothing_id,))
     conn.commit()
-    changes = conn.total_changes
+    changes = cursor.rowcount
     conn.close()
     return changes > 0
 
@@ -229,7 +229,7 @@ def delete_outfit(outfit_id):
     cursor = conn.cursor()
     cursor.execute('DELETE FROM outfits WHERE id = ?', (outfit_id,))
     conn.commit()
-    changes = conn.total_changes
+    changes = cursor.rowcount
     conn.close()
     return changes > 0
 
@@ -238,7 +238,7 @@ def share_outfit(outfit_id, share_status):
     cursor = conn.cursor()
     cursor.execute('UPDATE outfits SET is_shared = ? WHERE id = ?', (1 if share_status else 0, outfit_id))
     conn.commit()
-    changes = conn.total_changes
+    changes = cursor.rowcount
     conn.close()
     return changes > 0
 

@@ -42,12 +42,12 @@ const STATE = {
 
 // Look image map for Aria
 const ARIA_LOOK_IMAGES = {
-    base: 'static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Propuesta Animada.png',
-    castano_corto: 'static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Versiones del personaje/Pelo Castaño Corto.jpeg',
-    rojo_corto: 'static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Versiones del personaje/Pelo Rojo corto.jpeg',
-    rojo_largo: 'static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Versiones del personaje/Pelo Rojo largo.jpeg',
-    castano_gafas: 'static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Versiones del personaje/Pelo castaño medio con gafas.jpeg',
-    castano_medio: 'static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Versiones del personaje/Pelo castaño medio.jpeg'
+    base: 'static/proposals/Propuestas%20de%20Asistente%20Personal/Propuesta%20(Animada%20)/Propuesta%20Animada.png',
+    castano_corto: 'static/proposals/Propuestas%20de%20Asistente%20Personal/Propuesta%20(Animada%20)/Versiones%20del%20personaje/Pelo%20Casta%C3%B1o%20Corto.jpeg',
+    rojo_corto: 'static/proposals/Propuestas%20de%20Asistente%20Personal/Propuesta%20(Animada%20)/Versiones%20del%20personaje/Pelo%20Rojo%20corto.jpeg',
+    rojo_largo: 'static/proposals/Propuestas%20de%20Asistente%20Personal/Propuesta%20(Animada%20)/Versiones%20del%20personaje/Pelo%20Rojo%20largo.jpeg',
+    castano_gafas: 'static/proposals/Propuestas%20de%20Asistente%20Personal/Propuesta%20(Animada%20)/Versiones%20del%20personaje/Pelo%20casta%C3%B1o%20medio%20con%20gafas.jpeg',
+    castano_medio: 'static/proposals/Propuestas%20de%20Asistente%20Personal/Propuesta%20(Animada%20)/Versiones%20del%20personaje/Pelo%20casta%C3%B1o%20medio.jpeg'
 };
 
 // Mock Databases (Fallback when Backend is offline)
@@ -226,10 +226,22 @@ function switchTab(tabName) {
 // 2. Weather & Daily Recommendations Integration (with interactive mannequin highlights)
 async function initWeather() {
     try {
-        const response = await fetch('/api/clima');
+        const response = await fetch('/api/weather');
         if (!response.ok) throw new Error("Fallback to mock");
         const data = await response.json();
         renderWeather(data);
+        // Also attempt to load recommendations from backend
+        try {
+            const recResponse = await fetch('/api/recommend');
+            if (recResponse.ok) {
+                const recData = await recResponse.json();
+                renderRecommendations(recData.items || MOCK_DATA.climaRecommendation);
+            } else {
+                renderRecommendations(MOCK_DATA.climaRecommendation);
+            }
+        } catch (recErr) {
+            renderRecommendations(MOCK_DATA.climaRecommendation);
+        }
     } catch (e) {
         renderWeather(MOCK_DATA.weather);
         renderRecommendations(MOCK_DATA.climaRecommendation);
@@ -268,7 +280,7 @@ function renderRecommendations(items) {
         card.innerHTML = `
             <div class="rec-img-wrapper">
                 <span class="rec-badge">${item.badge}</span>
-                <img src="${item.image}" alt="${item.name}">
+                <img src="${item.image}" alt="${item.name}" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 fill=%27%23333%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%231a1a2e%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%23d4af37%27 font-family=%27sans-serif%27 font-size=%2714%27%3EImagen no disponible%3C/text%3E%3C/svg%3E';">
             </div>
             <div class="rec-details">
                 <span class="rec-type">${item.type}</span>
@@ -314,11 +326,31 @@ async function initCloset() {
     });
 }
 
+// Map backend category names to frontend category keys
+function mapCategory(backendCat) {
+    const map = {
+        'Top': 'superior',
+        'Bottom': 'inferior',
+        'Footwear': 'calzado',
+        'Outerwear': 'abrigo',
+        'Accessory': 'accesorio'
+    };
+    return map[backendCat] || backendCat;
+}
+
 async function loadClosetItems() {
     try {
-        const response = await fetch('/api/closet');
+        const response = await fetch('/api/clothes?owned=true');
         if (!response.ok) throw new Error("Fallback");
-        STATE.closetItems = await response.json();
+        const data = await response.json();
+        // Map backend field names to frontend expected shape
+        STATE.closetItems = data.map(item => ({
+            id: item.id,
+            cat: mapCategory(item.category),
+            name: item.name,
+            style: item.pattern || 'Classic',
+            image: item.image_url
+        }));
     } catch (e) {
         STATE.closetItems = [...MOCK_DATA.closet];
     }
@@ -356,8 +388,8 @@ function renderCloset(category) {
 
         card.innerHTML = `
             <div class="closet-img-wrapper">
-                <img src="${item.image}" alt="${item.name}">
-                <span class="closet-style-tag">${item.style}</span>
+                <img src="${item.image}" alt="${item.name}" onerror="this.onerror=null; this.style.objectFit='contain'; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 250%22><rect fill=%22%23171717%22 width=%22200%22 height=%22250%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23646464%22 font-size=%2214%22 text-anchor=%22middle%22 dy=%22.3em%22>Imagen no disponible</text></svg>';">
+                <span class="closet-style-tag">${item.style || ''}</span>
             </div>
             <div class="closet-info">
                 <span class="closet-cat">${item.cat}</span>
@@ -373,7 +405,22 @@ async function loadSavedOutfits() {
     try {
         const response = await fetch('/api/outfits');
         if (!response.ok) throw new Error("Fallback");
-        STATE.savedCombinations = await response.json();
+        const data = await response.json();
+        // Transform backend flat structure to frontend items-array structure
+        STATE.savedCombinations = data.map(outfit => {
+            const items = [];
+            if (outfit.top_image) items.push({ cat: 'superior', name: outfit.top_name, image: outfit.top_image });
+            if (outfit.bottom_image) items.push({ cat: 'inferior', name: outfit.bottom_name, image: outfit.bottom_image });
+            if (outfit.footwear_image) items.push({ cat: 'calzado', name: outfit.footwear_name, image: outfit.footwear_image });
+            if (outfit.outerwear_image) items.push({ cat: 'abrigo', name: outfit.outerwear_name, image: outfit.outerwear_image });
+            if (outfit.accessory_image) items.push({ cat: 'accesorio', name: outfit.accessory_name, image: outfit.accessory_image });
+            return {
+                id: outfit.id,
+                name: outfit.name,
+                occasion: outfit.justification ? 'Curado' : 'Casual',
+                items: items
+            };
+        });
     } catch (e) {
         STATE.savedCombinations = [...MOCK_DATA.initialOutfits];
     }
@@ -403,7 +450,7 @@ function renderSavedCombinations() {
             if (itm && itm.image) {
                 thumbsHTML += `
                     <div class="combo-item-thumb" title="${itm.name}">
-                        <img src="${itm.image}" alt="${itm.name}">
+                        <img src="${itm.image}" alt="${itm.name}" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 fill=%27%23333%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%231a1a2e%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%23d4af37%27 font-family=%27sans-serif%27 font-size=%2714%27%3EImagen no disponible%3C/text%3E%3C/svg%3E';">
                     </div>
                 `;
             }
@@ -593,6 +640,7 @@ function initScanner() {
     });
 
     function handleSelectedFile(file) {
+        STATE._scannedFile = file;  // Store reference for drag-drop case
         const reader = new FileReader();
         reader.onload = (event) => {
             previewImg.src = event.target.result;
@@ -612,11 +660,21 @@ function initScanner() {
 
         const startTime = Date.now();
         const formData = new FormData();
-        formData.append('image', fileInput.files[0] || 'mock_file');
+        // Get the file from the input, or from a stored reference for drag-drop
+        const imageFile = fileInput.files[0] || STATE._scannedFile;
+        if (!imageFile) {
+            showToast("No se encontró la imagen. Por favor, selecciona un archivo.", "error");
+            btnScan.removeAttribute('disabled');
+            btnScan.querySelector('.btn-text').textContent = 'Iniciar Escaneo';
+            btnScan.querySelector('.spinner-small').style.display = 'none';
+            laser.classList.remove('active');
+            return;
+        }
+        formData.append('image', imageFile);
 
         let scanResultData = null;
         try {
-            const response = await fetch('/api/closet/scan', {
+            const response = await fetch('/api/scan', {
                 method: 'POST',
                 body: formData
             });
@@ -641,16 +699,22 @@ function initScanner() {
     });
 
     document.getElementById('btn-save-scanned').addEventListener('click', () => {
+        const scanCategory = document.getElementById('res-tipo').textContent;
+        const catMap = {'Camiseta': 'superior', 'Blusa': 'superior', 'Camisa': 'superior',
+                        'Jeans': 'inferior', 'Pantalón de Vestir': 'inferior', 'Falda': 'inferior',
+                        'Tenis': 'calzado', 'Botas': 'calzado', 'Mocasines': 'calzado',
+                        'Abrigo': 'abrigo', 'Chaqueta': 'abrigo', 'Chaqueta Puffer': 'abrigo',
+                        'Gafas de Sol': 'accesorio', 'Bolso': 'accesorio', 'Bufanda': 'accesorio'};
         const newGarment = {
             id: 'c_scanned_' + Date.now(),
-            cat: 'superior',
-            name: document.getElementById('res-tipo').textContent,
+            cat: catMap[scanCategory] || 'superior',
+            name: scanCategory || 'Prenda Escaneada',
             style: document.getElementById('res-estilo').textContent,
             image: previewImg.src
         };
         STATE.closetItems.unshift(newGarment);
         renderCloset('all');
-        alert("Prenda guardada exitosamente en tu Closet.");
+        showToast("Prenda guardada exitosamente en tu Closet.");
         switchTab('closet');
     });
 }
@@ -658,14 +722,26 @@ function initScanner() {
 function showScanResults(results) {
     const resultsBox = document.getElementById('scan-results-box');
     
-    document.getElementById('res-tipo').textContent = results.tipo;
-    document.getElementById('res-estilo').textContent = results.estilo;
-    document.getElementById('res-confianza').textContent = results.confianza;
-    document.getElementById('res-consejo').textContent = results.consejo;
+    // Support both backend API shape and mock data shape
+    document.getElementById('res-tipo').textContent = results.tipo || results.subcategory || results.category || '--';
+    document.getElementById('res-estilo').textContent = results.estilo || results.pattern || '--';
+    document.getElementById('res-confianza').textContent = results.confianza || results.confidence || '--';
+    document.getElementById('res-consejo').textContent = results.consejo || 
+        (results.category ? `Prenda detectada: ${results.category} / ${results.subcategory}. Color principal: ${results.color_primary}. Patrón: ${results.pattern}.` : 'Sin datos.');
     
     const colorBox = document.getElementById('res-colores');
     colorBox.innerHTML = '';
-    results.colores.forEach(hex => {
+    
+    // Handle both hex array (mock) and color name strings (backend)
+    const colores = results.colores || [];
+    if (colores.length === 0 && results.color_primary) {
+        // Show color name labels instead of swatches for backend data
+        const label = document.createElement('span');
+        label.style.cssText = 'font-size:0.9rem; color:var(--text-primary);';
+        label.textContent = results.color_primary + (results.color_secondary && results.color_secondary !== 'N/A' ? ', ' + results.color_secondary : '');
+        colorBox.appendChild(label);
+    }
+    colores.forEach(hex => {
         const swatch = document.createElement('div');
         swatch.className = 'color-swatch';
         swatch.style.backgroundColor = hex;
@@ -680,9 +756,17 @@ function showScanResults(results) {
 // 6. Boutique Catalog Manager
 async function initBoutique() {
     try {
-        const response = await fetch('/api/boutique');
+        const response = await fetch('/api/clothes?owned=false');
         if (!response.ok) throw new Error("Fallback");
-        STATE.boutiqueItems = await response.json();
+        const data = await response.json();
+        STATE.boutiqueItems = data.map(item => ({
+            id: item.id,
+            cat: mapCategory(item.category),
+            brand: item.store_name || 'DressYourself',
+            name: item.name,
+            price: item.price ? `$${item.price.toFixed(2)}` : '$0.00',
+            image: item.image_url
+        }));
     } catch (e) {
         STATE.boutiqueItems = [...MOCK_DATA.boutique];
     }
@@ -707,7 +791,7 @@ function renderBoutique() {
 
         card.innerHTML = `
             <div class="boutique-img-wrapper">
-                <img src="${item.image}" alt="${item.name}">
+                <img src="${item.image}" alt="${item.name}" onerror="this.onerror=null; this.style.objectFit='contain'; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 280%22><rect fill=%22%23171717%22 width=%22200%22 height=%22280%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23646464%22 font-size=%2214%22 text-anchor=%22middle%22 dy=%22.3em%22>Imagen no disponible</text></svg>';">
                 <div class="boutique-card-overlay">
                     <button class="gold-btn btn-try-boutique">Probar en Vestidor</button>
                 </div>
@@ -764,7 +848,7 @@ function renderFittingSource(sourceType) {
         const itemEl = document.createElement('div');
         itemEl.className = 'fitting-source-item';
         itemEl.innerHTML = `
-            <img src="${item.image}" alt="${item.name}">
+            <img src="${item.image}" alt="${item.name}" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 fill=%27%23333%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%231a1a2e%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%23d4af37%27 font-family=%27sans-serif%27 font-size=%2714%27%3EImagen no disponible%3C/text%3E%3C/svg%3E';">
             <div class="fitting-source-item-meta">${item.name}</div>
         `;
         itemEl.addEventListener('click', () => {
@@ -782,7 +866,7 @@ function selectForFitting(type, item) {
     
     const content = slot.querySelector('.slot-content');
     content.innerHTML = `
-        <img src="${item.image}" alt="${item.name}">
+        <img src="${item.image}" alt="${item.name}" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 fill=%27%23333%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%231a1a2e%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%23d4af37%27 font-family=%27sans-serif%27 font-size=%2714%27%3EImagen no disponible%3C/text%3E%3C/svg%3E';">
         <div class="slot-item-info">
             <span class="slot-item-cat">${item.cat}</span>
             <h4 class="slot-item-name">${item.name}</h4>
@@ -896,7 +980,7 @@ function renderComunidadFeed() {
                 </div>
             </div>
             <div class="post-image-wrapper">
-                <img src="${post.img}" alt="Outfit post">
+                <img src="${post.img}" alt="Outfit post" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 fill=%27%23333%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%231a1a2e%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%23d4af37%27 font-family=%27sans-serif%27 font-size=%2714%27%3EImagen no disponible%3C/text%3E%3C/svg%3E';">
             </div>
             
             <div class="valuation-bar">
@@ -1150,7 +1234,7 @@ function openGarmentDrawer(category) {
         itemCard.className = 'drawer-item-card animate-fade-in';
         itemCard.innerHTML = `
             <div class="drawer-item-img">
-                <img src="${item.image}" alt="${item.name}">
+                <img src="${item.image}" alt="${item.name}" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 fill=%27%23333%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%231a1a2e%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%23d4af37%27 font-family=%27sans-serif%27 font-size=%2714%27%3EImagen no disponible%3C/text%3E%3C/svg%3E';">
             </div>
             <div class="drawer-item-name">${item.name}</div>
         `;
@@ -1173,7 +1257,7 @@ function selectGarmentForBuilder(category, item) {
     // Render info inside slot
     const preview = slot.querySelector('.selected-item-preview');
     preview.innerHTML = `
-        <img class="preview-thumb" src="${item.image}" alt="${item.name}">
+        <img class="preview-thumb" src="${item.image}" alt="${item.name}" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 fill=%27%23333%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%231a1a2e%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%23d4af37%27 font-family=%27sans-serif%27 font-size=%2714%27%3EImagen no disponible%3C/text%3E%3C/svg%3E';">
         <span class="preview-name">${item.name}</span>
     `;
 
