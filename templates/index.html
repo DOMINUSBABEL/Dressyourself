@@ -445,6 +445,24 @@
                                 </div>
                                 <span class="score-pct" id="score-pct">0%</span>
                             </div>
+                            <div class="score-breakdown-row" style="display: flex; justify-content: space-around; margin: 10px 0; font-size: 0.85rem; color: var(--text-muted);">
+                                <div class="breakdown-item" style="text-align: center;">
+                                    <div>🎨 Color</div>
+                                    <span id="breakdown-color" style="font-weight: bold; color: var(--text-primary);">0%</span>
+                                </div>
+                                <div class="breakdown-item" style="text-align: center;">
+                                    <div>🧥 Estilo</div>
+                                    <span id="breakdown-style" style="font-weight: bold; color: var(--text-primary);">0%</span>
+                                </div>
+                                <div class="breakdown-item" style="text-align: center;">
+                                    <div>🏁 Patrón</div>
+                                    <span id="breakdown-pattern" style="font-weight: bold; color: var(--text-primary);">0%</span>
+                                </div>
+                                <div class="breakdown-item" style="text-align: center;">
+                                    <div>☀️ Clima</div>
+                                    <span id="breakdown-weather" style="font-weight: bold; color: var(--text-primary);">0%</span>
+                                </div>
+                            </div>
                             <div class="verdict-bubble">
                                 <strong class="gold-text">Veredicto de Aria:</strong>
                                 <p id="verdict-text">"Analizando tu silueta..."</p>
@@ -684,6 +702,23 @@
                                 <option value="Deportivo">Deportivo</option>
                                 <option value="Fiesta">Fiesta</option>
                             </select>
+                        </div>
+                        <!-- Outfit Builder Score & Breakdown -->
+                        <div id="builder-score-container" style="margin-top: 15px; border: 1px solid var(--border-gold); padding: 10px; border-radius: 6px; background: rgba(212, 175, 55, 0.05); display: none;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                <strong class="gold-text" style="font-size: 0.9rem;">Fashion Score de la Combinación:</strong>
+                                <span id="builder-score-pct" style="font-weight: bold; color: var(--text-primary);">0%</span>
+                            </div>
+                            <div class="score-bar-bg" style="height: 6px; margin-bottom: 8px;">
+                                <div class="score-bar-fill" id="builder-score-bar" style="width: 0%; height: 100%;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); text-align: center;">
+                                <div>Color: <span id="bbreakdown-color">0%</span></div>
+                                <div>Estilo: <span id="bbreakdown-style">0%</span></div>
+                                <div>Patrón: <span id="bbreakdown-pattern">0%</span></div>
+                                <div>Clima: <span id="bbreakdown-weather">0%</span></div>
+                            </div>
+                            <p id="builder-advice-text" style="font-size: 0.75rem; margin-top: 8px; font-style: italic; color: var(--text-primary); text-align: left;"></p>
                         </div>
                         <button class="gold-btn-large" id="btn-save-outfit" style="margin-top: 15px;">
                             <span>Guardar Combinación</span>

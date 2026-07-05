@@ -74,6 +74,30 @@ def start_order_simulator():
 # Start background delivery thread
 start_order_simulator()
 
+def get_items_from_request():
+    item_ids = []
+    req_json = None
+    try:
+        if request.is_json:
+            req_json = request.json
+    except Exception:
+        pass
+    if not req_json:
+        req_json = {}
+    for param in ['top_id', 'bottom_id', 'footwear_id', 'outerwear_id', 'accessory_id', 'closet_id', 'boutique_id']:
+        val = request.args.get(param) or req_json.get(param)
+        if val:
+            try:
+                item_ids.append(int(val))
+            except ValueError:
+                pass
+    items = []
+    for iid in item_ids:
+        item = database.get_clothing_by_id(iid)
+        if item:
+            items.append(item)
+    return items
+
 # --- REST API Endpoints ---
 
 # 1. Clothes CRUD
@@ -164,9 +188,15 @@ def scan_image():
 @app.route('/api/recommend', methods=['GET'])
 def get_recommendation():
     try:
+        items = get_items_from_request()
         city_index = request.args.get('city_index', 0)
         occasion = request.args.get('occasion', 'Casual')
+        city = next((c for c in styling_engine.CITIES if c["index"] == int(city_index)), styling_engine.CITIES[0])
         
+        if items:
+            score_res = styling_engine.calculate_fashion_score(items, city["name"], occasion)
+            return jsonify(score_res), 200
+            
         clothes_list = database.get_all_clothes()
         rec = styling_engine.recommend_outfit(clothes_list, city_index, occasion)
         return jsonify(rec), 200
@@ -459,6 +489,14 @@ def get_clima():
 def get_closet():
     """Frontend expects items with { id, cat, name, style, image }."""
     try:
+        items = get_items_from_request()
+        if items:
+            city_index = request.args.get('city_index', 0)
+            occasion = request.args.get('occasion', 'Casual')
+            city = next((c for c in styling_engine.CITIES if c["index"] == int(city_index)), styling_engine.CITIES[0])
+            score_res = styling_engine.calculate_fashion_score(items, city["name"], occasion)
+            return jsonify(score_res), 200
+            
         items = database.get_all_clothes(owned_filter=True)
         result = []
         for item in items:
@@ -530,6 +568,14 @@ def closet_scan_image():
 def get_boutique():
     """Frontend expects items with { id, cat, brand, name, price, image }."""
     try:
+        items = get_items_from_request()
+        if items:
+            city_index = request.args.get('city_index', 0)
+            occasion = request.args.get('occasion', 'Casual')
+            city = next((c for c in styling_engine.CITIES if c["index"] == int(city_index)), styling_engine.CITIES[0])
+            score_res = styling_engine.calculate_fashion_score(items, city["name"], occasion)
+            return jsonify(score_res), 200
+            
         items = database.get_all_clothes(owned_filter=False)
         result = []
         for item in items:
@@ -580,11 +626,29 @@ def get_pedido_status():
         if progress >= 100:
             logs.append({"time": "--:--", "text": "Entregado exitosamente."})
 
+        # Calculate score details for ordered boutique item paired with default/matching owned items
+        clothing = database.get_clothing_by_id(order["clothing_id"])
+        outfit_items = [clothing]
+        if clothing:
+            owned_clothes = database.get_all_clothes(owned_filter=True)
+            for cat in ["Top", "Bottom", "Footwear"]:
+                if clothing["category"] != cat:
+                    cat_items = [c for c in owned_clothes if c["category"] == cat]
+                    if cat_items:
+                        outfit_items.append(cat_items[0])
+        score_res = styling_engine.calculate_fashion_score(outfit_items)
+
         return jsonify({
             "id": f"DY-{order['id']:05d}",
             "status": status,
             "progress": progress,
             "logs": logs,
+            "color_score": score_res["color_score"],
+            "style_score": score_res["style_score"],
+            "pattern_score": score_res["pattern_score"],
+            "weather_score": score_res["weather_score"],
+            "total_score": score_res["total_score"],
+            "advice": score_res["advice"]
         }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -596,9 +660,43 @@ def get_ganchito_quote():
     try:
         personality = request.args.get('personality', 'classy').lower()
         user_query = request.args.get('q', '')
-
-        quotes = GANCHITO_QUOTES.get(personality, GANCHITO_QUOTES["classy"])
-        quote = random.choice(quotes)
+        
+        closet_id = request.args.get('closet_id')
+        boutique_id = request.args.get('boutique_id')
+        
+        closet_item = database.get_clothing_by_id(int(closet_id)) if closet_id else None
+        boutique_item = database.get_clothing_by_id(int(boutique_id)) if boutique_id else None
+        
+        if closet_item and boutique_item:
+            score_res = styling_engine.calculate_fashion_score([closet_item, boutique_item])
+            score = score_res["total_score"]
+            advice = score_res["advice"]
+            
+            if personality == "classy":
+                if score >= 85:
+                    quote = f"¡Excelente gusto! Esta combinación de {closet_item['name']} y {boutique_item['name']} tiene una puntuación Haute Couture de {score}%. Una armonía clásica impecable."
+                else:
+                    quote = f"El ensamble puntúa un {score}%. Te recomiendo buscar un balance de color más sutil, como sugieren nuestros cánones de elegancia."
+            elif personality == "diva":
+                if score >= 85:
+                    quote = f"¡Ay cariño, divino! Esa combinación de {closet_item['name']} y {boutique_item['name']} da un {score}%. Estás espectacular, lista para brillar."
+                else:
+                    quote = f"¡Es un escándalo! Solo califica un {score}%. Necesitamos más drama, cariño, o tal vez una pieza de boutique que de verdad resalte."
+            elif personality == "sarcastic":
+                if score >= 85:
+                    quote = f"Bueno, milagros ocurren. Tu ensamble tiene un {score}%. Quién diría que sabías combinar {closet_item['name']} con {boutique_item['name']}."
+                else:
+                    quote = f"Un triste {score}%. Supongo que vestirse a oscuras tiene sus consecuencias. Esa combinación es... valiente."
+            elif personality == "nervous":
+                if score >= 85:
+                    quote = f"¡Ay, menos mal! Da un {score}%. Parece que sí combina bien {closet_item['name']} y {boutique_item['name']}, estaba preocupadísimo."
+                else:
+                    quote = f"¡Ay no! Solo da un {score}%. ¿Y si nos cambian de ropa? Siento que la policía de la moda nos va a llevar."
+            else:
+                quote = advice
+        else:
+            quotes = GANCHITO_QUOTES.get(personality, GANCHITO_QUOTES["classy"])
+            quote = random.choice(quotes)
 
         # If user sent a message, personalize the response
         if user_query:

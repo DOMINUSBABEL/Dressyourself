@@ -1356,20 +1356,11 @@ window.clearFittingSlot = function(type) {
     document.getElementById('fitting-verdict').style.display = 'none';
 };
 
-function evaluateFittingMatch() {
+async function evaluateFittingMatch() {
     const closetItem = STATE.fittingSlots.closet;
     const boutiqueItem = STATE.fittingSlots.boutique;
 
     if (!closetItem || !boutiqueItem) return;
-
-    let baseScore = 70;
-    if (closetItem.cat !== boutiqueItem.cat) {
-        baseScore += 15;
-    }
-    if (closetItem.style && boutiqueItem.brand) {
-        baseScore += Math.floor(Math.random() * 11);
-    }
-    const score = Math.min(baseScore, 100);
 
     const scoreBar = document.getElementById('score-bar');
     const scorePct = document.getElementById('score-pct');
@@ -1379,31 +1370,44 @@ function evaluateFittingMatch() {
 
     verdictBox.style.display = 'flex';
     
-    setTimeout(() => {
-        scoreBar.style.width = `${score}%`;
-        scorePct.textContent = `${score}%`;
-    }, 100);
+    const bdColor = document.getElementById('breakdown-color');
+    const bdStyle = document.getElementById('breakdown-style');
+    const bdPattern = document.getElementById('breakdown-pattern');
+    const bdWeather = document.getElementById('breakdown-weather');
 
-    const personalityAdvisories = {
-        classy: [
-            `Una combinación refinada. El contraste entre ${closetItem.name} y la pieza de ${boutiqueItem.brand} es digno de una editorial parisina.`,
-            `Me convence. La caída estructural de ambas piezas conversa en perfecto equilibrio visual.`
-        ],
-        diva: [
-            `¡Uf, espectacular! Eso sí es tener buen ojo. Estás a un par de tacones altos de dominar la semana de la moda.`,
-            `Es decente, pero agrégale joyas de oro macizo. De lo contrario, parece que vas a la oficina.`
-        ],
-        sarcastic: [
-            `Al menos no chocan por completo, lo cual ya es una mejora respecto a tu outfit de ayer. Felicidades.`,
-            `La pieza de boutique está rescatando tu prenda del closet del abismo del mal gusto. Cómprala para salvarte.`
-        ],
-        nervous: [
-            `Se ve... bien, ¿verdad? Digo, no es demasiado arriesgado. ¡Por favor dime que te sientes cómodo!`
-        ]
-    };
-
-    const quotesList = personalityAdvisories[STATE.ariaPersonality] || personalityAdvisories.classy;
-    verdictText.textContent = `"${quotesList[Math.floor(Math.random() * quotesList.length)]}"`;
+    try {
+        const cityIndex = localStorage.getItem('dy_selected_city_index') || 0;
+        const occasion = 'Casual';
+        const url = `/api/recommend?city_index=${cityIndex}&occasion=${occasion}&closet_id=${closetItem.id}&boutique_id=${boutiqueItem.id}`;
+        
+        const response = await fetch(url);
+        if (response.ok) {
+            const data = await response.json();
+            
+            scoreBar.style.width = `${data.total_score}%`;
+            scorePct.textContent = `${data.total_score}%`;
+            
+            if (bdColor) bdColor.textContent = `${data.color_score}%`;
+            if (bdStyle) bdStyle.textContent = `${data.style_score}%`;
+            if (bdPattern) bdPattern.textContent = `${data.pattern_score}%`;
+            if (bdWeather) bdWeather.textContent = `${data.weather_score}%`;
+            
+            const quoteResponse = await fetch(`/api/ganchito/quote?personality=${STATE.ariaPersonality}&closet_id=${closetItem.id}&boutique_id=${boutiqueItem.id}`);
+            if (quoteResponse.ok) {
+                const quoteData = await quoteResponse.json();
+                verdictText.textContent = `"${quoteData.response}"`;
+                
+                const ariaSpeech = document.getElementById('aria-speech');
+                if (ariaSpeech) {
+                    ariaSpeech.textContent = `¡Bonjour! El ensamble califica en un ${data.total_score}%. ${data.advice}`;
+                }
+            } else {
+                verdictText.textContent = `"${data.advice}"`;
+            }
+        }
+    } catch (e) {
+        console.error("Error evaluating fitting match:", e);
+    }
 
     btnPurchase.style.display = 'block';
     btnPurchase.onclick = () => {
@@ -1664,6 +1668,7 @@ function initOutfitBuilder() {
 
     // Save Action
     btnSave.addEventListener('click', saveCombination);
+    document.getElementById('outfit-occasion')?.addEventListener('change', updateBuilderScore);
 }
 
 function openGarmentDrawer(category) {
@@ -1750,6 +1755,7 @@ function selectGarmentForBuilder(category, item) {
         playerContainer.style.display = 'flex';
         playerContainer.classList.add('animate-fade-in');
     }
+    updateBuilderScore();
 }
 
 function clearBuilderSlot(category) {
@@ -1774,6 +1780,46 @@ function clearBuilderSlot(category) {
     if (playerContainer) {
         playerContainer.style.display = 'none';
         playerContainer.querySelector('img').src = '';
+    }
+    updateBuilderScore();
+}
+
+async function updateBuilderScore() {
+    const superior = STATE.builderSlots.superior;
+    const inferior = STATE.builderSlots.inferior;
+    const calzado = STATE.builderSlots.calzado;
+    const abrigo = STATE.builderSlots.abrigo;
+    const accesorio = STATE.builderSlots.accesorio;
+    const occasion = document.getElementById('outfit-occasion')?.value || 'Casual';
+
+    const container = document.getElementById('builder-score-container');
+    if (!superior || !inferior || !calzado) {
+        if (container) container.style.display = 'none';
+        return;
+    }
+
+    try {
+        const cityIndex = localStorage.getItem('dy_selected_city_index') || 0;
+        let url = `/api/recommend?city_index=${cityIndex}&occasion=${occasion}&top_id=${superior.id}&bottom_id=${inferior.id}&footwear_id=${calzado.id}`;
+        if (abrigo) url += `&outerwear_id=${abrigo.id}`;
+        if (accesorio) url += `&accessory_id=${accesorio.id}`;
+
+        const response = await fetch(url);
+        if (response.ok) {
+            const data = await response.json();
+            if (container) {
+                container.style.display = 'block';
+                document.getElementById('builder-score-pct').textContent = `${data.total_score}%`;
+                document.getElementById('builder-score-bar').style.width = `${data.total_score}%`;
+                document.getElementById('bbreakdown-color').textContent = `${data.color_score}%`;
+                document.getElementById('bbreakdown-style').textContent = `${data.style_score}%`;
+                document.getElementById('bbreakdown-pattern').textContent = `${data.pattern_score}%`;
+                document.getElementById('bbreakdown-weather').textContent = `${data.weather_score}%`;
+                document.getElementById('builder-advice-text').textContent = `"${data.advice}"`;
+            }
+        }
+    } catch (e) {
+        console.error("Error updating builder score:", e);
     }
 }
 
