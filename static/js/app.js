@@ -223,30 +223,205 @@ function switchTab(tabName) {
     }
 }
 
-// 2. Weather & Daily Recommendations Integration (with interactive mannequin highlights)
+// 2. Weather & Daily Recommendations Integration (with GPS geolocation, Nominatim reverse geocoding & location picker)
 async function initWeather() {
+    initLocationModal();
+
+    // Check if user manually saved a location previously
+    const savedCityIndex = localStorage.getItem('dy_selected_city_index');
+    if (savedCityIndex !== null && localStorage.getItem('dy_use_gps') !== 'true') {
+        await loadWeatherByCityIndex(parseInt(savedCityIndex));
+        return;
+    }
+
+    // Try to get real GPS coordinates
+    let geoCoords = null;
     try {
-        const response = await fetch('/api/weather');
-        if (!response.ok) throw new Error("Fallback to mock");
-        const data = await response.json();
-        renderWeather(data);
-        // Also attempt to load recommendations from backend
-        try {
-            const recResponse = await fetch('/api/recommend');
-            if (recResponse.ok) {
-                const recData = await recResponse.json();
-                renderRecommendations(recData.items || MOCK_DATA.climaRecommendation);
-            } else {
-                renderRecommendations(MOCK_DATA.climaRecommendation);
-            }
-        } catch (recErr) {
-            renderRecommendations(MOCK_DATA.climaRecommendation);
+        geoCoords = await getDeviceLocation();
+    } catch (geoErr) {
+        console.log("GPS not available, using default weather:", geoErr.message);
+    }
+
+    if (geoCoords) {
+        await loadWeatherByGPS(geoCoords.latitude, geoCoords.longitude);
+    } else {
+        // Fallback to default city (Bogota, index 0)
+        await loadWeatherByCityIndex(0);
+    }
+}
+
+// Get device GPS location
+function getDeviceLocation() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new Error("Geolocation API no soportada"));
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+            (err) => reject(err),
+            { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+        );
+    });
+}
+
+// Reverse geocode via Nominatim OSM or fallback to nearest Colombian city
+async function getReverseGeocoding(lat, lon) {
+    try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=12`, {
+            headers: { 'Accept-Language': 'es' }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            const addr = data.address || {};
+            const cityName = addr.city || addr.town || addr.village || addr.suburb || addr.county || addr.state;
+            return cityName ? `📍 ${cityName}` : null;
         }
     } catch (e) {
-        renderWeather(MOCK_DATA.weather);
+        console.warn("Nominatim reverse geocoding failed, using fallback:", e);
+    }
+    
+    // Fallback: nearest city name in JS
+    const nearest = getNearestColombianCity(lat, lon);
+    return `📍 ${nearest.name} (Aprox.)`;
+}
+
+// Nearest Colombian city helper
+function getNearestColombianCity(lat, lon) {
+    const cities = [
+        { index: 0, name: "Bogotá", lat: 4.7110, lon: -74.0721 },
+        { index: 1, name: "Medellín", lat: 6.2442, lon: -75.5812 },
+        { index: 2, name: "Cali", lat: 3.4516, lon: -76.5320 },
+        { index: 3, name: "Barranquilla", lat: 10.9685, lon: -74.7813 },
+        { index: 4, name: "Cartagena", lat: 10.3910, lon: -75.5144 },
+        { index: 5, name: "Bucaramanga", lat: 7.1254, lon: -73.1198 },
+        { index: 6, name: "Pereira", lat: 4.8087, lon: -75.6906 },
+        { index: 7, name: "Santa Marta", lat: 11.2408, lon: -74.1990 },
+        { index: 8, name: "Manizales", lat: 5.0689, lon: -75.5174 },
+        { index: 9, name: "Ibagué", lat: 4.4389, lon: -75.2322 }
+    ];
+    let bestDist = Infinity;
+    let bestCity = cities[0];
+    for (const city of cities) {
+        const dist = Math.sqrt(Math.pow(lat - city.lat, 2) + Math.pow(lon - city.lon, 2));
+        if (dist < bestDist) {
+            bestDist = dist;
+            bestCity = city;
+        }
+    }
+    return bestCity;
+}
+
+// Load weather based on city index
+async function loadWeatherByCityIndex(cityIndex) {
+    try {
+        const response = await fetch(`/api/clima?city_index=${cityIndex}`);
+        if (!response.ok) throw new Error("API Clima Fallback");
+        const data = await response.json();
+        renderWeather(data);
+        await loadRecommendations();
+    } catch (e) {
+        // Mock fallback matching the index
+        const cities = ["Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Bucaramanga", "Pereira", "Santa Marta", "Manizales", "Ibagué"];
+        const mock = { ...MOCK_DATA.weather, city: cities[cityIndex] || "Bogotá" };
+        renderWeather(mock);
         renderRecommendations(MOCK_DATA.climaRecommendation);
     }
 }
+
+// Load weather based on coordinates
+async function loadWeatherByGPS(lat, lon) {
+    const nearestCity = getNearestColombianCity(lat, lon);
+    const resolvedName = await getReverseGeocoding(lat, lon);
+
+    try {
+        const response = await fetch(`/api/clima?lat=${lat}&lon=${lon}`);
+        if (!response.ok) throw new Error("API GPS Fallback");
+        const data = await response.json();
+        if (resolvedName) data.city = resolvedName;
+        renderWeather(data);
+        await loadRecommendations();
+    } catch (e) {
+        // Offline / Fallback
+        const mock = {
+            city: resolvedName || `📍 ${nearestCity.name} (Aprox.)`,
+            temp: "17°C",
+            desc: "Nublado con ráfagas suaves (GPS activo, sin servidor)",
+            details: [
+                { label: "Condición", value: "Nublado" },
+                { label: "GPS", value: `${lat.toFixed(2)}°, ${lon.toFixed(2)}°` },
+                { label: "Ciudad Cercana", value: nearestCity.name }
+            ]
+        };
+        renderWeather(mock);
+        renderRecommendations(MOCK_DATA.climaRecommendation);
+    }
+}
+
+// Helper to fetch recommendations
+async function loadRecommendations() {
+    try {
+        const recResponse = await fetch('/api/recommend');
+        if (recResponse.ok) {
+            const recData = await recResponse.json();
+            renderRecommendations(recData.items || MOCK_DATA.climaRecommendation);
+        } else {
+            renderRecommendations(MOCK_DATA.climaRecommendation);
+        }
+    } catch (recErr) {
+        renderRecommendations(MOCK_DATA.climaRecommendation);
+    }
+}
+
+// Location Modal Event Handlers
+function initLocationModal() {
+    const btnChange = document.getElementById('btn-change-location');
+    const modal = document.getElementById('location-modal');
+    const btnClose = document.getElementById('btn-close-location');
+    const btnUseGps = document.getElementById('btn-use-gps');
+    const btnSave = document.getElementById('btn-save-location');
+    const select = document.getElementById('location-select');
+
+    if (!btnChange || !modal) return;
+
+    btnChange.onclick = () => {
+        modal.style.display = 'flex';
+        const savedIndex = localStorage.getItem('dy_selected_city_index');
+        if (savedIndex !== null) select.value = savedIndex;
+    };
+
+    btnClose.onclick = () => { modal.style.display = 'none'; };
+    modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+
+    btnUseGps.onclick = async () => {
+        btnUseGps.setAttribute('disabled', 'true');
+        btnUseGps.querySelector('span').textContent = "Buscando satélites...";
+        localStorage.setItem('dy_use_gps', 'true');
+
+        try {
+            const coords = await getDeviceLocation();
+            await loadWeatherByGPS(coords.latitude, coords.longitude);
+            showToast("Ubicación actualizada con éxito por GPS.");
+            modal.style.display = 'none';
+        } catch (err) {
+            showToast("No se pudo obtener la ubicación GPS.", "error");
+        } finally {
+            btnUseGps.removeAttribute('disabled');
+            btnUseGps.querySelector('span').textContent = "🛰️ Usar ubicación GPS actual";
+        }
+    };
+
+    btnSave.onclick = async () => {
+        const index = select.value;
+        localStorage.setItem('dy_use_gps', 'false');
+        localStorage.setItem('dy_selected_city_index', index);
+        
+        await loadWeatherByCityIndex(parseInt(index));
+        showToast("Ubicación cambiada manualmente.");
+        modal.style.display = 'none';
+    };
+}
+
 
 function renderWeather(data) {
     document.getElementById('weather-city').textContent = data.city;
@@ -604,6 +779,139 @@ function appendChatMessage(sender, text) {
 }
 
 // 5. Vision Scanner & AI Cataloging (With mandatory 2-second scan delay)
+// Helper: Analiza la imagen localmente usando Canvas para extraer color predominante y estimar categoría
+function analyzeImageLocally(file) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 50;
+                canvas.height = 50;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, 50, 50);
+                
+                let imgData;
+                try {
+                    imgData = ctx.getImageData(0, 0, 50, 50).data;
+                } catch (err) {
+                    // Fallback if canvas tainted
+                    resolve({
+                        tipo: "Prenda Casual",
+                        estilo: "Liso",
+                        colores: ["#708090"],
+                        confianza: 85,
+                        consejo: "Análisis básico completado. Combina con neutros."
+                    });
+                    return;
+                }
+
+                let rSum = 0, gSum = 0, bSum = 0, count = 0;
+                for (let i = 0; i < imgData.length; i += 4) {
+                    const r = imgData[i];
+                    const g = imgData[i+1];
+                    const b = imgData[i+2];
+                    const a = imgData[i+3];
+                    if (a > 150) {
+                        const isWhite = r > 235 && g > 235 && b > 235;
+                        const isBlack = r < 25 && g < 25 && b < 25;
+                        if (!isWhite && !isBlack) {
+                            rSum += r; gSum += g; bSum += b; count++;
+                        }
+                    }
+                }
+                
+                if (count === 0) {
+                    for (let i = 0; i < imgData.length; i += 4) {
+                        rSum += imgData[i]; gSum += imgData[i+1]; bSum += imgData[i+2]; count++;
+                    }
+                }
+                
+                const r = Math.round(rSum / count);
+                const g = Math.round(gSum / count);
+                const b = Math.round(bSum / count);
+                
+                // Map color name in Spanish
+                const colorMap = {
+                    "Blanco": [245, 245, 245],
+                    "Negro": [25, 25, 25],
+                    "Gris": [128, 128, 128],
+                    "Azul Marino": [15, 32, 67],
+                    "Azul Celeste": [135, 206, 250],
+                    "Verde Oliva": [85, 107, 47],
+                    "Verde Esmeralda": [0, 201, 87],
+                    "Rojo": [200, 20, 30],
+                    "Marrón": [139, 69, 19],
+                    "Beige": [245, 245, 220],
+                    "Amarillo": [218, 165, 32],
+                    "Naranja": [210, 105, 30],
+                    "Rosa": [255, 192, 203],
+                    "Morado": [128, 0, 128]
+                };
+                
+                let color_name = "Gris";
+                let min_d = Infinity;
+                for (const [name, rgb] of Object.entries(colorMap)) {
+                    const dist = Math.sqrt((r - rgb[0])**2 + (g - rgb[1])**2 + (b - rgb[2])**2);
+                    if (dist < min_d) {
+                        min_d = dist; color_name = name;
+                    }
+                }
+                
+                const hexColor = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+                
+                // Categorize by file name heuristics
+                const fname = (file.name || "").toLowerCase();
+                let cat = "superior";
+                let tipo = "Camiseta";
+                
+                if (fname.includes("pant") || fname.includes("jean") || fname.includes("short") || fname.includes("falda") || fname.includes("leggin")) {
+                    cat = "inferior";
+                    tipo = fname.includes("falda") ? "Falda" : (fname.includes("jean") ? "Jeans" : "Pantalón");
+                } else if (fname.includes("shoe") || fname.includes("zapa") || fname.includes("bota") || fname.includes("tenis") || fname.includes("heel") || fname.includes("calzado")) {
+                    cat = "calzado";
+                    tipo = fname.includes("bota") ? "Botas" : (fname.includes("tenis") ? "Tenis" : "Zapatos");
+                } else if (fname.includes("jacket") || fname.includes("coat") || fname.includes("abrigo") || fname.includes("saco") || fname.includes("blazer") || fname.includes("chaqueta")) {
+                    cat = "abrigo";
+                    tipo = fname.includes("blazer") ? "Blazer" : "Chaqueta / Abrigo";
+                } else if (fname.includes("bag") || fname.includes("bols") || fname.includes("glass") || fname.includes("gafa") || fname.includes("belt") || fname.includes("accesorio")) {
+                    cat = "accesorio";
+                    tipo = fname.includes("gafa") ? "Gafas de Sol" : "Bolso / Accesorio";
+                } else {
+                    const cats = ["superior", "inferior", "calzado", "abrigo", "accesorio"];
+                    cat = cats[Math.floor(Math.random() * cats.length)];
+                    const types = {
+                        superior: ["Camiseta", "Camisa de Seda", "Top Knit", "Blusa"],
+                        inferior: ["Pantalón Sastrero", "Jeans Denim", "Falda Plisada"],
+                        calzado: ["Tacones de Cuero", "Mocasines", "Tenis Deportivos"],
+                        abrigo: ["Blazer Cruzado", "Chaqueta Denim", "Abrigo de Lana"],
+                        accesorio: ["Bolso de Mano", "Bufanda de Seda", "Gafas de Sol"]
+                    };
+                    tipo = types[cat][Math.floor(Math.random() * types[cat].length)];
+                }
+                
+                const estilos = ["Minimalista", "Quiet Luxury", "Streetwear", "Clásico", "Moderno"];
+                const estilo = estilos[Math.floor(Math.random() * estilos.length)];
+                const confianza = Math.round(75 + Math.random() * 23);
+                
+                resolve({
+                    tipo: tipo,
+                    estilo: estilo,
+                    colores: [hexColor],
+                    confianza: confianza,
+                    consejo: `Prenda catalogada localmente (GPS/Offline). Tipo: ${tipo} (${color_name}). Estilo: ${estilo}. Combina excelente con tonos complementarios.`,
+                    cat: cat,
+                    offline: true
+                });
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// 5. Vision Scanner & AI Cataloging (With multiple file and camera support)
 function initScanner() {
     const dropZone = document.getElementById('scanner-drop-zone');
     const fileInput = document.getElementById('scanner-file-input');
@@ -613,8 +921,16 @@ function initScanner() {
     const previewImg = document.getElementById('scan-preview-img');
     const laser = document.getElementById('scan-laser');
     const resultsBox = document.getElementById('scan-results-box');
+    const thumbsContainer = document.getElementById('scan-thumbnails-container');
 
-    dropZone.addEventListener('click', () => fileInput.click());
+    STATE.scanQueue = [];
+    STATE.activeScanIndex = 0;
+
+    dropZone.addEventListener('click', (e) => {
+        // Prevent click trigger if clicking inside thumbnails container
+        if (thumbsContainer.contains(e.target)) return;
+        fileInput.click();
+    });
     
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -629,85 +945,232 @@ function initScanner() {
         e.preventDefault();
         dropZone.style.borderColor = 'var(--border-gold)';
         if (e.dataTransfer.files.length) {
-            handleSelectedFile(e.dataTransfer.files[0]);
+            handleSelectedFiles(e.dataTransfer.files);
         }
     });
 
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length) {
-            handleSelectedFile(e.target.files[0]);
+            handleSelectedFiles(e.target.files);
         }
     });
 
-    function handleSelectedFile(file) {
-        STATE._scannedFile = file;  // Store reference for drag-drop case
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            previewImg.src = event.target.result;
-            uploadPlaceholder.style.display = 'none';
-            previewWrapper.style.display = 'flex';
-            btnScan.removeAttribute('disabled');
-            resultsBox.style.display = 'none';
-        };
-        reader.readAsDataURL(file);
+    function handleSelectedFiles(fileList) {
+        STATE.scanQueue = [];
+        STATE.activeScanIndex = 0;
+        thumbsContainer.innerHTML = '';
+        resultsBox.style.display = 'none';
+
+        const files = Array.from(fileList);
+        let loadedCount = 0;
+
+        files.forEach((file, index) => {
+            const item = {
+                file: file,
+                base64: null,
+                status: 'pending',
+                result: null
+            };
+            STATE.scanQueue.push(item);
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                item.base64 = event.target.result;
+                
+                // Create thumbnail
+                const thumb = document.createElement('div');
+                thumb.className = `scan-thumb ${index === 0 ? 'active' : ''}`;
+                thumb.id = `scan-thumb-${index}`;
+                thumb.innerHTML = `
+                    <img src="${event.target.result}" alt="Thumbnail">
+                    <span class="scan-thumb-badge pending" id="scan-badge-${index}">⌛</span>
+                `;
+                
+                thumb.onclick = (e) => {
+                    e.stopPropagation();
+                    selectQueueItem(index);
+                };
+                
+                thumbsContainer.appendChild(thumb);
+
+                loadedCount++;
+                if (loadedCount === files.length) {
+                    selectQueueItem(0);
+                    uploadPlaceholder.style.display = 'none';
+                    previewWrapper.style.display = 'flex';
+                    btnScan.removeAttribute('disabled');
+                    
+                    if (files.length > 1) {
+                        btnScan.querySelector('.btn-text').textContent = `Escanear prendas (${files.length})`;
+                    } else {
+                        btnScan.querySelector('.btn-text').textContent = 'Iniciar Escaneo';
+                    }
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function selectQueueItem(index) {
+        STATE.activeScanIndex = index;
+        document.querySelectorAll('.scan-thumb').forEach(t => t.classList.remove('active'));
+        
+        const activeThumb = document.getElementById(`scan-thumb-${index}`);
+        if (activeThumb) activeThumb.classList.add('active');
+
+        const activeItem = STATE.scanQueue[index];
+        if (activeItem) {
+            previewImg.src = activeItem.base64;
+            if (activeItem.status === 'completed' && activeItem.result) {
+                showScanResults(activeItem.result);
+            } else {
+                resultsBox.style.display = 'none';
+            }
+        }
     }
 
     btnScan.addEventListener('click', async () => {
         btnScan.setAttribute('disabled', 'true');
-        btnScan.querySelector('.btn-text').textContent = 'Escaneando con Visión IA...';
-        btnScan.querySelector('.spinner-small').style.display = 'block';
         laser.classList.add('active');
 
-        const startTime = Date.now();
-        const formData = new FormData();
-        // Get the file from the input, or from a stored reference for drag-drop
-        const imageFile = fileInput.files[0] || STATE._scannedFile;
-        if (!imageFile) {
-            showToast("No se encontró la imagen. Por favor, selecciona un archivo.", "error");
-            btnScan.removeAttribute('disabled');
-            btnScan.querySelector('.btn-text').textContent = 'Iniciar Escaneo';
-            btnScan.querySelector('.spinner-small').style.display = 'none';
-            laser.classList.remove('active');
-            return;
-        }
-        formData.append('image', imageFile);
+        if (STATE.scanQueue.length === 1) {
+            // SINGLE SCAN FLOW
+            btnScan.querySelector('.btn-text').textContent = 'Escaneando prenda...';
+            btnScan.querySelector('.spinner-small').style.display = 'block';
+            
+            const activeItem = STATE.scanQueue[0];
+            const badge = document.getElementById('scan-badge-0');
+            if (badge) badge.textContent = '⚙️';
 
-        let scanResultData = null;
-        try {
-            const response = await fetch('/api/scan', {
-                method: 'POST',
-                body: formData
-            });
-            if (response.ok) {
-                scanResultData = await response.json();
+            const startTime = Date.now();
+            let result = null;
+
+            const formData = new FormData();
+            formData.append('image', activeItem.file);
+
+            try {
+                const response = await fetch('/api/scan', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (response.ok) {
+                    result = await response.json();
+                }
+            } catch (err) {
+                console.log("Offline scan, using Canvas color analysis");
             }
-        } catch (err) {
-            console.log("Using local mock scan data.");
-        }
 
-        const elapsed = Date.now() - startTime;
-        const remainingDelay = Math.max(2200 - elapsed, 0);
+            if (!result) {
+                result = await analyzeImageLocally(activeItem.file);
+            }
 
-        setTimeout(() => {
+            const elapsed = Date.now() - startTime;
+            const remainingDelay = Math.max(1500 - elapsed, 0);
+
+            setTimeout(() => {
+                laser.classList.remove('active');
+                btnScan.removeAttribute('disabled');
+                btnScan.querySelector('.btn-text').textContent = 'Iniciar Escaneo';
+                btnScan.querySelector('.spinner-small').style.display = 'none';
+                
+                activeItem.status = 'completed';
+                activeItem.result = result;
+                if (badge) {
+                    badge.className = 'scan-thumb-badge scanned';
+                    badge.textContent = '✓';
+                }
+                showScanResults(result);
+            }, remainingDelay);
+
+        } else {
+            // MULTIPLE SEQUENTIAL BATCH SCAN FLOW
+            btnScan.querySelector('.spinner-small').style.display = 'block';
+            
+            const catMap = {
+                'Camiseta': 'superior', 'Blusa': 'superior', 'Camisa': 'superior', 'Top Knit': 'superior',
+                'Jeans': 'inferior', 'Pantalón de Vestir': 'inferior', 'Falda': 'inferior', 'Pantalón': 'inferior',
+                'Tenis': 'calzado', 'Botas': 'calzado', 'Mocasines': 'calzado', 'Zapatos': 'calzado',
+                'Abrigo': 'abrigo', 'Chaqueta': 'abrigo', 'Blazer': 'abrigo',
+                'Gafas de Sol': 'accesorio', 'Bolso': 'accesorio'
+            };
+
+            for (let i = 0; i < STATE.scanQueue.length; i++) {
+                selectQueueItem(i);
+                btnScan.querySelector('.btn-text').textContent = `Escaneando prenda ${i+1}/${STATE.scanQueue.length}...`;
+                
+                const item = STATE.scanQueue[i];
+                const badge = document.getElementById(`scan-badge-${i}`);
+                if (badge) badge.textContent = '⚙️';
+
+                let result = null;
+                const formData = new FormData();
+                formData.append('image', item.file);
+
+                try {
+                    const response = await fetch('/api/scan', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (response.ok) result = await response.json();
+                } catch (err) {}
+
+                if (!result) {
+                    result = await analyzeImageLocally(item.file);
+                }
+
+                // Save directly into the closet during batch scans
+                const newGarment = {
+                    id: 'c_scanned_' + Date.now() + '_' + i,
+                    cat: result.cat || catMap[result.tipo] || 'superior',
+                    name: result.tipo || 'Prenda Escaneada',
+                    style: result.estilo || 'Classic',
+                    image: item.base64
+                };
+                STATE.closetItems.unshift(newGarment);
+                
+                item.status = 'completed';
+                item.result = result;
+                if (badge) {
+                    badge.className = 'scan-thumb-badge scanned';
+                    badge.textContent = '✓';
+                }
+
+                // Small delay to let laser and visual changes be visible to user
+                await new Promise(r => setTimeout(r, 1200));
+            }
+
+            // Finish batch
             laser.classList.remove('active');
             btnScan.removeAttribute('disabled');
             btnScan.querySelector('.btn-text').textContent = 'Iniciar Escaneo';
             btnScan.querySelector('.spinner-small').style.display = 'none';
             
-            showScanResults(scanResultData || MOCK_DATA.scanResults);
-        }, remainingDelay);
+            renderCloset('all');
+            showToast(`¡Se escanearon y guardaron ${STATE.scanQueue.length} prendas con éxito!`);
+            
+            // Hide preview wrapper and reset
+            uploadPlaceholder.style.display = 'flex';
+            previewWrapper.style.display = 'none';
+            STATE.scanQueue = [];
+            
+            // Switch to closet tab to see newly added garments
+            switchTab('closet');
+        }
     });
 
     document.getElementById('btn-save-scanned').addEventListener('click', () => {
         const scanCategory = document.getElementById('res-tipo').textContent;
-        const catMap = {'Camiseta': 'superior', 'Blusa': 'superior', 'Camisa': 'superior',
-                        'Jeans': 'inferior', 'Pantalón de Vestir': 'inferior', 'Falda': 'inferior',
-                        'Tenis': 'calzado', 'Botas': 'calzado', 'Mocasines': 'calzado',
-                        'Abrigo': 'abrigo', 'Chaqueta': 'abrigo', 'Chaqueta Puffer': 'abrigo',
-                        'Gafas de Sol': 'accesorio', 'Bolso': 'accesorio', 'Bufanda': 'accesorio'};
+        const catMap = {
+            'Camiseta': 'superior', 'Blusa': 'superior', 'Camisa': 'superior', 'Top Knit': 'superior',
+            'Jeans': 'inferior', 'Pantalón de Vestir': 'inferior', 'Falda': 'inferior', 'Pantalón': 'inferior',
+            'Tenis': 'calzado', 'Botas': 'calzado', 'Mocasines': 'calzado', 'Zapatos': 'calzado',
+            'Abrigo': 'abrigo', 'Chaqueta': 'abrigo', 'Blazer': 'abrigo',
+            'Gafas de Sol': 'accesorio', 'Bolso': 'accesorio'
+        };
+        const activeItem = STATE.scanQueue[STATE.activeScanIndex];
         const newGarment = {
             id: 'c_scanned_' + Date.now(),
-            cat: catMap[scanCategory] || 'superior',
+            cat: (activeItem && activeItem.result && activeItem.result.cat) || catMap[scanCategory] || 'superior',
             name: scanCategory || 'Prenda Escaneada',
             style: document.getElementById('res-estilo').textContent,
             image: previewImg.src
@@ -715,9 +1178,17 @@ function initScanner() {
         STATE.closetItems.unshift(newGarment);
         renderCloset('all');
         showToast("Prenda guardada exitosamente en tu Closet.");
+        
+        // Remove from queue or reset if single
+        if (STATE.scanQueue.length <= 1) {
+            uploadPlaceholder.style.display = 'flex';
+            previewWrapper.style.display = 'none';
+            STATE.scanQueue = [];
+        }
         switchTab('closet');
     });
 }
+
 
 function showScanResults(results) {
     const resultsBox = document.getElementById('scan-results-box');

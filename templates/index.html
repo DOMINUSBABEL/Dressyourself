@@ -77,7 +77,10 @@
                 
                 <div class="weather-widget glass-card">
                     <div class="weather-info">
-                        <div class="weather-city" id="weather-city">Cargando ubicación...</div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div class="weather-city" id="weather-city">Cargando ubicación...</div>
+                            <span id="btn-change-location" style="cursor: pointer; font-size: 1.1rem; color: var(--accent-gold); transition: transform 0.2s;" title="Cambiar ubicación" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">✏️</span>
+                        </div>
                         <div class="weather-temp-desc">
                             <span class="weather-temp" id="weather-temp">--°C</span>
                             <span class="weather-desc" id="weather-desc">Analizando condiciones...</span>
@@ -261,24 +264,73 @@
 
             <!-- SECTION 4: INNOVACIONES (ESCÁNER VISIÓN) -->
             <section id="innovaciones" class="tab-content">
+                <style>
+                .scan-thumb {
+                    width: 60px;
+                    height: 60px;
+                    border-radius: 8px;
+                    border: 2px solid var(--border-gold);
+                    overflow: hidden;
+                    position: relative;
+                    cursor: pointer;
+                    flex-shrink: 0;
+                    transition: all 0.2s ease;
+                    background: #111;
+                }
+                .scan-thumb.active {
+                    border-color: #00ff88;
+                    transform: scale(1.05);
+                    box-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
+                }
+                .scan-thumb img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+                .scan-thumb-badge {
+                    position: absolute;
+                    bottom: 2px;
+                    right: 2px;
+                    width: 16px;
+                    height: 16px;
+                    border-radius: 50%;
+                    background: rgba(0,0,0,0.7);
+                    color: #fff;
+                    font-size: 10px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: bold;
+                }
+                .scan-thumb-badge.scanned {
+                    background: #00ff88;
+                    color: #000;
+                }
+                .scan-thumb-badge.pending {
+                    background: #ffaa00;
+                }
+                </style>
                 <div class="section-header">
                     <h2 class="editorial-title">Innovación en Visión</h2>
-                    <p class="section-desc">Sube la foto de cualquier prenda para escanear y catalogar su estilo con IA.</p>
+                    <p class="section-desc">Sube una o varias fotos de tus prendas para escanear y catalogar su estilo con IA en lote o individualmente.</p>
                 </div>
 
                 <div class="scanner-container glass-card">
                     <div class="scanner-upload-box" id="scanner-drop-zone">
-                        <input type="file" id="scanner-file-input" accept="image/*" style="display: none;">
+                        <input type="file" id="scanner-file-input" accept="image/*" multiple style="display: none;">
                         
                         <div class="upload-placeholder" id="upload-placeholder">
                             <svg viewBox="0 0 24 24" class="upload-icon"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" fill="currentColor"/></svg>
-                            <p class="upload-text-main">Arrastra una imagen de prenda aquí</p>
-                            <p class="upload-text-sub">o haz clic para explorar tus archivos</p>
+                            <p class="upload-text-main">Arrastra una o varias imágenes aquí</p>
+                            <p class="upload-text-sub">o haz clic para tomar foto o explorar archivos</p>
                         </div>
 
-                        <div class="scan-preview-wrapper" id="scan-preview-wrapper" style="display: none;">
-                            <img id="scan-preview-img" src="" alt="Prenda a escanear">
-                            <div class="scan-laser" id="scan-laser"></div>
+                        <div class="scan-preview-wrapper" id="scan-preview-wrapper" style="display: none; flex-direction: column; width: 100%; align-items: center;">
+                            <div id="scan-thumbnails-container" style="display: flex; gap: 10px; overflow-x: auto; width: 100%; padding: 5px; border-bottom: 1px solid var(--border-gold); justify-content: center; min-height: 75px; margin-bottom: 12px; box-sizing: border-box;"></div>
+                            <div style="position: relative; width: 100%; display: flex; justify-content: center; align-items: center;">
+                                <img id="scan-preview-img" src="" alt="Prenda a escanear" style="max-height: 250px; object-fit: contain;">
+                                <div class="scan-laser" id="scan-laser"></div>
+                            </div>
                         </div>
                     </div>
 
@@ -651,6 +703,41 @@
             </div>
             <div class="drawer-grid" id="drawer-items-grid">
                 <!-- Filled dynamically by JS with clothes matching category -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA CAMBIAR UBICACIÓN / CIUDAD -->
+    <div id="location-modal" class="modal-overlay" style="display:none; justify-content:center; align-items:center; z-index:10000;">
+        <div class="modal-content glass-card animate-slide-up" style="max-width: 400px; padding: 25px; box-sizing: border-box;">
+            <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid var(--border-gold); padding-bottom:10px;">
+                <h3 class="gold-text" style="margin:0; font-family:'Outfit', sans-serif;">📍 Cambiar Ubicación</h3>
+                <span class="close-modal-btn" id="btn-close-location" style="cursor:pointer; font-size:1.5rem; color:var(--text-muted);">&times;</span>
+            </div>
+            <div class="modal-body" style="display:flex; flex-direction:column; gap:15px;">
+                <label for="location-select" style="font-size:0.9rem; color:var(--text-primary); text-align:left;">Seleccionar una ciudad de Colombia:</label>
+                <select id="location-select" class="builder-select-input" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border-gold); background:#111; color:#fff;">
+                    <option value="0">Bogotá</option>
+                    <option value="1">Medellín</option>
+                    <option value="2">Cali</option>
+                    <option value="3">Barranquilla</option>
+                    <option value="4">Cartagena</option>
+                    <option value="5">Bucaramanga</option>
+                    <option value="6">Pereira</option>
+                    <option value="7">Santa Marta</option>
+                    <option value="8">Manizales</option>
+                    <option value="9">Ibagué</option>
+                </select>
+                
+                <div style="text-align:center; color:var(--text-muted); font-size:0.8rem; margin:5px 0;">— O —</div>
+                
+                <button class="gold-btn-large" id="btn-use-gps" style="width:100%; display:flex; justify-content:center; align-items:center;">
+                    <span>🛰️ Usar ubicación GPS actual</span>
+                </button>
+                
+                <button class="gold-btn-large" id="btn-save-location" style="margin-top:10px; width:100%; display:flex; justify-content:center; align-items:center;">
+                    <span>Aplicar Cambio</span>
+                </button>
             </div>
         </div>
     </div>
