@@ -1144,12 +1144,20 @@ function analyzeImageLocally(file) {
                 const estilo = estilos[Math.floor(Math.random() * estilos.length)];
                 const confianza = Math.round(75 + Math.random() * 23);
                 
+                let material = "Algodón";
+                const lowTipo = tipo.toLowerCase();
+                if (lowTipo.includes("seda") || lowTipo.includes("silk") || lowTipo.includes("blusa")) material = "Seda";
+                else if (lowTipo.includes("jean") || lowTipo.includes("denim") || lowTipo.includes("mezclilla")) material = "Mezclilla";
+                else if (lowTipo.includes("cuero") || lowTipo.includes("leather") || lowTipo.includes("bota") || lowTipo.includes("mocasines") || lowTipo.includes("zapato")) material = "Cuero";
+                else if (lowTipo.includes("lana") || lowTipo.includes("wool") || lowTipo.includes("abrigo") || lowTipo.includes("bufanda")) material = "Lana";
+
                 resolve({
                     tipo: tipo,
                     estilo: estilo,
                     colores: [hexColor],
+                    material: material,
                     confianza: confianza,
-                    consejo: `Prenda catalogada localmente (GPS/Offline). Tipo: ${tipo} (${color_name}). Estilo: ${estilo}. Combina excelente con tonos complementarios.`,
+                    consejo: `Prenda catalogada localmente (GPS/Offline). Tipo: ${tipo} (${color_name}). Estilo: ${estilo}. Material: ${material}. Combina excelente con tonos complementarios.`,
                     cat: cat,
                     offline: true
                 });
@@ -1471,12 +1479,15 @@ function initScanner() {
 function showScanResults(results) {
     const resultsBox = document.getElementById('scan-results-box');
     
-    // Support both backend API shape and mock data shape
     document.getElementById('res-tipo').textContent = results.tipo || results.subcategory || results.category || '--';
     document.getElementById('res-estilo').textContent = results.estilo || results.pattern || '--';
+    const matEl = document.getElementById('res-material');
+    if (matEl) {
+        matEl.textContent = results.material || '--';
+    }
     document.getElementById('res-confianza').textContent = results.confianza || results.confidence || '--';
     document.getElementById('res-consejo').textContent = results.consejo || 
-        (results.category ? `Prenda detectada: ${results.category} / ${results.subcategory}. Color principal: ${results.color_primary}. Patrón: ${results.pattern}.` : 'Sin datos.');
+        (results.category ? `Prenda detectada: ${results.category} / ${results.subcategory}. Color principal: ${results.color_primary}. Patrón: ${results.pattern}. Material: ${results.material || 'Algodón'}.` : 'Sin datos.');
     
     const colorBox = document.getElementById('res-colores');
     colorBox.innerHTML = '';
