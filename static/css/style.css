@@ -2820,3 +2820,45 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     border: 1px solid #4caf50;
 }
 
+
+/* --- SOTA Styling: Analytics, Shuffler & Travel Packing --- */
+
+#analytics-cpw-list div {
+    transition: all 0.25s ease;
+}
+#analytics-cpw-list div:hover {
+    border-color: rgba(212, 175, 55, 0.2) !important;
+    background: rgba(255,255,255,0.04) !important;
+    transform: translateY(-1px);
+}
+
+#shuffle-board {
+    transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+#packing-lists-container .glass-card {
+    transition: all 0.25s ease;
+}
+#packing-lists-container .glass-card:hover {
+    border-color: rgba(212, 175, 55, 0.3) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+#analytics-categories-container div div div {
+    transition: width 0.6s ease;
+}
+
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(212, 175, 55, 0.1);
+    border-top-color: var(--accent-gold);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+

@@ -1039,6 +1039,281 @@ def complete_rpg_endpoint():
         return jsonify({"error": str(e)}), 500
 
 
+# --- SOTA API Endpoints (Analytics, Shuffler, Travel, Wear) ---
+
+@app.route('/api/analytics', methods=['GET'])
+def get_closet_analytics():
+    try:
+        # Get all owned clothes
+        owned = database.get_all_clothes(owned_filter=True)
+        total_items = len(owned)
+        if total_items == 0:
+            return jsonify({
+                "total_items": 0,
+                "utilization_rate": 0,
+                "categories_pct": {},
+                "cpw": [],
+                "color_harmony_score": 0,
+                "rotation_index": 0,
+                "shopping_gaps": "¡Tu clóset está vacío! Digitaliza prendas para ver analíticas.",
+                "eco_score": 0,
+                "most_worn": [],
+                "least_worn": [],
+                "temp_logs": {},
+                "roi_index": "$0.00"
+            }), 200
+            
+        # 1. Categories Distribution
+        cat_counts = {}
+        for item in owned:
+            cat = CATEGORY_MAP.get(item["category"], item["category"].lower())
+            cat_counts[cat] = cat_counts.get(cat, 0) + 1
+        categories_pct = {k: round((v / total_items) * 100, 1) for k, v in cat_counts.items()}
+        
+        # 2. Cost-per-wear (CPW)
+        cpw_list = []
+        for item in owned:
+            price = item.get("price") or 0.0
+            w_count = item.get("wear_count") or 0
+            if price > 0:
+                cpw = round(price / w_count, 2) if w_count > 0 else price
+                cpw_list.append({
+                    "id": item["id"],
+                    "name": item["name"],
+                    "category": CATEGORY_MAP.get(item["category"], item["category"].lower()),
+                    "price": price,
+                    "wear_count": w_count,
+                    "cpw": cpw,
+                    "image": item["image_url"]
+                })
+        # Sort by CPW ascending (best investment first)
+        cpw_list.sort(key=lambda x: x["cpw"])
+        
+        # 3. Most and Least Worn
+        sorted_by_wear = sorted(owned, key=lambda x: x.get("wear_count", 0), reverse=True)
+        most_worn = [{
+            "id": x["id"], "name": x["name"], "wear_count": x["wear_count"], "image": x["image_url"]
+        } for x in sorted_by_wear[:5] if x.get("wear_count", 0) > 0]
+        
+        least_worn = [{
+            "id": x["id"], "name": x["name"], "wear_count": x["wear_count"], "image": x["image_url"]
+        } for x in reversed(sorted_by_wear) if x.get("wear_count", 0) == 0][:5]
+        
+        # 4. Rotation Index (Utilization Rate)
+        wear_logs = database.get_wear_logs()
+        unique_worn_ids = set(log["clothing_id"] for log in wear_logs)
+        rotation_index = round((len(unique_worn_ids) / total_items) * 100, 1) if total_items > 0 else 0
+        
+        # 5. Color Harmony / Gaps (Breakdown of colors by season compatibility)
+        warm_colors = ["Marrón Otoño", "Beige Arena", "Amarillo Mostaza", "Naranja Ladrillo", "Rojo Carmín", "Rosa Pastel"]
+        warm_count = sum(1 for item in owned if item.get("color_primary") in warm_colors)
+        color_harmony_score = round((warm_count / total_items) * 100, 1) if total_items > 0 else 0
+        
+        # 6. Comfort Distribution
+        temp_logs = {"Frío (<15°C)": 0, "Templado (15-22°C)": 0, "Cálido (>22°C)": 0}
+        for log in wear_logs:
+            city_idx = log.get("city_index") or 0
+            city = next((c for c in styling_engine.CITIES if c["index"] == city_idx), styling_engine.CITIES[0])
+            temp = city["temp"]
+            if temp < 15:
+                temp_logs["Frío (<15°C)"] += 1
+            elif temp <= 22:
+                temp_logs["Templado (15-22°C)"] += 1
+            else:
+                temp_logs["Cálido (>22°C)"] += 1
+        
+        # 7. Smart Shopping Gaps
+        tops_count = cat_counts.get("superior", 0) or cat_counts.get("Top", 0)
+        bottoms_count = cat_counts.get("inferior", 0) or cat_counts.get("Bottom", 0)
+        
+        if bottoms_count == 0:
+            shopping_gaps = "Tu ropero no tiene pantalones o faldas. Sugerimos adquirir prendas inferiores para poder realizar combinaciones."
+        else:
+            ratio = tops_count / bottoms_count
+            if ratio > 4:
+                shopping_gaps = "Tienes demasiadas prendas superiores en proporción a las inferiores. Sugerimos adquirir un Pantalón Sastre Beige de Zara para equilibrar."
+            elif ratio < 2:
+                shopping_gaps = "Tienes pocas prendas superiores en proporción a tus pantalones. Sugerimos adquirir un Suéter de Punto Fino de Zara."
+            else:
+                shopping_gaps = "Tu clóset tiene una proporción equilibrada (3:1) de prendas superiores e inferiores. ¡Buen balance!"
+                
+        # 8. Eco Styling Score
+        eco_sum = 0
+        eco_count = 0
+        for item in owned:
+            name_lower = item["name"].lower()
+            if "tweed" in name_lower or "lana" in name_lower or "cashmere" in name_lower:
+                eco_sum += 95
+            elif "seda" in name_lower or "lino" in name_lower or "algodón" in name_lower or "denim" in name_lower:
+                eco_sum += 90
+            elif "cuero" in name_lower or "piel" in name_lower:
+                eco_sum += 75
+            else:
+                eco_sum += 60
+            eco_count += 1
+        eco_score = round(eco_sum / eco_count, 1) if eco_count > 0 else 70
+        
+        # 9. ROI Fashion Index
+        combinations_count = total_items * 3
+        roi_index = f"${combinations_count * 15:.2f} ahorrados"
+        
+        return jsonify({
+            "total_items": total_items,
+            "categories_pct": categories_pct,
+            "cpw": cpw_list[:5],
+            "most_worn": most_worn,
+            "least_worn": least_worn,
+            "rotation_index": rotation_index,
+            "color_harmony_score": color_harmony_score,
+            "temp_logs": temp_logs,
+            "shopping_gaps": shopping_gaps,
+            "eco_score": eco_score,
+            "roi_index": roi_index
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/shuffle', methods=['GET'])
+def get_shuffle_outfit():
+    try:
+        owned = database.get_all_clothes(owned_filter=True)
+        tops = [c for c in owned if c["category"] == "Top"]
+        bottoms = [c for c in owned if c["category"] == "Bottom"]
+        footwear = [c for c in owned if c["category"] == "Footwear"]
+        outerwear = [c for c in owned if c["category"] == "Outerwear"]
+        accessories = [c for c in owned if c["category"] == "Accessory"]
+        
+        if len(tops) == 0 or len(bottoms) == 0 or len(footwear) == 0:
+            return jsonify({"error": "No hay suficientes prendas básicas (Tops, Bottoms, Calzado) en tu clóset."}), 400
+            
+        best_outfit = None
+        best_score = -1
+        
+        for _ in range(15):
+            t = random.choice(tops)
+            b = random.choice(bottoms)
+            f = random.choice(footwear)
+            out = [t, b, f]
+            
+            if outerwear and random.random() > 0.5:
+                out.append(random.choice(outerwear))
+            if accessories and random.random() > 0.5:
+                out.append(random.choice(accessories))
+                
+            score_res = styling_engine.calculate_fashion_score(out)
+            if score_res["total_score"] > best_score:
+                best_score = score_res["total_score"]
+                best_outfit = out
+                
+        outfit_formatted = {
+            "top": next((x for x in best_outfit if x["category"] == "Top"), None),
+            "bottom": next((x for x in best_outfit if x["category"] == "Bottom"), None),
+            "footwear": next((x for x in best_outfit if x["category"] == "Footwear"), None),
+            "outerwear": next((x for x in best_outfit if x["category"] == "Outerwear"), None),
+            "accessory": next((x for x in best_outfit if x["category"] == "Accessory"), None),
+            "total_score": best_score,
+            "advice": styling_engine.calculate_fashion_score(best_outfit)["advice"]
+        }
+        return jsonify(outfit_formatted), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/packing', methods=['GET'])
+def get_packing_endpoint():
+    try:
+        lists = database.get_packing_lists()
+        import json
+        for lst in lists:
+            try:
+                lst["items_ids"] = json.loads(lst["items_json"])
+                lst["items"] = [database.get_clothing_by_id(iid) for iid in lst["items_ids"]]
+            except Exception:
+                lst["items"] = []
+        return jsonify(lists), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/packing', methods=['POST'])
+def save_packing_endpoint():
+    try:
+        data = request.json or {}
+        destination = data.get("destination")
+        start_date = data.get("start_date")
+        end_date = data.get("end_date")
+        
+        if not destination or not start_date or not end_date:
+            return jsonify({"error": "Faltan campos: destination, start_date, end_date"}), 400
+            
+        owned = database.get_all_clothes(owned_filter=True)
+        if len(owned) < 4:
+            return jsonify({"error": "No hay suficientes prendas en tu ropero para generar una maleta inteligente."}), 400
+            
+        import json
+        selected_ids = []
+        for cat in ["Top", "Bottom", "Footwear", "Outerwear", "Accessory"]:
+            cat_items = [c for c in owned if c["category"] == cat]
+            if cat_items:
+                selected_ids.append(cat_items[0]["id"])
+                if len(cat_items) > 1 and cat in ["Top", "Bottom"]:
+                    selected_ids.append(cat_items[1]["id"])
+                    
+        items_json = json.dumps(selected_ids)
+        new_id = database.create_packing_list(destination, start_date, end_date, items_json)
+        
+        created = {
+            "id": new_id,
+            "destination": destination,
+            "start_date": start_date,
+            "end_date": end_date,
+            "items_ids": selected_ids,
+            "items": [database.get_clothing_by_id(iid) for iid in selected_ids]
+        }
+        return jsonify(created), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/packing/<int:list_id>', methods=['DELETE'])
+def remove_packing_endpoint(list_id):
+    try:
+        success = database.delete_packing_list(list_id)
+        if success:
+            return jsonify({"message": f"Lista de empaque {list_id} eliminada."}), 200
+        return jsonify({"error": "Lista de empaque no encontrada."}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/wear', methods=['POST'])
+def log_wear_endpoint():
+    try:
+        data = request.json or {}
+        clothing_id = data.get("clothing_id")
+        date_str = data.get("date_str")
+        city_index = data.get("city_index", 0)
+        occasion = data.get("occasion", "Casual")
+        
+        if not clothing_id or not date_str:
+            return jsonify({"error": "Faltan campos: clothing_id, date_str"}), 400
+            
+        new_id = database.log_garment_wear(int(clothing_id), date_str, int(city_index), occasion)
+        return jsonify({"id": new_id, "message": "Uso registrado en el historial."}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/wear', methods=['GET'])
+def get_wear_history_endpoint():
+    try:
+        history = database.get_wear_logs()
+        return jsonify(history), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 # --- Static Web App Routing ---
 @app.route('/')
 def serve_index():

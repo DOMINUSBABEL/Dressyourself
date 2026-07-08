@@ -125,6 +125,32 @@ def init_db():
         )
     ''')
 
+    # Create packing_lists table for Travel Planner
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS packing_lists (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            destination TEXT NOT NULL,
+            start_date TEXT NOT NULL,
+            end_date TEXT NOT NULL,
+            items_json TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # Create wear_log table for Wear History and rotation tracker
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS wear_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            clothing_id INTEGER NOT NULL,
+            worn_on TEXT NOT NULL,
+            city_index INTEGER DEFAULT 0,
+            occasion TEXT DEFAULT 'Casual',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(clothing_id) REFERENCES clothes(id)
+        )
+    ''')
+
+
     # Migration: add wear_count and durability to clothes if they don't exist
     for col, col_type, default_val in [('wear_count', 'INTEGER', '0'), ('durability', 'INTEGER', '100')]:
         try:
@@ -556,6 +582,66 @@ def increment_wear_count(clothing_id):
     ''', (clothing_id,))
     conn.commit()
     conn.close()
+
+def create_packing_list(destination, start_date, end_date, items_json):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO packing_lists (destination, start_date, end_date, items_json)
+        VALUES (?, ?, ?, ?)
+    ''', (destination, start_date, end_date, items_json))
+    conn.commit()
+    new_id = cursor.lastrowid
+    conn.close()
+    return new_id
+
+def get_packing_lists():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM packing_lists ORDER BY created_at DESC')
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+def delete_packing_list(list_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM packing_lists WHERE id = ?', (list_id,))
+    conn.commit()
+    changes = cursor.rowcount
+    conn.close()
+    return changes > 0
+
+def log_garment_wear(clothing_id, worn_on, city_index=0, occasion='Casual'):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO wear_log (clothing_id, worn_on, city_index, occasion)
+        VALUES (?, ?, ?, ?)
+    ''', (clothing_id, worn_on, city_index, occasion))
+    cursor.execute('''
+        UPDATE clothes 
+        SET wear_count = wear_count + 1, 
+            durability = MAX(0, durability - 2) 
+        WHERE id = ?
+    ''', (clothing_id,))
+    conn.commit()
+    new_id = cursor.lastrowid
+    conn.close()
+    return new_id
+
+def get_wear_logs():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT wl.*, cl.name as clothing_name, cl.category as category, cl.image_url as image, cl.store_name as brand
+        FROM wear_log wl
+        JOIN clothes cl ON wl.clothing_id = cl.id
+        ORDER BY wl.worn_on DESC
+    ''')
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
 
 # BabylonSwarm_Commit_11: feat(brands): define JSON metadata structure for brand closets (Zara, Dior, Chanel)
 

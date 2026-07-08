@@ -382,6 +382,12 @@ function switchTab(tabName) {
         if (typeof initCapsule === 'function') initCapsule();
     } else if (tabName === 'closet') {
         if (typeof initQuestsPanel === 'function') initQuestsPanel();
+    } else if (tabName === 'analiticas') {
+        if (typeof initAnalytics === 'function') initAnalytics();
+    } else if (tabName === 'mezclador') {
+        if (typeof initShuffle === 'function') initShuffle();
+    } else if (tabName === 'viajes') {
+        if (typeof initPacking === 'function') initPacking();
     }
 }
 
@@ -2132,6 +2138,21 @@ async function evaluateFittingMatch() {
             // Check daily quests completion
             if (typeof checkDailyQuestsCompletion === 'function') {
                 checkDailyQuestsCompletion(closetItem, boutiqueItem);
+            }
+
+            // Log wear log for analytics
+            if (closetItem && closetItem.id) {
+                const cityIdx = localStorage.getItem('dy_selected_city_index') || 0;
+                fetch('/api/wear', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        clothing_id: closetItem.id,
+                        date_str: new Date().toISOString().split('T')[0],
+                        city_index: parseInt(cityIdx),
+                        occasion: 'Casual'
+                    })
+                }).catch(e => console.error("Could not log wear:", e));
             }
         }
     } catch (e) {
@@ -3923,14 +3944,6 @@ function checkDailyQuestsCompletion(closetItem, boutiqueItem) {
     });
 }
 
-function showQuestCompletionEffect(quest) {
-    showToast(`✨ ¡DESAFÍO COMPLETADO! ✨\n${quest.theme}: ${quest.reward}`);
-    
-    const probadorBtn = document.querySelector('[data-tab="probador"]');
-    if (probadorBtn) {
-        createGoldParticleBurst(probadorBtn);
-    }
-    
     const indexScoreEl = document.getElementById('styling-index-score');
     if (indexScoreEl) {
         let currentVal = parseFloat(indexScoreEl.textContent.replace('%', ''));
@@ -3941,4 +3954,401 @@ function showQuestCompletionEffect(quest) {
         indexScoreEl.style.textShadow = "0 0 10px var(--accent-gold)";
     }
 }
+
+
+// --- SOTA: Analytics, Outfit Shuffler, and Travel Packing Planner Managers ---
+
+async function initAnalytics() {
+    try {
+        const response = await fetch('/api/analytics');
+        if (response.ok) {
+            const data = await response.json();
+            renderAnalytics(data);
+        }
+    } catch(e) {
+        showToast("Error al cargar analíticas", "error");
+    }
+}
+
+function renderAnalytics(data) {
+    document.getElementById('analytics-total-items').textContent = data.total_items;
+    document.getElementById('analytics-rotation').textContent = `${data.rotation_index}%`;
+    document.getElementById('analytics-rotation-bar').style.width = `${data.rotation_index}%`;
+    document.getElementById('analytics-eco').textContent = `${data.eco_score}%`;
+    document.getElementById('analytics-roi').textContent = data.roi_index;
+    
+    const catContainer = document.getElementById('analytics-categories-container');
+    if (catContainer) {
+        catContainer.innerHTML = '';
+        Object.entries(data.categories_pct).forEach(([cat, pct]) => {
+            const row = document.createElement('div');
+            row.innerHTML = `
+                <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:4px;">
+                    <span style="text-transform:capitalize;">${cat}</span>
+                    <span>${pct}%</span>
+                </div>
+                <div style="width:100%; height:6px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden;">
+                    <div style="width:${pct}%; height:100%; background:var(--accent-gold);"></div>
+                </div>
+            `;
+            catContainer.appendChild(row);
+        });
+    }
+
+    document.getElementById('analytics-shopping-gaps').textContent = data.shopping_gaps;
+    document.getElementById('analytics-color-harmony').textContent = `${data.color_harmony_score}%`;
+
+    const cpwList = document.getElementById('analytics-cpw-list');
+    if (cpwList) {
+        cpwList.innerHTML = '';
+        if (!data.cpw || data.cpw.length === 0) {
+            cpwList.innerHTML = '<p style="color:var(--text-muted); font-size:0.75rem;">No tienes prendas compradas con precio registrado.</p>';
+        } else {
+            data.cpw.forEach(item => {
+                const el = document.createElement('div');
+                el.style.display = 'flex';
+                el.style.alignItems = 'center';
+                el.style.gap = '10px';
+                el.style.padding = '8px';
+                el.style.background = 'rgba(255,255,255,0.02)';
+                el.style.borderRadius = '6px';
+                el.style.border = '1px solid rgba(255,255,255,0.05)';
+                el.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}" style="width:35px; height:35px; border-radius:4px; object-fit:cover;">
+                    <div style="flex-grow:1;">
+                        <h5 style="margin:0; font-size:0.75rem; color:#fff;">${item.name}</h5>
+                        <span style="font-size:0.65rem; color:var(--text-muted); text-transform:capitalize;">${item.category} • Costo: $${item.price.toFixed(2)}</span>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="display:block; font-size:0.75rem; font-weight:bold; color:var(--accent-gold);">$${item.cpw.toFixed(2)} / uso</span>
+                        <span style="font-size:0.6rem; color:var(--text-secondary);">${item.wear_count} puestas</span>
+                    </div>
+                `;
+                cpwList.appendChild(el);
+            });
+        }
+    }
+
+    const mostWornList = document.getElementById('analytics-most-worn');
+    if (mostWornList) {
+        mostWornList.innerHTML = '';
+        if (!data.most_worn || data.most_worn.length === 0) {
+            mostWornList.innerHTML = '<p style="color:var(--text-muted); font-size:0.7rem; margin:0;">Ninguna puesta registrada.</p>';
+        } else {
+            data.most_worn.forEach(item => {
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.alignItems = 'center';
+                row.style.gap = '8px';
+                row.style.fontSize = '0.7rem';
+                row.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}" style="width:20px; height:20px; border-radius:50%; object-fit:cover;">
+                    <span style="flex-grow:1; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${item.name}</span>
+                    <strong style="color:var(--accent-gold);">${item.wear_count} usos</strong>
+                `;
+                mostWornList.appendChild(row);
+            });
+        }
+    }
+
+    const leastWornList = document.getElementById('analytics-least-worn');
+    if (leastWornList) {
+        leastWornList.innerHTML = '';
+        if (!data.least_worn || data.least_worn.length === 0) {
+            leastWornList.innerHTML = '<p style="color:var(--text-muted); font-size:0.7rem; margin:0;">Todas tus prendas han sido usadas.</p>';
+        } else {
+            data.least_worn.forEach(item => {
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.alignItems = 'center';
+                row.style.gap = '8px';
+                row.style.fontSize = '0.7rem';
+                row.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}" style="width:20px; height:20px; border-radius:50%; object-fit:cover;">
+                    <span style="flex-grow:1; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${item.name}</span>
+                    <span style="color:var(--text-muted);">0 usos</span>
+                `;
+                leastWornList.appendChild(row);
+            });
+        }
+    }
+
+    const comfortChart = document.getElementById('analytics-comfort-chart');
+    if (comfortChart) {
+        comfortChart.innerHTML = '';
+        if (!data.temp_logs || Object.keys(data.temp_logs).length === 0) {
+            comfortChart.innerHTML = '<p style="color:var(--text-muted); font-size:0.7rem; margin:0;">Sin registros de confort.</p>';
+        } else {
+            const entries = Object.entries(data.temp_logs);
+            const totalLogs = entries.reduce((a, b) => a + b[1], 0) || 1;
+            entries.forEach(([range, count]) => {
+                const pct = Math.round((count / totalLogs) * 100);
+                const row = document.createElement('div');
+                row.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; font-size:0.65rem; margin-bottom:2px;">
+                        <span>${range}</span>
+                        <span>${count} usos (${pct}%)</span>
+                    </div>
+                    <div style="width:100%; height:4px; background:rgba(255,255,255,0.05); border-radius:2px; overflow:hidden;">
+                        <div style="width:${pct}%; height:100%; background:#2196f3;"></div>
+                    </div>
+                `;
+                comfortChart.appendChild(row);
+            });
+        }
+    }
+}
+
+// --- Shuffle Manager ---
+let currentShuffleOutfit = null;
+
+async function initShuffle() {
+    const content = document.getElementById('shuffle-card-content');
+    if (content) {
+        content.innerHTML = '<p style="color: var(--text-muted); font-size: 0.8rem; font-style: italic; text-align: center;">Haz clic en Mezclar para ver una combinación</p>';
+    }
+    const badge = document.getElementById('shuffle-score-badge');
+    if (badge) badge.textContent = '--% Score';
+    const advice = document.getElementById('shuffle-advice');
+    if (advice) advice.textContent = '';
+    currentShuffleOutfit = null;
+}
+
+window.spinShuffle = async function() {
+    const content = document.getElementById('shuffle-card-content');
+    if (content) {
+        content.innerHTML = `
+            <div style="text-align: center;">
+                <div class="spinner" style="margin: 0 auto 10px auto;"></div>
+                <p style="font-size:0.75rem; color:var(--text-muted);">Buscando combinación perfecta...</p>
+            </div>
+        `;
+    }
+    
+    try {
+        const response = await fetch('/api/shuffle');
+        if (response.ok) {
+            currentShuffleOutfit = await response.json();
+            renderShuffleOutfit();
+        } else {
+            const err = await response.json();
+            showToast(err.error || "No hay suficientes prendas.", "error");
+            initShuffle();
+        }
+    } catch(e) {
+        showToast("Error de red al mezclar.", "error");
+        initShuffle();
+    }
+};
+
+function renderShuffleOutfit() {
+    if (!currentShuffleOutfit) return;
+    
+    const content = document.getElementById('shuffle-card-content');
+    const badge = document.getElementById('shuffle-score-badge');
+    const advice = document.getElementById('shuffle-advice');
+    
+    if (badge) badge.textContent = `${currentShuffleOutfit.total_score}% Score`;
+    if (advice) advice.textContent = currentShuffleOutfit.advice;
+    
+    if (content) {
+        content.innerHTML = '';
+        const items = [currentShuffleOutfit.top, currentShuffleOutfit.bottom, currentShuffleOutfit.footwear, currentShuffleOutfit.outerwear, currentShuffleOutfit.accessory].filter(x => x !== null);
+        
+        items.forEach(item => {
+            const itemRow = document.createElement('div');
+            itemRow.style.display = 'flex';
+            itemRow.style.alignItems = 'center';
+            itemRow.style.gap = '12px';
+            itemRow.style.width = '100%';
+            itemRow.style.padding = '6px';
+            itemRow.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+            itemRow.innerHTML = `
+                <img src="${item.image_url}" alt="${item.name}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;">
+                <div style="flex-grow:1; text-align:left;">
+                    <div style="font-size:0.75rem; color:#fff; font-weight:500;">${item.name}</div>
+                    <div style="font-size:0.6rem; color:var(--text-muted); text-transform:capitalize;">${mapCategory(item.category)}</div>
+                </div>
+            `;
+            content.appendChild(itemRow);
+        });
+    }
+}
+
+window.discardShuffle = function() {
+    if (!currentShuffleOutfit) return;
+    const board = document.getElementById('shuffle-board');
+    if (board) {
+        board.style.transform = 'translateX(-150px) rotate(-15deg)';
+        board.style.opacity = '0';
+        board.style.transition = 'all 0.4s ease';
+    }
+    setTimeout(() => {
+        initShuffle();
+        if (board) {
+            board.style.transform = 'none';
+            board.style.opacity = '1';
+            board.style.transition = 'none';
+        }
+        window.spinShuffle();
+    }, 450);
+};
+
+window.saveShuffleOutfit = async function() {
+    if (!currentShuffleOutfit) {
+        showToast("Primero mezcla un outfit.", "error");
+        return;
+    }
+    
+    try {
+        const itemsList = [currentShuffleOutfit.top, currentShuffleOutfit.bottom, currentShuffleOutfit.footwear, currentShuffleOutfit.outerwear, currentShuffleOutfit.accessory].filter(x => x !== null);
+        const ids = itemsList.map(i => i.id);
+        
+        const response = await fetch('/api/combinations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: `Mezcla DressMe #${Math.floor(Math.random() * 900) + 100}`,
+                occasion: 'Casual',
+                items: ids
+            })
+        });
+        
+        if (response.ok) {
+            showToast("Outfit guardado en tus combinaciones!");
+            
+            const board = document.getElementById('shuffle-board');
+            if (board) {
+                board.style.transform = 'translateX(150px) rotate(15deg)';
+                board.style.opacity = '0';
+                board.style.transition = 'all 0.4s ease';
+            }
+            setTimeout(() => {
+                initShuffle();
+                if (board) {
+                    board.style.transform = 'none';
+                    board.style.opacity = '1';
+                    board.style.transition = 'none';
+                }
+            }, 450);
+        } else {
+            showToast("Error al guardar combinación.", "error");
+        }
+    } catch(e) {
+        showToast("Error de red.", "error");
+    }
+};
+
+// --- Packing Planner Manager ---
+async function initPacking() {
+    try {
+        const response = await fetch('/api/packing');
+        if (response.ok) {
+            const data = await response.json();
+            renderPacking(data);
+        }
+    } catch(e) {
+        console.error("Error loading packing lists:", e);
+    }
+}
+
+function renderPacking(lists) {
+    const container = document.getElementById('packing-lists-container');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    if (lists.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding: 20px;">No tienes viajes planificados.</p>';
+        return;
+    }
+    
+    lists.forEach(list => {
+        const card = document.createElement('div');
+        card.className = 'glass-card animate-fade-in';
+        card.style.padding = '15px';
+        card.style.borderRadius = '8px';
+        card.style.border = '1px solid rgba(212,175,55,0.15)';
+        card.style.marginBottom = '15px';
+        
+        let itemsHTML = '<div style="display:flex; gap:8px; overflow-x:auto; padding:8px 0; margin-bottom:10px;">';
+        list.items.forEach(item => {
+            if (item) {
+                itemsHTML += `
+                    <div style="flex-shrink:0; text-align:center; position:relative;">
+                        <img src="${item.image_url}" alt="${item.name}" style="width:40px; height:40px; border-radius:4px; object-fit:cover; border:1px solid var(--border-gold);">
+                        <input type="checkbox" style="position:absolute; top:2px; right:2px; cursor:pointer;" onclick="window.toggleCheckGarment(this)">
+                        <div style="font-size:0.55rem; color:var(--text-muted); max-width:40px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${item.name}</div>
+                    </div>
+                `;
+            }
+        });
+        itemsHTML += '</div>';
+        
+        card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:6px;">
+                <div>
+                    <h5 style="margin:0; color:#fff; font-size:0.85rem; font-family:var(--font-editorial);">✈️ Destino: ${list.destination}</h5>
+                    <span style="font-size:0.65rem; color:var(--text-muted);">${list.start_date} al ${list.end_date}</span>
+                </div>
+                <button class="gold-btn-outline" style="padding:4px 8px; font-size:0.65rem; color:#ff5555; border-color:rgba(255,85,85,0.3);" onclick="window.deletePackingList(${list.id})">Eliminar</button>
+            </div>
+            
+            <p style="font-size:0.7rem; color:var(--text-secondary); margin:0 0 5px 0;"><strong>Maleta Cápsula Recomendada:</strong> Marca la casilla al guardar en tu equipaje físico:</p>
+            ${itemsHTML}
+        `;
+        container.appendChild(card);
+    });
+}
+
+window.toggleCheckGarment = function(checkbox) {
+    const parent = checkbox.parentElement;
+    if (checkbox.checked) {
+        parent.style.opacity = '0.4';
+    } else {
+        parent.style.opacity = '1';
+    }
+};
+
+window.handlePackingSubmit = async function(event) {
+    event.preventDefault();
+    const destination = document.getElementById('packing-destination').value;
+    const start_date = document.getElementById('packing-start').value;
+    const end_date = document.getElementById('packing-end').value;
+    
+    try {
+        const response = await fetch('/api/packing', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ destination, start_date, end_date })
+        });
+        
+        if (response.ok) {
+            showToast("¡Maleta cápsula inteligente generada!");
+            document.getElementById('packing-form').reset();
+            initPacking();
+        } else {
+            const err = await response.json();
+            showToast(err.error || "Error al crear viaje.", "error");
+        }
+    } catch(e) {
+        showToast("Error de red.", "error");
+    }
+};
+
+window.deletePackingList = async function(listId) {
+    try {
+        const response = await fetch(`/api/packing/${listId}`, {
+            method: 'DELETE'
+        });
+        if (response.ok) {
+            showToast("Viaje eliminado.");
+            initPacking();
+        } else {
+            showToast("Error al eliminar.", "error");
+        }
+    } catch(e) {
+        showToast("Error de red.", "error");
+    }
+};
+
 
