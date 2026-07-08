@@ -383,6 +383,39 @@
         .rpg-option-btn:active {
             transform: translateY(0);
         }
+
+        /* Premium Checkout & Styling Index Styles */
+        @keyframes premiumGlowPulse {
+            0% {
+                box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+                background: var(--accent-gold);
+                color: #000;
+            }
+            100% {
+                box-shadow: 0 0 22px rgba(212, 175, 55, 0.85);
+                background: #ffd700;
+                color: #000;
+            }
+        }
+        .premium-checkout-btn {
+            font-family: var(--font-editorial) !important;
+            letter-spacing: 1px !important;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .premium-checkout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.95) !important;
+        }
+        .styling-index-widget {
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .styling-index-widget:hover {
+            border-color: rgba(212, 175, 55, 0.5) !important;
+            box-shadow: 0 12px 35px rgba(212, 175, 55, 0.15), 0 10px 30px rgba(0, 0, 0, 0.6) !important;
+        }
     </style>
 </head>
 <body>
@@ -513,6 +546,47 @@
                             <svg class="btn-icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/></svg>
                             Escanear Prenda
                         </button>
+                    </div>
+                </div>
+
+                <!-- Gamified "Babylon Styling Index" Dashboard -->
+                <div class="styling-index-widget glass-card" style="margin: 20px 0; padding: 20px; border: 1px solid var(--border-gold); border-radius: 12px; background: rgba(10, 10, 10, 0.85); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.5rem; color: var(--accent-gold);">🏆</span>
+                            <div>
+                                <h4 class="gold-text editorial-title" style="margin: 0; font-size: 0.95rem; font-weight: 700; letter-spacing: 2px;">BABYLON STYLING INDEX</h4>
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">Tu nivel de estilo Haute Couture</span>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span class="gold-text" id="styling-index-rank-label" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Haute Couture Apprentice</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.15); padding: 10px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px;">Wardrobe Score</div>
+                            <div class="gold-text" id="styling-index-score" style="font-size: 1.4rem; font-weight: bold;">88.5%</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.15); padding: 10px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px;">Prendas Catalogadas</div>
+                            <div id="styling-index-scanned" style="font-size: 1.4rem; font-weight: bold; color: var(--text-primary);">0</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.15); padding: 10px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px;">Próximo Rango</div>
+                            <div id="styling-index-next-rank" style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); margin-top: 5px;">Haute Couture Master</div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px;">
+                            <span>Progreso de Rango</span>
+                            <span id="styling-index-progress-pct">0%</span>
+                        </div>
+                        <div style="width: 100%; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden; border: 1px solid rgba(212,175,55,0.2);">
+                            <div id="styling-index-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #b8952b, var(--accent-gold)); transition: width 0.5s ease;"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -829,8 +903,33 @@
                                 <strong class="gold-text">Veredicto de Aria:</strong>
                                 <p id="verdict-text">"Analizando tu silueta..."</p>
                             </div>
-                            <div class="verdict-actions">
+                            <div class="verdict-actions" style="width: 100%;">
                                 <button class="gold-btn" id="btn-purchase-boutique" style="display: none;">Comprar Prenda de Boutique</button>
+                                
+                                <!-- Boutique Checkout Widget / Breakdown Card -->
+                                <div id="boutique-checkout-card" class="checkout-breakdown-card glass-card" style="display: none; margin-top: 15px; padding: 15px; border: 1px solid var(--accent-gold) !important; border-radius: 8px; width: 100%; text-align: left; background: rgba(15, 15, 15, 0.9);">
+                                    <h4 class="gold-text editorial-title" style="margin-top: 0; font-size: 0.9rem; border-bottom: 1px solid rgba(212, 175, 55, 0.2); padding-bottom: 5px; font-weight: 600; letter-spacing: 1px;">ATELIER CHECKOUT</h4>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.85rem;">
+                                        <span style="color: var(--text-muted);">Precio de Prenda:</span>
+                                        <span id="checkout-item-price" style="color: var(--text-primary); font-weight: 500;">$0.00</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.85rem;">
+                                        <span style="color: var(--text-muted);">Envío Estimado:</span>
+                                        <span id="checkout-item-shipping" style="color: var(--text-primary); font-weight: 500;">$15.00</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.85rem;">
+                                        <span style="color: var(--text-muted);">IVA (19%):</span>
+                                        <span id="checkout-item-tax" style="color: var(--text-primary); font-weight: 500;">$0.00</span>
+                                    </div>
+                                    <hr style="border: 0; border-top: 1px solid rgba(212, 175, 55, 0.15); margin: 8px 0;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; font-weight: 600;">
+                                        <span class="gold-text">Total:</span>
+                                        <span id="checkout-item-total" class="gold-text">$0.00</span>
+                                    </div>
+                                    <button class="gold-btn-large premium-checkout-btn" id="btn-premium-checkout" style="width: 100%; border-radius: 4px; box-shadow: 0 0 15px rgba(212, 175, 55, 0.4); animation: premiumGlowPulse 2s infinite alternate ease-in-out;">
+                                        Adquirir Atuendo (Babylon Pay)
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1121,7 +1220,25 @@
     <!-- TOAST NOTIFICATION CONTAINER -->
     <div id="toast-container" class="toast-container"></div>
 
+    <!-- BABYLON PAY SUCCESS OVERLAY -->
+    <div id="babylon-pay-overlay" style="display: none; position: fixed; inset: 0; background: rgba(10, 10, 10, 0.96); z-index: 99999; justify-content: center; align-items: center; flex-direction: column; opacity: 0; transition: opacity 0.5s ease;">
+        <div id="babylon-pay-particles" style="position: absolute; inset: 0; overflow: hidden; pointer-events: none;"></div>
+        <div style="z-index: 2; text-align: center; font-family: 'Outfit', sans-serif;">
+            <div id="babylon-pay-logo" style="font-size: 3rem; color: var(--accent-gold); margin-bottom: 20px; font-weight: 700; letter-spacing: 5px; text-shadow: 0 0 15px rgba(212, 175, 55, 0.5); opacity: 0; transform: scale(0.8); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);">
+                BABYLON.IA
+            </div>
+            <div id="babylon-pay-text" style="font-size: 1.8rem; color: #fff; font-family: var(--font-editorial); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 30px; opacity: 0; transform: translateY(20px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);">
+                BABYLON.IA Pay: Transacción Exitosa
+            </div>
+            <div id="babylon-pay-checkmark" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--accent-gold); display: inline-flex; justify-content: center; align-items: center; font-size: 3rem; color: var(--accent-gold); opacity: 0; transform: scale(0.5); transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-shadow: 0 0 10px var(--accent-gold); box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);">
+                ✓
+            </div>
+        </div>
+    </div>
+
     <!-- Script File -->
     <script src="static/js/app.js"></script>
 </body>
 </html>
+
+<!-- BabylonSwarm_Commit_2: feat(rpg): design interactive option buttons and step indicator in chat UI -->
