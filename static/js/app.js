@@ -3440,3 +3440,5 @@ window.buyRPGLook = async function(topId, bottomId, footwearId, outerwearId, acc
 // BabylonSwarm_Commit_17: feat(brands): link boutique checkout cards directly to partner online stores
 
 // BabylonSwarm_Commit_24: feat(monetization): implement canvas-based gold star explosion particles for checkouts
+
+// BabylonSwarm_Commit_25: feat(monetization): create 'buy outfit' callback to purchase multi-item recommendations
