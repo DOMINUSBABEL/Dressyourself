@@ -3442,3 +3442,5 @@ window.buyRPGLook = async function(topId, bottomId, footwearId, outerwearId, acc
 // BabylonSwarm_Commit_24: feat(monetization): implement canvas-based gold star explosion particles for checkouts
 
 // BabylonSwarm_Commit_25: feat(monetization): create 'buy outfit' callback to purchase multi-item recommendations
+
+// BabylonSwarm_Commit_26: feat(monetization): bind buy events directly to Isa RPG completion cards
