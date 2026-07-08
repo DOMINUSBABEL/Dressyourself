@@ -726,8 +726,8 @@ def get_style_innovations(clothes):
         )
         
         innovations.append({
-            "name": f"Monocromía en {t.get('color_primary')}",
-            "type": "Monocromática",
+            "name": f"Quiet Luxury: Monocromía en {t.get('color_primary')}",
+            "type": "Quiet Luxury",
             "top": t,
             "bottom": b,
             "footwear": f,
@@ -752,14 +752,14 @@ def get_style_innovations(clothes):
         acc = random.choice(accessories) if accessories else None
         
         justification = (
-            f"La audacia del contraste absoluto. Al yuxtaponer la calidez o neutralidad de {t['name']} ({t.get('color_primary')}) "
+            f"Inspirado en el New Look de Dior. Al yuxtaponer la calidez o neutralidad de {t['name']} ({t.get('color_primary')}) "
             f"con la profundidad contrastante de {b['name']} ({b.get('color_primary')}), se genera una tensión cromática vibrante "
-            f"que rompe la monotonía urbana. Un outfit estructurado para proyectar seguridad y visión de estilo."
+            f"que rinde tributo a la alta costura clásica. Un outfit estructurado para proyectar audacia y clase."
         )
         
         innovations.append({
-            "name": "Contraste Complementario Vanguardista",
-            "type": "Complementaria",
+            "name": "Dior Vintage Contrast",
+            "type": "Dior Vintage",
             "top": t,
             "bottom": b,
             "footwear": f,
@@ -784,14 +784,14 @@ def get_style_innovations(clothes):
         acc = random.choice(accessories) if accessories else None
         
         justification = (
-            f"Armonía cromática orgánica. La transición suave entre {t['name']} ({t.get('color_primary')}) "
+            f"Armonía cromática minimalista. La transición suave entre {t['name']} ({t.get('color_primary')}) "
             f"y {b['name']} ({b.get('color_primary')}) fluye de manera natural al ser colores contiguos en el círculo cromático. "
             f"Este ensamble genera una vibra sumamente acogedora y pulida, ideal para quienes buscan elegancia sin estridencias."
         )
         
         innovations.append({
-            "name": "Sinfonía Análoga de Transición",
-            "type": "Análoga",
+            "name": "Minimalismo de Transición",
+            "type": "Minimalista",
             "top": t,
             "bottom": b,
             "footwear": f,
@@ -816,14 +816,14 @@ def get_style_innovations(clothes):
         clash_detail = f"la formalidad de {b['name']}" if formal_bottoms else f"la sobriedad de {out['name']}"
         
         justification = (
-            f"La subversión definitiva de los códigos tradicionales de vestimenta. Al fusionar la comodidad urbana de "
+            f"El balance perfecto de la modernidad casual. Al fusionar la comodidad urbana de "
             f"{f['name']} con {clash_detail}, se dinamiza la silueta sastre clásica. "
-            f"Un manifiesto streetwear cosmopolita que prueba que las mejores reglas de estilo son las que se rompen con gracia."
+            f"Un manifiesto casual y elegante para el día a día sin perder sofisticación."
         )
         
         innovations.append({
-            "name": "Style Clash: Sastrería & Streetwear",
-            "type": "Style Clash",
+            "name": "Casual Elegante Moderno",
+            "type": "Casual Elegante",
             "top": t,
             "bottom": b,
             "footwear": f,
@@ -841,13 +841,13 @@ def get_style_innovations(clothes):
         acc = random.choice(accessories) if accessories else None
         
         justification = (
-            f"Una propuesta ecléctica de alta costura contemporánea. Uniendo {t['name']} y {b['name']} con el calzado "
+            f"Una propuesta ecléctica de sastrería clásica contemporánea. Uniendo {t['name']} y {b['name']} con el calzado "
             f"{f['name']}. Una combinación atemporal, curada meticulosamente por nuestro motor de estilismo."
         )
         
         innovations.append({
-            "name": "Ensamble Editorial Exclusivo",
-            "type": "Edición Limitada",
+            "name": "Sartorial Clásico Atelier",
+            "type": "Sartorial Clásico",
             "top": t,
             "bottom": b,
             "footwear": f,

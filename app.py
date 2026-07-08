@@ -275,6 +275,29 @@ def add_like_outfit(outfit_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/outfits/<int:outfit_id>/rate', methods=['POST'])
+def rate_outfit_stars(outfit_id):
+    try:
+        data = request.json or {}
+        rating = data.get('rating')
+        if rating is None:
+            return jsonify({"error": "Debe proporcionar el campo 'rating' en el JSON."}), 400
+        
+        rating = int(rating)
+        if not (1 <= rating <= 5):
+            return jsonify({"error": "La calificación debe ser un entero entre 1 y 5."}), 400
+            
+        res = database.rate_outfit(outfit_id, rating)
+        return jsonify({
+            "id": outfit_id,
+            "rating": res["rating"],
+            "rating_count": res["rating_count"],
+            "rating_sum": res["rating_sum"],
+            "message": f"Calificación de {rating} estrellas registrada correctamente."
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/outfits/<int:outfit_id>/vote', methods=['POST'])
 def vote_outfit_style(outfit_id):
     try:
