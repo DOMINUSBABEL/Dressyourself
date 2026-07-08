@@ -3456,3 +3456,5 @@ window.buyRPGLook = async function(topId, bottomId, footwearId, outerwearId, acc
 // BabylonSwarm_Commit_38: feat(quests): display motivational messages from Isa for challenge milestones
 
 // BabylonSwarm_Commit_39: feat(quests): generate dynamic push-notifications hints for upcoming quests
+
+// BabylonSwarm_Commit_46: style(ui): redesign closet category filter buttons with active states
