@@ -1064,3 +1064,5 @@ if __name__ == '__main__':
 # BabylonSwarm_Commit_53: test(qa): add integration tests for Flask RPG routing endpoints
 
 # BabylonSwarm_Commit_59: fix(api): fallback immediately on offline Geocoder database during query failures
+
+# BabylonSwarm_Commit_60: release: consolidate version 2.5 of DressYourself with SOTA features
