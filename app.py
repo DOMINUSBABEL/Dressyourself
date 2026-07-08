@@ -10,10 +10,12 @@ from flask_cors import CORS
 import time
 import random
 import threading
+import re
 
 import database
 import vision_engine
 import styling_engine
+import store_scraper
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -684,6 +686,43 @@ def get_ganchito_quote():
         personality = request.args.get('personality', 'classy').lower()
         user_query = request.args.get('q', '')
         
+        # Check if the query contains a URL to scrape adaptively
+        url_match = re.search(r'(https?://[^\s]+)', user_query)
+        if url_match:
+            url = url_match.group(1)
+            scraped = store_scraper.scrape_clothing_product(url)
+            
+            # Formulate response based on scraped garment
+            name = scraped["name"]
+            brand = scraped["brand"]
+            cat = scraped["category"]
+            subcat = scraped["subcategory"]
+            price = scraped["price"]
+            
+            cat_es = {"Top": "Prenda Superior", "Bottom": "Prenda Inferior", "Outerwear": "Prenda de Abrigo", "Footwear": "Calzado", "Accessory": "Accesorio"}.get(cat, cat)
+            
+            if personality == "classy":
+                response_text = f"He analizado el enlace de la tienda local {brand}. Se trata de una pieza de {cat_es.lower()} ({name}) de subcategoría {subcat} con un valor de ${price:.2f}. Califica como una excelente opción de alta costura para contrastar con tu armario clásico."
+            elif personality == "diva":
+                response_text = f"¡Ay, cariño! Me pasas una pieza divina de {brand}. Este/a {name} es un espectáculo. Me encanta el estilo de {subcat}. Definitivamente tienes que probártela con tus prendas del closet."
+            elif personality == "sarcastic":
+                response_text = f"Vaya, así que andamos de compras en {brand}. Un/a {name} por ${price:.2f}. Espero que sí tengas con qué combinar esta prenda en tu ropero, o será otro adorno costoso."
+            else: # nervous
+                response_text = f"¡Ay! Encontraste un/a {name} en {brand}. ¿Crees que sí combine bien? Suena a que el estilo {subcat} puede ser un poco arriesgado, ¡deberíamos verificarlo en el Probador de inmediato!"
+                
+            return jsonify({
+                "response": response_text,
+                "scraped_item": {
+                    "id": 99999, # unique temp id for local scrap
+                    "name": name,
+                    "brand": brand,
+                    "cat": cat.lower(),
+                    "price": f"${price:.2f}",
+                    "image": scraped["image"],
+                    "source_url": url
+                }
+            }), 200
+
         closet_id = request.args.get('closet_id')
         boutique_id = request.args.get('boutique_id')
         

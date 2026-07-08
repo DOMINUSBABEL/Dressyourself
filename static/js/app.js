@@ -801,7 +801,13 @@ async function handleUserMessage() {
         const response = await fetch(`/api/ganchito/quote?personality=${STATE.ariaPersonality}&q=${encodeURIComponent(text)}`);
         if (!response.ok) throw new Error("Fallback");
         const data = await response.json();
-        appendChatMessage('bot', data.response);
+        
+        // Check if query contained a shop URL resulting in a scraped item
+        if (data.scraped_item) {
+            appendChatMessage('bot', data.response, data.scraped_item);
+        } else {
+            appendChatMessage('bot', data.response);
+        }
         triggerAriaSpeech(data.response);
     } catch (e) {
         setTimeout(() => {
@@ -818,11 +824,40 @@ async function handleUserMessage() {
     }
 }
 
-function appendChatMessage(sender, text) {
+function appendChatMessage(sender, text, scrapedItem = null) {
     const history = document.getElementById('chat-history');
     const msg = document.createElement('div');
     msg.className = `chat-msg ${sender}`;
     msg.textContent = text;
+    
+    if (scrapedItem) {
+        const card = document.createElement('div');
+        card.style.marginTop = '10px';
+        card.style.padding = '12px';
+        card.style.background = 'rgba(255,255,255,0.04)';
+        card.style.border = '1px solid var(--border-gold)';
+        card.style.borderRadius = '8px';
+        card.style.display = 'flex';
+        card.style.gap = '10px';
+        card.style.alignItems = 'center';
+        
+        // Escape single quotes for HTML attribute JSON
+        const escapedItem = JSON.stringify(scrapedItem).replace(/'/g, "&apos;");
+        
+        card.innerHTML = `
+            <img src="${scrapedItem.image}" alt="${scrapedItem.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(212,175,55,0.2);">
+            <div style="flex-grow: 1; display: flex; flex-direction: column; text-align: left;">
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">${scrapedItem.brand}</span>
+                <span style="font-size: 0.85rem; font-weight: bold; color: var(--text-primary); max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${scrapedItem.name}</span>
+                <span style="font-size: 0.8rem; color: var(--accent-gold); font-weight: 600;">${scrapedItem.price}</span>
+            </div>
+            <button class="gold-btn" style="padding: 6px 10px; font-size: 0.7rem; text-transform: none; letter-spacing: 0;" onclick='loadScrapedToFitting(${escapedItem})'>
+                Probar
+            </button>
+        `;
+        msg.appendChild(card);
+    }
+    
     history.appendChild(msg);
     history.scrollTop = history.scrollHeight;
 }
@@ -1403,6 +1438,12 @@ window.clearFittingSlot = function(type) {
     slot.querySelector('.slot-content').innerHTML = '';
     
     document.getElementById('fitting-verdict').style.display = 'none';
+};
+
+window.loadScrapedToFitting = function(item) {
+    selectForFitting('boutique', item);
+    switchTab('probador');
+    showToast(`¡Prenda de ${item.brand} cargada en el Probador!`);
 };
 
 async function evaluateFittingMatch() {
