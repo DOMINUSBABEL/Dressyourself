@@ -36,7 +36,168 @@ ANALOGOUS_RELATIONS = {
     "NEUTRAL": ["BLUE", "GREEN", "YELLOW_BROWN", "RED_PINK"]
 }
 
-# Occasions subcategory mapping
+# 12-Season Color Theory Definitions
+SEASONS_INFO = {
+    "Spring Light": {
+        "name_es": "Primavera Clara",
+        "ideal_colors": ["Blanco Puro", "Azul Celeste", "Rosa Pastel", "Beige Arena", "Amarillo Mostaza"],
+        "contrast": "bajo",
+        "description": "tonos pastel, cálidos e iluminados que transmiten frescura y juventud."
+    },
+    "Spring Warm": {
+        "name_es": "Primavera Cálida",
+        "ideal_colors": ["Amarillo Mostaza", "Naranja Ladrillo", "Beige Arena", "Verde Esmeralda", "Azul Celeste"],
+        "contrast": "medio",
+        "description": "colores cálidos y vibrantes inspirados en la naturaleza soleada."
+    },
+    "Spring Clear": {
+        "name_es": "Primavera Brillante",
+        "ideal_colors": ["Blanco Puro", "Azul Celeste", "Rojo Carmín", "Verde Esmeralda", "Negro Carbón", "Morado Purpúreo"],
+        "contrast": "alto",
+        "description": "tonos altamente saturados y de alto impacto que irradian energía clara."
+    },
+    "Summer Light": {
+        "name_es": "Verano Claro",
+        "ideal_colors": ["Blanco Puro", "Azul Celeste", "Rosa Pastel", "Gris Perla", "Azul Marino"],
+        "contrast": "bajo",
+        "description": "colores suaves, fríos y delicados que evocan frescura y serenidad."
+    },
+    "Summer Cool": {
+        "name_es": "Verano Frío",
+        "ideal_colors": ["Azul Celeste", "Gris Perla", "Gris Marengo", "Azul Marino", "Rosa Pastel"],
+        "contrast": "medio",
+        "description": "matices fríos y apagados ideales para proyectar elegancia clásica y calma."
+    },
+    "Summer Soft": {
+        "name_es": "Verano Suave",
+        "ideal_colors": ["Gris Perla", "Gris Marengo", "Azul Celeste", "Verde Musgo", "Rosa Pastel"],
+        "contrast": "bajo",
+        "description": "tonos empolvados, aterciopelados y fríos con una sutil elegancia apagada."
+    },
+    "Autumn Soft": {
+        "name_es": "Otoño Suave",
+        "ideal_colors": ["Beige Arena", "Verde Oliva", "Marrón Otoño", "Verde Musgo", "Amarillo Mostaza"],
+        "contrast": "bajo",
+        "description": "tonos cálidos y apagados inspirados en los paisajes terrestres y arenas."
+    },
+    "Autumn Warm": {
+        "name_es": "Otoño Cálido",
+        "ideal_colors": ["Marrón Otoño", "Naranja Ladrillo", "Verde Oliva", "Amarillo Mostaza", "Beige Arena"],
+        "contrast": "medio",
+        "description": "gamas ricas, profundas y cálidas que capturan la esencia del bosque otoñal."
+    },
+    "Autumn Deep": {
+        "name_es": "Otoño Oscuro",
+        "ideal_colors": ["Marrón Otoño", "Verde Oliva", "Azul Marino", "Negro Carbón", "Naranja Ladrillo"],
+        "contrast": "alto",
+        "description": "colores oscuros y cálidos de gran riqueza que proyectan misterio y fuerza."
+    },
+    "Winter Deep": {
+        "name_es": "Invierno Oscuro",
+        "ideal_colors": ["Negro Carbón", "Azul Marino", "Gris Marengo", "Rojo Carmín", "Morado Purpúreo"],
+        "contrast": "alto",
+        "description": "tonos muy oscuros e intensamente fríos que exudan elegancia aristocrática."
+    },
+    "Winter Cool": {
+        "name_es": "Invierno Frío",
+        "ideal_colors": ["Negro Carbón", "Gris Marengo", "Gris Perla", "Azul Marino", "Azul Índigo", "Rojo Carmín"],
+        "contrast": "alto",
+        "description": "colores puros, helados e intensos que marcan una silueta nítida."
+    },
+    "Winter Clear": {
+        "name_es": "Invierno Brillante",
+        "ideal_colors": ["Negro Carbón", "Blanco Puro", "Rojo Carmín", "Azul Índigo", "Verde Esmeralda", "Morado Purpúreo"],
+        "contrast": "alto",
+        "description": "tonos joya de gran saturación y contraste extremo que brillan con luz propia."
+    }
+}
+
+# Occasion Formal Rules
+OCCASIONS_RULES = {
+    "Quiet Luxury": {
+        "min_formality": 6.5,
+        "max_formality": 8.5,
+        "preferred_types": ["blazer", "sastre", "pantalon de vestir", "camisa", "blusa", "mocasines", "trench", "abrigo de lana", "sueter"],
+        "avoid_types": ["camiseta", "sudadera", "sweatpants", "puffer", "tenis de correr", "jeans rotos"],
+        "color_palettes": ["Beige Arena", "Gris Marengo", "Gris Perla", "Blanco Puro", "Negro Carbón", "Azul Marino", "Marrón Otoño"],
+        "pattern_pref": ["liso"],
+        "name_es": "Lujo Silencioso"
+    },
+    "Business Casual": {
+        "min_formality": 5.5,
+        "max_formality": 7.5,
+        "preferred_types": ["blazer", "camisa", "blusa", "chino", "pantalon de vestir", "mocasines", "zapatos", "sueter", "cardigan"],
+        "avoid_types": ["camiseta basica", "hoodie", "buzo", "sudadera", "sweatpants", "tenis de correr", "slides", "sandalias"],
+        "color_palettes": None,
+        "pattern_pref": ["liso", "rayas", "cuadros"],
+        "name_es": "Business Casual"
+    },
+    "Sporty": {
+        "min_formality": 1.5,
+        "max_formality": 4.0,
+        "preferred_types": ["camiseta", "tenis", "sudadera", "sweatpants", "hoodie", "buzo", "puffer", "cortavientos", "windbreaker", "gorra", "gafas de sol"],
+        "avoid_types": ["mocasines", "pantalon de vestir", "abrigo de lana", "falda", "blusa", "sastre", "blazer", "tacones", "heels"],
+        "color_palettes": None,
+        "pattern_pref": None,
+        "name_es": "Deportivo Chic"
+    },
+    "Cocktail": {
+        "min_formality": 7.0,
+        "max_formality": 9.0,
+        "preferred_types": ["blusa", "falda", "vestido", "mocasines", "botas", "heels", "tacones", "blazer", "sastre", "bolso", "seda", "satin"],
+        "avoid_types": ["camiseta", "tenis", "puffer", "sudadera", "sweatpants", "hoodie", "buzo"],
+        "color_palettes": None,
+        "pattern_pref": None,
+        "name_es": "Coctel"
+    },
+    "Gala": {
+        "min_formality": 9.0,
+        "max_formality": 10.0,
+        "preferred_types": ["tuxedo", "esmoquin", "vestido de noche", "satin", "seda", "heels", "tacones", "corbatin", "charol", "blazer sastre"],
+        "avoid_types": ["jeans", "denim", "vaquero", "camiseta", "tenis", "hoodie", "buzo", "puffer", "sudadera", "sweatpants", "canvas", "lona"],
+        "color_palettes": None,
+        "pattern_pref": ["liso"],
+        "name_es": "Gala"
+    },
+    "Casual": {
+        "min_formality": 3.0,
+        "max_formality": 6.0,
+        "preferred_types": ["camiseta", "jeans", "tenis", "chaqueta", "chaqueta denim", "gafas de sol", "bolso", "sueter", "cardigan"],
+        "avoid_types": ["mocasines", "pantalon de vestir", "abrigo", "tuxedo", "esmoquin"],
+        "color_palettes": None,
+        "pattern_pref": None,
+        "name_es": "Casual"
+    },
+    "Formal": {
+        "min_formality": 7.5,
+        "max_formality": 9.5,
+        "preferred_types": ["blusa", "camisa", "pantalon de vestir", "mocasines", "botas", "abrigo", "bolso", "blazer", "sastre"],
+        "avoid_types": ["camiseta", "tenis", "chaqueta denim", "hoodie", "buzo", "sudadera", "sweatpants"],
+        "color_palettes": None,
+        "pattern_pref": None,
+        "name_es": "Formal"
+    },
+    "Deportivo": {
+        "min_formality": 1.5,
+        "max_formality": 4.0,
+        "preferred_types": ["camiseta", "tenis", "sudadera", "sweatpants", "hoodie", "buzo", "puffer", "cortavientos", "windbreaker", "gorra", "gafas de sol"],
+        "avoid_types": ["mocasines", "pantalon de vestir", "abrigo de lana", "falda", "blusa", "sastre", "blazer", "tacones", "heels"],
+        "color_palettes": None,
+        "pattern_pref": None,
+        "name_es": "Deportivo"
+    },
+    "Fiesta": {
+        "min_formality": 6.5,
+        "max_formality": 8.5,
+        "preferred_types": ["blusa", "falda", "vestido", "mocasines", "botas", "heels", "tacones", "blazer", "sastre", "bolso", "seda", "satin"],
+        "avoid_types": ["camiseta", "tenis", "puffer", "sudadera", "sweatpants", "hoodie", "buzo"],
+        "color_palettes": None,
+        "pattern_pref": None,
+        "name_es": "Fiesta"
+    }
+}
+
+# Legacy Occasions subcategory mapping
 OCCASIONS_MAP = {
     "Casual": {
         "preferred": ["Camiseta", "Jeans", "Tenis", "Chaqueta", "Chaqueta Denim", "Gafas de Sol", "Bolso"],
@@ -58,12 +219,12 @@ OCCASIONS_MAP = {
 
 # Cities weather list
 CITIES = [
-    {"index": 0, "name": "Bogotá", "temp": 12.0, "rain": 1},
-    {"index": 1, "name": "Medellín", "temp": 22.0, "rain": 0},
-    {"index": 2, "name": "Cartagena", "temp": 30.0, "rain": 0},
-    {"index": 3, "name": "Cali", "temp": 26.0, "rain": 1},
-    {"index": 4, "name": "Londres", "temp": 8.0, "rain": 1},
-    {"index": 5, "name": "Nueva York", "temp": 5.0, "rain": 0}
+    {"index": 0, "name": "Bogotá", "temp": 12.0, "rain": 1, "wind_speed": 3.2},
+    {"index": 1, "name": "Medellín", "temp": 22.0, "rain": 0, "wind_speed": 1.8},
+    {"index": 2, "name": "Cartagena", "temp": 30.0, "rain": 0, "wind_speed": 5.5},
+    {"index": 3, "name": "Cali", "temp": 26.0, "rain": 1, "wind_speed": 2.1},
+    {"index": 4, "name": "Londres", "temp": 8.0, "rain": 1, "wind_speed": 6.2},
+    {"index": 5, "name": "Nueva York", "temp": 5.0, "rain": 0, "wind_speed": 7.5}
 ]
 
 def normalize_str(s):
@@ -387,9 +548,121 @@ def evaluate_textures_and_layering(items):
     
     if has_lino and has_invierno:
         layering_score = max(30.0, layering_score - 30.0)
-        layering_comment += " Conflicto Estacional de Texturas: se ha mezclado lino veraniego con abrigo de lana o plumón."
+        layering_comment += " Conflicto Estacional de Texturas: se ha mezclado lino veraniego con abrigo de invierno."
         
     return layering_score, layering_comment
+
+# Helper for 12-season color theory evaluation
+def evaluate_12_season_color(items):
+    # Parse colors of items
+    colors = [it.get("color_primary") for it in items if it and it.get("color_primary")]
+    if not colors:
+        return "Winter Cool", 100.0, 0, "Bajo", "Armonía minimalista neutra."
+
+    parsed_colors = [parse_color(c) for c in colors]
+    # Hue, Saturation, Lightness, IsNeutral
+    lightnesses = [c[2] for c in parsed_colors]
+    contrast_val = max(lightnesses) - min(lightnesses) if lightnesses else 0
+    
+    if contrast_val >= 45:
+        contrast_level = "Alto"
+    elif contrast_val >= 25:
+        contrast_level = "Medio"
+    else:
+        contrast_level = "Bajo"
+
+    best_season = None
+    best_score = -1.0
+    
+    for season_id, info in SEASONS_INFO.items():
+        match_count = 0.0
+        for c in colors:
+            norm_c = normalize_str(c)
+            matched = False
+            for ideal in info["ideal_colors"]:
+                norm_ideal = normalize_str(ideal)
+                if norm_ideal in norm_c or norm_c in norm_ideal:
+                    match_count += 1.0
+                    matched = True
+                    break
+            if not matched:
+                # Neutrals are accepted in any season with a partial score
+                if any(k in norm_c for k in ["gris", "blanco", "negro", "crema", "ivory", "beige"]):
+                    match_count += 0.5
+        
+        palette_ratio = match_count / len(colors)
+        
+        # Contrast penalty
+        pref_contrast = info["contrast"]
+        contrast_penalty = 0.0
+        if pref_contrast == "alto":
+            if contrast_val < 45:
+                contrast_penalty = (45 - contrast_val)
+        elif pref_contrast == "bajo":
+            if contrast_val > 30:
+                contrast_penalty = (contrast_val - 30)
+        elif pref_contrast == "medio":
+            if contrast_val < 20:
+                contrast_penalty = (20 - contrast_val)
+            elif contrast_val > 55:
+                contrast_penalty = (contrast_val - 55)
+                
+        score = (palette_ratio * 70.0) + max(0.0, 30.0 - contrast_penalty * 0.5)
+        if score > best_score:
+            best_score = score
+            best_season = season_id
+            
+    info = SEASONS_INFO[best_season]
+    season_name = f"{info['name_es']} ({best_season})"
+    commentary = f"Armonía {season_name}: el ensamble se adapta al perfil estacional con {info['description']} El contraste de color es {contrast_level.lower()} (ΔL={int(contrast_val)})."
+    
+    # Normalize best_score to a 0-100 scale for color score baseline
+    color_base_score = max(30.0, min(100.0, best_score))
+    return best_season, color_base_score, contrast_val, contrast_level, commentary
+
+# Helper for CLO thermal isolation values
+def get_item_clo(item):
+    name = normalize_str(item.get("name", ""))
+    subcat = normalize_str(item.get("subcategory", ""))
+    category = normalize_str(item.get("category", ""))
+    
+    # Outerwear
+    if category == "outerwear" or any(k in subcat for k in ["abrigo", "jacket", "outerwear"]):
+        if any(k in name or k in subcat for k in ["puffer", "plumon", "lana", "wool", "parka"]):
+            return 0.55
+        if any(k in name or k in subcat for k in ["trench", "gabardina", "cuero", "leather"]):
+            return 0.35
+        return 0.25
+        
+    # Top
+    if category == "top" or any(k in subcat for k in ["top", "camiseta", "camisa", "blusa", "sueter", "cardigan", "jersey"]):
+        if any(k in name or k in subcat for k in ["sueter", "cardigan", "jersey", "cashmere", "lana", "wool", "buzo", "hoodie"]):
+            return 0.30
+        if any(k in name or k in subcat for k in ["camisa", "shirt", "blusa"]):
+            return 0.20
+        return 0.09 # T-shirt / tank top / etc.
+        
+    # Bottom
+    if category == "bottom" or any(k in subcat for k in ["bottom", "jeans", "pantalon", "falda", "short"]):
+        if any(k in name or k in subcat for k in ["short", "bermuda", "falda corta", "minifalda"]):
+            return 0.12
+        return 0.25 # Jeans, trousers
+        
+    # Footwear
+    if category == "footwear" or any(k in subcat for k in ["footwear", "zapatos", "tenis", "botas", "mocasines"]):
+        if "bota" in name or "bota" in subcat:
+            return 0.10
+        if any(k in name or k in subcat for k in ["sandalia", "slide", "chancla"]):
+            return 0.02
+        return 0.05 # sneakers, loafers, flats
+        
+    # Accessories
+    if category == "accessory" or any(k in subcat for k in ["accessory", "bufanda", "gorra"]):
+        if "bufanda" in name or "bufanda" in subcat:
+            return 0.10
+        return 0.01
+        
+    return 0.10 # default
 
 def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=None, rain=None):
     items = [item for item in items if item is not None]
@@ -403,153 +676,111 @@ def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=
             "total_score": 100.0,
             "advice": "¡Bonjour! No hay prendas seleccionadas para evaluar."
         }
+
     if temp is None or rain is None:
         city = next((c for c in CITIES if normalize_str(c["name"]) == normalize_str(city_name)), CITIES[0])
         temp = city["temp"] if temp is None else temp
         rain = city["rain"] if rain is None else rain
-    colors_parsed = []
-    for item in items:
-        color_p = item.get("color_primary")
-        if color_p:
-            colors_parsed.append(parse_color(color_p))
-    chromatic_colors = [c for c in colors_parsed if not c[3]]
-    neutral_colors = [c for c in colors_parsed if c[3]]
-    num_chromatic = len(chromatic_colors)
-    num_neutrals = len(neutral_colors)
-    color_type = "Desconocida"
-    if num_chromatic == 0:
-        color_type = "Canvas / Neutro Monocromático"
-        if num_neutrals > 0:
-            lightnesses = [c[2] for c in neutral_colors]
-            delta_L = max(lightnesses) - min(lightnesses)
-        else:
-            delta_L = 0
-        if delta_L >= 35:
-            color_score = 100.0
-        else:
-            color_score = 90.0 + (delta_L / 35.0) * 10.0
-    elif num_chromatic == 1:
-        color_type = "Acento en Neutro"
-        color_score = 100.0
-    elif num_chromatic == 2:
-        h1, _, l1, _ = chromatic_colors[0]
-        h2, _, l2, _ = chromatic_colors[1]
-        theta1 = map_hue_to_center(h1)
-        theta2 = map_hue_to_center(h2)
-        d12 = angular_distance(theta1, theta2)
-        if d12 == 0:
-            color_type = "Par Monocromático"
-            if abs(l1 - l2) >= 25:
-                color_score = 100.0
-            else:
-                color_score = 92.0
-        elif d12 == 30:
-            color_type = "Par Análogo"
-            color_score = 100.0
-        elif d12 == 180:
-            color_type = "Par Complementario"
-            color_score = 100.0
-        elif d12 == 120:
-            color_type = "Componente Tríada / Split"
-            color_score = 85.0
-        elif d12 in [60, 90]:
-            color_type = "Semi-Choque Cromático"
-            color_score = 70.0
-        else:
-            color_type = "Choque Cromático"
-            color_score = 50.0
-    elif num_chromatic == 3:
-        h1, _, l1, _ = chromatic_colors[0]
-        h2, _, l2, _ = chromatic_colors[1]
-        h3, _, l3, _ = chromatic_colors[2]
-        theta1 = map_hue_to_center(h1)
-        theta2 = map_hue_to_center(h2)
-        theta3 = map_hue_to_center(h3)
-        d12 = angular_distance(theta1, theta2)
-        d23 = angular_distance(theta2, theta3)
-        d31 = angular_distance(theta3, theta1)
-        max_dist = max(d12, d23, d31)
-        is_split_comp = False
-        for x, y, z in [(theta1, theta2, theta3), (theta2, theta3, theta1), (theta3, theta1, theta2)]:
-            d_xy = angular_distance(x, y)
-            if d_xy in [30, 60]:
-                if abs(x - y) < 180:
-                    mid = (x + y) / 2.0
-                else:
-                    mid = (x + y + 360) / 2.0 % 360
-                if angular_distance(z, mid) >= 150:
-                    is_split_comp = True
-                    break
-        is_triadic = d12 == 120 and d23 == 120 and d31 == 120
-        if max_dist <= 90:
-            color_type = "Tríada Análoga"
-            color_score = 100.0
-        elif is_split_comp:
-            color_type = "Tríada Complementaria Dividida"
-            color_score = 100.0
-        elif is_triadic:
-            color_type = "Armonía Tríada"
-            color_score = 95.0
-        else:
-            color_type = "Tríada Discordante"
-            def pair_score(ta, tb):
-                d_ab = angular_distance(ta, tb)
-                if d_ab == 0: return 92
-                elif d_ab == 30: return 100
-                elif d_ab == 180: return 100
-                elif d_ab == 120: return 85
-                elif d_ab in [60, 90]: return 70
-                return 50
-            avg_pair = (pair_score(theta1, theta2) + pair_score(theta2, theta3) + pair_score(theta3, theta1)) / 3.0
-            color_score = max(40.0, avg_pair - 15.0)
-    else:
-        color_type = "Sobrecarga de Colores (Arcoíris)"
-        color_score = max(30.0, 75.0 - 15.0 * (num_chromatic - 3))
-        
-    # --- The French Rule of Three Colors ---
+
+    # 1. 12-Season Color Theory and Contrast Matching
+    best_season, color_base_score, contrast_val, contrast_level, color_season_commentary = evaluate_12_season_color(items)
+
+    # French Rule of Three Colors
     unique_colors = set(normalize_str(item.get("color_primary")) for item in items if item.get("color_primary"))
     num_unique_colors = len(unique_colors)
     color_bonus = 0.0
     color_penalty = 0.0
-    color_comment = ""
+    color_rule_comment = ""
     
     if num_unique_colors in [2, 3]:
         color_bonus = 15.0
-        color_comment = "Regla de los Tres Colores: paleta equilibrada de 2 o 3 colores que optimiza el impacto visual."
-        color_score = min(100.0, color_score + color_bonus)
+        color_rule_comment = "Regla de los Tres Colores: paleta equilibrada de 2 o 3 colores que optimiza el impacto visual."
+        color_score = min(100.0, color_base_score + color_bonus)
     elif num_unique_colors >= 4:
         is_analog_mono = is_analog_monochrome_check(items)
         if not is_analog_mono:
             color_penalty = 20.0
-            color_comment = "Límite Tríada de los Tres Colores superado: conflicto cromático de 4 o más tonos clashing."
-            color_score = max(30.0, color_score - color_penalty)
+            color_rule_comment = "Límite Tríada de los Tres Colores superado: conflicto cromático de 4 o más tonos clashing."
+            color_score = max(30.0, color_base_score - color_penalty)
         else:
-            color_comment = "Monocromía Chic: a pesar de tener 4 o más colores, el ensamble se mantiene bajo una paleta análoga o de acento."
+            color_rule_comment = "Monocromía Chic: a pesar de tener 4 o más colores, el ensamble se mantiene bajo una paleta análoga o de acento."
+            color_score = color_base_score
+    else:
+        # 1 color
+        color_rule_comment = "Monocromía Chic: look sobrio de un solo color."
+        color_score = color_base_score
 
-    # --- Style Score calculation ---
+    # 2. Occasion Formal Rules (Quiet Luxury, Business Casual, Sporty, Cocktail, Gala)
+    occ_normalized = occasion
+    if occ_normalized not in OCCASIONS_RULES:
+        # Try finding standard matching
+        matched_occ = None
+        for k in OCCASIONS_RULES.keys():
+            if normalize_str(k) == normalize_str(occ_normalized):
+                matched_occ = k
+                break
+        occ_normalized = matched_occ if matched_occ else "Casual"
+
+    rule = OCCASIONS_RULES[occ_normalized]
     formalities = [get_formality(item) for item in items]
-    mean_formality = sum(formalities) / len(formalities)
+    mean_formality = sum(formalities) / len(formalities) if formalities else 5.0
+    
     if len(formalities) > 1:
         variance = sum((f - mean_formality) ** 2 for f in formalities) / len(formalities)
         std_deviation = variance ** 0.5
     else:
         std_deviation = 0.0
+        
     score_coherence = 100.0 * (2.718281828459045 ** (-0.18 * (std_deviation ** 1.5)))
-    occ_lower = {"deportivo": 1.0, "sporty": 1.0, "casual": 3.0, "fiesta": 5.0, "party": 5.0, "formal": 8.0}
-    occ_upper = {"deportivo": 3.0, "sporty": 3.0, "casual": 6.0, "fiesta": 8.0, "party": 8.0, "formal": 10.0}
-    occ_normalized = normalize_str(occasion)
-    f_target_min = occ_lower.get(occ_normalized, 3.0)
-    f_target_max = occ_upper.get(occ_normalized, 6.0)
-    if f_target_min <= mean_formality <= f_target_max:
+    
+    # Adherence to targeted range
+    min_f = rule["min_formality"]
+    max_f = rule["max_formality"]
+    if min_f <= mean_formality <= max_f:
         d_O = 0.0
-    elif mean_formality < f_target_min:
-        d_O = f_target_min - mean_formality
+    elif mean_formality < min_f:
+        d_O = min_f - mean_formality
     else:
-        d_O = mean_formality - f_target_max
+        d_O = mean_formality - max_f
+        
     score_adherence = max(0.0, 100.0 - 25.0 * (d_O ** 2))
     style_score = 0.40 * score_coherence + 0.60 * score_adherence
-    
-    # --- Rule of Thirds & Visual Proportions ---
+
+    # Preferred and Avoid items adjustments
+    pref_bonus = 0.0
+    avoid_penalty = 0.0
+    for item in items:
+        name_sub = normalize_str(item.get("name", "")) + " " + normalize_str(item.get("subcategory", ""))
+        # Preferred
+        if any(p in name_sub for p in rule["preferred_types"]):
+            pref_bonus += 5.0
+        # Avoid
+        if any(a in name_sub for a in rule["avoid_types"]):
+            avoid_penalty += 10.0
+            
+    style_score = style_score + min(15.0, pref_bonus) - min(30.0, avoid_penalty)
+
+    # Special rules for Quiet Luxury & Gala
+    if rule.get("color_palettes"):
+        # Check colors
+        non_luxury_count = 0
+        for item in items:
+            color_p = item.get("color_primary")
+            if color_p and color_p not in rule["color_palettes"]:
+                non_luxury_count += 1
+        style_score -= min(15.0, non_luxury_count * 5.0)
+
+    if rule.get("pattern_pref"):
+        non_preferred_pattern = 0
+        for item in items:
+            pat = normalize_str(item.get("pattern", "liso"))
+            if pat not in rule["pattern_pref"]:
+                non_preferred_pattern += 1
+        style_score -= min(15.0, non_preferred_pattern * 5.0)
+
+    style_score = max(0.0, min(100.0, style_score))
+
+    # Rule of Thirds & Visual Proportions
     top_item = next((it for it in items if it.get("category") == "Top"), None)
     bottom_item = next((it for it in items if it.get("category") == "Bottom"), None)
     upper_item = top_item if top_item else next((it for it in items if it.get("category") == "Outerwear"), None)
@@ -568,8 +799,8 @@ def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=
                         "item_b": items[j]["name"],
                         "formality_b": formalities[j]
                     })
-                    
-    # --- Pattern & Texture Score calculation ---
+
+    # 3. Pattern & Texture Score calculation
     pattern_indices = [get_pattern_index(item) for item in items]
     num_patterned = sum(1 for p in pattern_indices if p != 0)
     if len(items) < 2:
@@ -598,57 +829,58 @@ def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=
         pattern_score = 0.90 * pattern_score + 0.10 * layering_score
     pattern_score = max(0.0, min(100.0, pattern_score))
 
-    # --- Weather Score calculation ---
-    thermal_res = []
+    # 4. CLO Thermal Isolation Index & Heat Balance
+    # Determine wind speed
+    wind_speed = 2.5
+    for city in CITIES:
+        if normalize_str(city["name"]) == normalize_str(city_name):
+            wind_speed = city.get("wind_speed", 2.5)
+            break
+
+    # Calculate effective temperature with wind chill index
+    v_kmh = wind_speed * 3.6
+    if temp <= 10.0 and v_kmh > 4.8:
+        T_eff = 13.12 + 0.6215 * temp - 11.37 * (v_kmh ** 0.16) + 0.3965 * temp * (v_kmh ** 0.16)
+    else:
+        T_eff = temp - 0.25 * max(0.0, wind_speed - 2.0)
+
+    # Calculate sum CLO values
+    item_clos = [get_item_clo(it) for it in items]
+    CLO_total = 0.15 + sum(item_clos)
+    CLO_required = max(0.1, (30.0 - T_eff) / 12.0)
+    
+    heat_balance = CLO_total - CLO_required
+    
+    # Comfort scoring
+    weather_score = max(0.0, 100.0 - 250.0 * (heat_balance ** 2))
+    
+    warnings = []
+    # Layering requirements warnings
     layer_types = []
     for item in items:
-        h_val, lay = get_thermal_index_and_layer(item)
-        thermal_res.append(h_val)
+        _, lay = get_thermal_index_and_layer(item)
         layer_types.append(lay)
-    R_outfit = sum(thermal_res)
-    if temp < 0:
-        R_min, R_max = 7.5, 11.0
-    elif 0 <= temp < 8:
-        R_min, R_max = 6.0, 8.5
-    elif 8 <= temp < 15:
-        R_min, R_max = 4.0, 6.5
-    elif 15 <= temp < 22:
-        R_min, R_max = 2.2, 4.2
-    elif 22 <= temp < 28:
-        R_min, R_max = 1.2, 2.2
-    else:
-        R_min, R_max = 0.5, 1.3
-    if R_min <= R_outfit <= R_max:
-        d_T = 0.0
-    elif R_outfit < R_min:
-        d_T = R_min - R_outfit
-    else:
-        d_T = R_outfit - R_max
-    temp_comfort_score = max(0.0, 100.0 - 25.0 * (d_T ** 2))
-    P_layering = 0
-    warnings = []
-    if temp < 8:
-        if "L3" not in layer_types:
-            P_layering = 30
-            warnings.append({"type": "under_layered", "message": "Falta abrigo grueso (L3) para clima helado."})
-    elif temp >= 28:
-        if "L2" in layer_types or "L3" in layer_types:
-            P_layering = 30
-            warnings.append({"type": "over_layered", "message": "Exceso de capas (L2/L3) para clima caluroso."})
-    P_rain_outer = 0
-    P_rain_foot = 0
+
+    if T_eff < 8.0 and "L3" not in layer_types:
+        weather_score = max(0.0, weather_score - 30.0)
+        warnings.append({"type": "under_layered", "message": f"Falta abrigo grueso (L3) para temperatura efectiva de {T_eff:.1f}°C."})
+    elif T_eff >= 26.0 and ("L2" in layer_types or "L3" in layer_types):
+        weather_score = max(0.0, weather_score - 30.0)
+        warnings.append({"type": "over_layered", "message": f"Exceso de capas (L2/L3) para temperatura efectiva de {T_eff:.1f}°C."})
+
+    # Rain protection
     if rain == 1:
         l3_items = [it for it, lay in zip(items, layer_types) if lay == "L3"]
         if not l3_items or any(it.get("rain_friendly") != 1 for it in l3_items):
-            P_rain_outer = 20
+            weather_score = max(0.0, weather_score - 20.0)
             warnings.append({"type": "rain_outerwear", "message": "Falta abrigo impermeable para lluvia."})
         footwear_items = [it for it, lay in zip(items, layer_types) if lay == "Footwear"]
         if footwear_items and any(it.get("rain_friendly") != 1 for it in footwear_items):
-            P_rain_foot = 25
+            weather_score = max(0.0, weather_score - 25.0)
             warnings.append({"type": "rain_footwear", "message": "Calzado no apto para la lluvia detectado."})
+
+    # UV accessory checks
     uv, humidity = get_city_weather_conditions(city_name, temp, rain)
-    P_uv_acc = 0
-    P_uv_skin = 0
     if uv >= 6:
         acc_items = [it for it, lay in zip(items, layer_types) if lay == "L4"]
         has_sun_acc = False
@@ -658,14 +890,14 @@ def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=
                 has_sun_acc = True
                 break
         if not has_sun_acc:
-            P_uv_acc = 10
+            weather_score = max(0.0, weather_score - 10.0)
             warnings.append({"type": "uv_accessory", "message": "Faltan accesorios de protección solar (L4)."})
-            if R_outfit < 1.5:
-                P_uv_skin = 5
+            if CLO_total < 0.35:
+                weather_score = max(0.0, weather_score - 5.0)
                 warnings.append({"type": "uv_skin_exposure", "message": "Piel muy expuesta con alto índice UV."})
-    P_humidity = 0
-    B_breathable = 0
-    if temp >= 25 and humidity >= 70:
+
+    # Humidity breathability
+    if temp >= 25.0 and humidity >= 70:
         l1_items = [it for it, lay in zip(items, layer_types) if lay == "L1"]
         non_breathable = False
         breathable = False
@@ -676,64 +908,67 @@ def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=
             if any(k in l1_name for k in ["lino", "seda", "linen", "silk"]):
                 breathable = True
         if non_breathable:
-            P_humidity = 15
+            weather_score = max(0.0, weather_score - 15.0)
             warnings.append({"type": "humidity_breathability_penalty", "message": "Tejido sintético poco transpirable en clima húmedo."})
         if breathable:
-            B_breathable = 5
-            
-    weather_score = max(0.0, temp_comfort_score - P_layering - P_rain_outer - P_rain_foot - P_uv_acc - P_uv_skin - P_humidity + B_breathable)
+            weather_score = min(100.0, weather_score + 5.0)
+
+    weather_score = max(0.0, min(100.0, weather_score))
+
+    # Calculate final weights
     total_score = 0.35 * color_score + 0.30 * style_score + 0.15 * pattern_score + 0.20 * weather_score
     scores_dict = {"Color": color_score, "Estilo": style_score, "Patrón": pattern_score, "Clima": weather_score}
     highest_sub = max(scores_dict, key=scores_dict.get)
     highest_val = scores_dict[highest_sub]
-    
+
     # --- Critique List for advice ---
     critique_list = []
     if color_score < 80.0:
-        critique_list.append(f"la armonía de color ({color_type.lower()}) necesita un ajuste cromático")
+        critique_list.append(f"la armonía de color necesita ajuste")
     if style_score < 80.0:
         if std_deviation > 2.0:
             critique_list.append("hay un choque de formalidades en las prendas elegidas")
         else:
             critique_list.append("el nivel de formalidad no se alinea con la ocasión seleccionada")
     if pattern_score < 80.0:
-        critique_list.append("la mezcla de patrones o texturas resulta sobrecargada o incoherente")
+        critique_list.append("la mezcla de patrones o texturas resulta incoherente")
     if weather_score < 80.0:
-        if temp < 8:
-            critique_list.append("el ensamble es demasiado frío para la temperatura exterior")
-        elif temp >= 28:
-            critique_list.append("el look tiene demasiadas capas para el calor")
+        if heat_balance < -0.15:
+            critique_list.append("el aislamiento térmico es insuficiente para el viento y temperatura")
+        elif heat_balance > 0.15:
+            critique_list.append("el ensamble provoca un exceso de calor corporal")
         else:
             critique_list.append("las prendas no se adaptan perfectamente a las condiciones climáticas actuales")
-            
+
     # --- Advanced Editorial Commentary in Spanish ---
     editorial_comments = []
-    if num_unique_colors in [2, 3]:
-        editorial_comments.append(f"Aplica de forma brillante la Regla de los Tres Colores con una armonía de tipo {color_type.lower()}.")
-    elif num_unique_colors >= 4:
-        if is_analog_monochrome_check(items):
-            editorial_comments.append(f"Exhibe una refinada Monocromía Chic a través de una transición análoga sumamente suave.")
-        else:
-            editorial_comments.append(f"Alcanza el Límite Tríada de los Tres Colores con {num_unique_colors} tonos distintos, generando tensión visual.")
-            
+    # 12-Season commentary
+    editorial_comments.append(color_season_commentary)
+    
+    # French rule of three colors commentary
+    editorial_comments.append(f"{color_rule_comment}")
+
+    # Proportions commentary
     if "Tercios" in ratio_type:
         editorial_comments.append(f"Estructura la figura bajo la {ratio_type}, creando una silueta sumamente estilizada.")
     else:
         editorial_comments.append(f"Mantiene una {ratio_type} clásica.")
-        
-    if "Conflicto Estacional" in layering_comment:
-        editorial_comments.append("Se detecta un Conflicto Estacional de Texturas que compromete el equilibrio estético.")
-    elif "Incoherencia en Cohesión" in layering_comment:
-        editorial_comments.append("La cohesión de capas muestra una ligera incoherencia de peso visual.")
-    elif "Cohesión de Capas" in layering_comment or "degradación armónica" in layering_comment:
-        editorial_comments.append("Muestra una Cohesión de Capas y Texturas impecable con una transición fluida de pesos.")
+
+    # Layering/CLO commentary
+    if abs(heat_balance) <= 0.15:
+        editorial_comments.append(f"Consigue un Balance Térmico óptimo (Índice CLO total de {CLO_total:.2f} vs {CLO_required:.2f} requerido).")
+    else:
+        editorial_comments.append(f"Presenta desbalance en el Índice de Aislamiento Térmico CLO (CLO total: {CLO_total:.2f}, requerido: {CLO_required:.2f}).")
+
+    if wind_speed >= 5.0:
+        editorial_comments.append(f"Se considera el Efecto de Enfriamiento por Viento ({wind_speed} m/s) que reduce la temperatura efectiva a {T_eff:.1f}°C.")
 
     # Shape fit comment
     if "entallado + amplio" in prop_details:
         editorial_comments.append("El balance de volúmenes entallado + amplio aporta una dimensión moderna y sofisticada.")
     elif "sastrería estructurada" in prop_details:
-        editorial_comments.append("La uniformidad sastrera estructurada entrega una presencia de gala impecable.")
-        
+        editorial_comments.append("La uniformidad sastrera estructurada entrega una presencia impecable.")
+
     greeting = "Bonjour, chérie!"
     if total_score >= 90.0:
         greeting = "¡Bonjour! Mon dieu, este ensamble es una obra de arte absoluta."
@@ -755,38 +990,67 @@ def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=
             suggestion = "Agrega una chaqueta o abrigo adecuado para regular tu confort térmico."
         else:
             suggestion = "Prueba con prendas lisas para mitigar el conflicto de estampados o incoherencia de texturas."
-            
+
     editorial_str = " ".join(editorial_comments)
-    advice = f"{greeting} {editorial_str} Califica un {total_score:.1f}% en la escala Haute Couture. Tu punto más fuerte es {highest_sub.lower()} ({highest_val:.1f}%). {critique} {suggestion}"
+    advice = f"{greeting} {editorial_str} Califica un {total_score:.1f}% en la escala Haute Couture (Ocasión: {rule['name_es']}). Tu punto más fuerte es {highest_sub.lower()} ({highest_val:.1f}%). {critique} {suggestion}"
+    
     return {
         "color_score": round(color_score, 1),
         "style_score": round(style_score, 1),
         "pattern_score": round(pattern_score, 1),
         "weather_score": round(weather_score, 1),
         "total_score": round(total_score, 1),
-        "color_type": color_type,
+        "color_type": best_season,
         "mean_formality": round(mean_formality, 2),
         "std_deviation": round(std_deviation, 2),
         "clashing_items": clashing_items,
         "warnings": warnings,
-        "advice": advice
+        "advice": advice,
+        "clo_value": round(CLO_total, 2),
+        "effective_temp": round(T_eff, 1),
+        "heat_balance": round(heat_balance, 2),
+        "color_season": best_season,
+        "color_contrast": contrast_level
     }
 
 def recommend_outfit(clothes, city_index, occasion):
     """
     Coordinates a complete outfit: Top, Bottom, Footwear.
-    Adds Outerwear if temperature <= 15°C.
+    Adds Outerwear if effective temperature (wind chill) <= 16°C or if it is raining.
     Adds Accessory if available.
     Filters by:
-      - Temperature range (min_temp <= city_temp <= max_temp)
+      - Occasion styling preferences (formality limits & preferred types)
+      - Thermal isolation (CLO index vs weather requirements)
       - Rain friendliness (if city_rain == 1, prioritize rain_friendly items)
-      - Occasion styling preferences
     """
     city = next((c for c in CITIES if c["index"] == int(city_index)), CITIES[0])
     temp = city["temp"]
     rain = city["rain"]
+    wind_speed = city.get("wind_speed", 2.5)
+
+    # Compute effective temperature
+    v_kmh = wind_speed * 3.6
+    if temp <= 10.0 and v_kmh > 4.8:
+        T_eff = 13.12 + 0.6215 * temp - 11.37 * (v_kmh ** 0.16) + 0.3965 * temp * (v_kmh ** 0.16)
+    else:
+        T_eff = temp - 0.25 * max(0.0, wind_speed - 2.0)
+
+    # Target formality from occasion rules
+    occ_normalized = occasion
+    if occ_normalized not in OCCASIONS_RULES:
+        # Try matching normalized keys
+        matched_occ = None
+        for k in OCCASIONS_RULES.keys():
+            if normalize_str(k) == normalize_str(occ_normalized):
+                matched_occ = k
+                break
+        occ_normalized = matched_occ if matched_occ else "Casual"
     
-    # 1. Check if we have owned clothes that can form a basic outfit (Top + Bottom + Footwear)
+    rule = OCCASIONS_RULES[occ_normalized]
+    min_f = rule["min_formality"]
+    max_f = rule["max_formality"]
+
+    # 1. Filter clothes by owned vs boutique
     owned_clothes = [c for c in clothes if c.get("is_owned") == 1]
     
     owned_tops = [c for c in owned_clothes if c.get("category") == "Top"]
@@ -796,62 +1060,94 @@ def recommend_outfit(clothes, city_index, occasion):
     use_boutique_fallback = False
     if not (owned_tops and owned_bottoms and owned_footwear):
         use_boutique_fallback = True
-        # Recommend from boutique instead (is_owned = 0)
         recommended_set = [c for c in clothes if c.get("is_owned") == 0]
-        # If even boutique is empty, use all clothes
         if not recommended_set:
             recommended_set = clothes
     else:
         recommended_set = owned_clothes
 
-    def fits_temp(item, t, tolerance=0.0):
-        min_t = item.get("min_temp") or -99.0
-        max_t = item.get("max_temp") or 99.0
-        return (min_t - tolerance) <= t <= (max_t + tolerance)
+    # Helper to score candidate items for the outfit
+    def score_item(item):
+        score = 100.0
+        subcat = item.get("subcategory") or ""
+        name = item.get("name") or ""
+        name_sub = normalize_str(name) + " " + normalize_str(subcat)
 
-    # Filter recommended set by temperature if possible
-    temp_filtered_set = list(recommended_set)
-    if temp_filtered_set:
-        for tol in [0.0, 5.0, 10.0, 20.0]:
-            temp_filtered = [c for c in temp_filtered_set if fits_temp(c, temp, tol)]
-            if len([c for c in temp_filtered if c.get("category") == "Top"]) > 0 and \
-               len([c for c in temp_filtered if c.get("category") == "Bottom"]) > 0 and \
-               len([c for c in temp_filtered if c.get("category") == "Footwear"]) > 0:
-                temp_filtered_set = temp_filtered
-                break
-                
-    tops = [c for c in temp_filtered_set if c.get("category") == "Top"]
-    bottoms = [c for c in temp_filtered_set if c.get("category") == "Bottom"]
-    footwear = [c for c in temp_filtered_set if c.get("category") == "Footwear"]
-    outerwear = [c for c in temp_filtered_set if c.get("category") == "Outerwear"]
-    accessories = [c for c in temp_filtered_set if c.get("category") == "Accessory"]
-    
-    # In case the temp filter left some categories empty, fallback to non-temp-filtered recommended_set
-    if not tops:
-        tops = [c for c in recommended_set if c.get("category") == "Top"]
-    if not bottoms:
-        bottoms = [c for c in recommended_set if c.get("category") == "Bottom"]
-    if not footwear:
-        footwear = [c for c in recommended_set if c.get("category") == "Footwear"]
-    if not outerwear:
-        outerwear = [c for c in recommended_set if c.get("category") == "Outerwear"]
-    if not accessories:
-        accessories = [c for c in recommended_set if c.get("category") == "Accessory"]
+        # Formality matching
+        f_val = get_formality(item)
+        if min_f <= f_val <= max_f:
+            score += 40.0
+        else:
+            deviation = min(abs(f_val - min_f), abs(f_val - max_f))
+            score -= 25.0 * (deviation ** 2)
 
-    # In case they are STILL empty (e.g. no items of that category exist in recommended_set at all),
-    # fallback to the global list of clothes
-    if not tops:
-        tops = [c for c in clothes if c.get("category") == "Top"]
-    if not bottoms:
-        bottoms = [c for c in clothes if c.get("category") == "Bottom"]
-    if not footwear:
-        footwear = [c for c in clothes if c.get("category") == "Footwear"]
-    if not outerwear:
-        outerwear = [c for c in clothes if c.get("category") == "Outerwear"]
-    if not accessories:
-        accessories = [c for c in clothes if c.get("category") == "Accessory"]
+        # Occasion rules
+        if any(p in name_sub for p in rule["preferred_types"]):
+            score += 30.0
+        if any(a in name_sub for a in rule["avoid_types"]):
+            score -= 40.0
 
-    # Clever defaults if absolutely nothing is found in the database
+        # Quiet Luxury specific checks
+        if rule.get("color_palettes"):
+            color_p = item.get("color_primary")
+            if color_p and color_p in rule["color_palettes"]:
+                score += 20.0
+            else:
+                score -= 20.0
+
+        if rule.get("pattern_pref"):
+            pat = normalize_str(item.get("pattern", "liso"))
+            if pat in rule["pattern_pref"]:
+                score += 15.0
+            else:
+                score -= 25.0
+
+        # Rain support
+        if rain == 1:
+            if item.get("rain_friendly") == 1:
+                score += 50.0
+            else:
+                score -= 35.0
+
+        # Thermal comfort (CLO) heuristic
+        item_clo = get_item_clo(item)
+        # If weather is cold, prefer higher insulation. If hot, prefer lower.
+        if T_eff < 12.0:
+            if item_clo >= 0.25:
+                score += 25.0
+            elif item_clo <= 0.05:
+                score -= 20.0
+        elif T_eff > 24.0:
+            if item_clo <= 0.12:
+                score += 25.0
+            elif item_clo >= 0.35:
+                score -= 30.0
+
+        return score
+
+    def select_best(items):
+        if not items:
+            return None
+        scored = [(score_item(it), it) for it in items]
+        scored.sort(key=lambda x: x[0], reverse=True)
+        # Select randomly from top 2 candidates for diversity
+        candidates = [x[1] for x in scored[:2]]
+        return random.choice(candidates)
+
+    tops = [c for c in recommended_set if c.get("category") == "Top"]
+    bottoms = [c for c in recommended_set if c.get("category") == "Bottom"]
+    footwear = [c for c in recommended_set if c.get("category") == "Footwear"]
+    outerwear = [c for c in recommended_set if c.get("category") == "Outerwear"]
+    accessories = [c for c in recommended_set if c.get("category") == "Accessory"]
+
+    # In case categories are empty, fallback to all clothes
+    if not tops: tops = [c for c in clothes if c.get("category") == "Top"]
+    if not bottoms: bottoms = [c for c in clothes if c.get("category") == "Bottom"]
+    if not footwear: footwear = [c for c in clothes if c.get("category") == "Footwear"]
+    if not outerwear: outerwear = [c for c in clothes if c.get("category") == "Outerwear"]
+    if not accessories: accessories = [c for c in clothes if c.get("category") == "Accessory"]
+
+    # Clever defaults if database is completely empty
     DUMMY_DEFAULTS = {
         "Top": {"id": -1, "name": "Camiseta Básica de Boutique", "image_url": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600", "category": "Top", "subcategory": "Camiseta", "color_primary": "Blanco Puro", "pattern": "Liso", "price": 29.99, "store_name": "Boutique", "is_owned": 0},
         "Bottom": {"id": -2, "name": "Jeans Clásicos de Boutique", "image_url": "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=600", "category": "Bottom", "subcategory": "Jeans", "color_primary": "Azul Índigo", "pattern": "Liso", "price": 49.99, "store_name": "Boutique", "is_owned": 0},
@@ -860,39 +1156,12 @@ def recommend_outfit(clothes, city_index, occasion):
         "Accessory": {"id": -5, "name": "Gafas de Sol de Boutique", "image_url": "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=600", "category": "Accessory", "subcategory": "Gafas de Sol", "color_primary": "Negro Carbón", "pattern": "Liso", "price": 19.99, "store_name": "Boutique", "is_owned": 0}
     }
 
-    def score_item(item):
-        score = 100
-        subcat = item.get("subcategory") or ""
-        name = item.get("name") or ""
-        occ_rules = OCCASIONS_MAP.get(occasion, {"preferred": [], "avoid": []})
-        is_pref = any(p.lower() in subcat.lower() or p.lower() in name.lower() for p in occ_rules["preferred"])
-        is_avoid = any(a.lower() in subcat.lower() or a.lower() in name.lower() for a in occ_rules["avoid"])
-        if is_pref:
-            score += 30
-        if is_avoid:
-            score -= 40
-        is_rf = item.get("rain_friendly") == 1
-        if rain == 1:
-            if is_rf:
-                score += 50
-            else:
-                score -= 30
-        return score
-
-    def select_best(items):
-        if not items:
-            return None
-        scored = [(score_item(it), it) for it in items]
-        scored.sort(key=lambda x: x[0], reverse=True)
-        candidates = [x[1] for x in scored[:2]]
-        return random.choice(candidates)
-
     selected_top = select_best(tops) or DUMMY_DEFAULTS["Top"]
     selected_bottom = select_best(bottoms) or DUMMY_DEFAULTS["Bottom"]
     selected_footwear = select_best(footwear) or DUMMY_DEFAULTS["Footwear"]
     
     selected_outerwear = None
-    if temp <= 15.0 or (temp <= 18.0 and rain == 1):
+    if T_eff <= 16.0 or rain == 1:
         selected_outerwear = select_best(outerwear)
         if not selected_outerwear and not outerwear:
             selected_outerwear = DUMMY_DEFAULTS["Outerwear"]
@@ -926,7 +1195,7 @@ def recommend_outfit(clothes, city_index, occasion):
     if use_boutique_fallback:
         justification = (
             "¡Tu closet digital no tiene suficientes prendas! Escanea tu ropa para personalizar "
-            "los outfits. Mientras tanto, te recomendamos esta increíble combinación de nuestra boutique curada: "
+            "los outfits. Mientras tanto, te recomendamos esta combinación de nuestra boutique curada: "
         ) + justification
 
     # Calculate fashion score for the outfit
@@ -1151,3 +1420,159 @@ def get_style_innovations(clothes):
         })
 
     return innovations
+
+def generate_capsule_closet(clothes):
+    """
+    Algorithm that returns the best combinations of 10 essential items to maximize outfits count.
+    It selects exactly 10 items from the wardrobe to form a capsule wardrobe, 
+    then returns all valid combinations (outfits) made from them, sorted by their style/fashion score.
+    """
+    # Filter owned clothes first, fallback to all if owned is empty or too small
+    owned_clothes = [c for c in clothes if c.get("is_owned") == 1]
+    if len(owned_clothes) < 5:
+        owned_clothes = clothes
+
+    if not owned_clothes:
+        return {"capsule_items": [], "outfits": [], "total_combinations": 0}
+
+    # Group clothes by category
+    categories = ["Top", "Bottom", "Footwear", "Outerwear", "Accessory"]
+    by_cat = {cat: [c for c in owned_clothes if c.get("category") == cat] for cat in categories}
+
+    # Determine allocation of 10 items to maximize outfits count
+    # Keep total to min(10, total_available)
+    total_available = len(owned_clothes)
+    capsule_limit = min(10, total_available)
+
+    # Let's adjust allocation dynamically
+    current_alloc = {cat: 0 for cat in categories}
+    
+    # First, allocate at least 1 to Top, Bottom, Footwear if available
+    for cat in ["Top", "Bottom", "Footwear"]:
+        if by_cat[cat]:
+            current_alloc[cat] = 1
+            
+    # Distribute the remaining slots to maximize product T * B * F * (O + 1) * (A + 1)
+    preference_order = ["Top", "Bottom", "Footwear", "Outerwear", "Accessory"]
+    while sum(current_alloc.values()) < capsule_limit:
+        added = False
+        for cat in preference_order:
+            if len(by_cat[cat]) > current_alloc[cat]:
+                # We can allocate one more to this category
+                # To maximize combinations count, we prefer having balanced Tops and Bottoms
+                if cat == "Top" and current_alloc["Top"] < 4:
+                    current_alloc["Top"] += 1
+                    added = True
+                    break
+                elif cat == "Bottom" and current_alloc["Bottom"] < 3:
+                    current_alloc["Bottom"] += 1
+                    added = True
+                    break
+                elif cat == "Footwear" and current_alloc["Footwear"] < 2:
+                    current_alloc["Footwear"] += 1
+                    added = True
+                    break
+                elif cat == "Outerwear" and current_alloc["Outerwear"] < 1:
+                    current_alloc["Outerwear"] += 1
+                    added = True
+                    break
+                elif cat == "Accessory" and current_alloc["Accessory"] < 1:
+                    current_alloc["Accessory"] += 1
+                    added = True
+                    break
+        if not added:
+            # Just add to whatever has remaining items
+            for cat in preference_order:
+                if len(by_cat[cat]) > current_alloc[cat]:
+                    current_alloc[cat] += 1
+                    added = True
+                    break
+            if not added:
+                break # No more items available
+
+    # Now, choose the "best" items for each category according to versatility
+    def get_versatility(item):
+        cat = item.get("category")
+        other_cats = [c for c in ["Top", "Bottom", "Footwear"] if c != cat]
+        scores = []
+        for o_cat in other_cats:
+            candidates = by_cat[o_cat][:3]
+            for cand in candidates:
+                test_outfit = [item, cand]
+                try:
+                    res = calculate_fashion_score(test_outfit)
+                    scores.append(res["total_score"])
+                except Exception:
+                    pass
+        return sum(scores) / len(scores) if scores else 50.0
+
+    scored_items_by_cat = {}
+    for cat in categories:
+        scored = []
+        for item in by_cat[cat]:
+            v_score = get_versatility(item)
+            scored.append((v_score, item))
+        scored.sort(key=lambda x: x[0], reverse=True)
+        scored_items_by_cat[cat] = [x[1] for x in scored]
+
+    # Select the allocated number of items from each category
+    capsule_items = []
+    for cat in categories:
+        count = current_alloc[cat]
+        capsule_items.extend(scored_items_by_cat[cat][:count])
+
+    # Generate all valid combinations of basic outfits (Top + Bottom + Footwear) from capsule_items
+    capsule_tops = [c for c in capsule_items if c.get("category") == "Top"]
+    capsule_bottoms = [c for c in capsule_items if c.get("category") == "Bottom"]
+    capsule_footwear = [c for c in capsule_items if c.get("category") == "Footwear"]
+    capsule_outerwear = [c for c in capsule_items if c.get("category") == "Outerwear"]
+    capsule_accessories = [c for c in capsule_items if c.get("category") == "Accessory"]
+
+    valid_outfits = []
+    for t in capsule_tops:
+        for b in capsule_bottoms:
+            for f in capsule_footwear:
+                outfit = [t, b, f]
+                valid_outfits.append(outfit)
+                
+                for o in capsule_outerwear:
+                    valid_outfits.append(outfit + [o])
+                    
+                for a in capsule_accessories:
+                    valid_outfits.append(outfit + [a])
+                    
+                for o in capsule_outerwear:
+                    for a in capsule_accessories:
+                        valid_outfits.append(outfit + [o, a])
+
+    # Score each combination
+    scored_outfits = []
+    for idx, out in enumerate(valid_outfits):
+        score_res = calculate_fashion_score(out)
+        scored_outfits.append({
+            "id": f"capsule-{idx}",
+            "top": next((x for x in out if x.get("category") == "Top"), None),
+            "bottom": next((x for x in out if x.get("category") == "Bottom"), None),
+            "footwear": next((x for x in out if x.get("category") == "Footwear"), None),
+            "outerwear": next((x for x in out if x.get("category") == "Outerwear"), None),
+            "accessory": next((x for x in out if x.get("category") == "Accessory"), None),
+            "total_score": score_res["total_score"],
+            "color_score": score_res["color_score"],
+            "style_score": score_res["style_score"],
+            "pattern_score": score_res["pattern_score"],
+            "weather_score": score_res["weather_score"],
+            "advice": score_res["advice"]
+        })
+
+    # Sort outfits by score descending
+    scored_outfits.sort(key=lambda x: x["total_score"], reverse=True)
+
+    return {
+        "capsule_items": capsule_items,
+        "outfits": scored_outfits,
+        "total_combinations": len(scored_outfits)
+    }
+
+def get_capsule_wardrobe_recommendation(clothes):
+    return generate_capsule_closet(clothes)
+
