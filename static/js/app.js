@@ -3428,3 +3428,5 @@ window.buyRPGLook = async function(topId, bottomId, footwearId, outerwearId, acc
 // BabylonSwarm_Commit_5: feat(rpg): render asymmetrical polaroid collage for final outfit recommendation
 
 // BabylonSwarm_Commit_6: feat(rpg): add 'Load Outfit to Fitting Room' button and state restoration
+
+// BabylonSwarm_Commit_8: feat(gamification): create ranking system (Apprentice, Coordinator, Senior, Master) based on items
