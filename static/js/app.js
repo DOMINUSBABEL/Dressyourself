@@ -297,6 +297,11 @@ document.addEventListener('DOMContentLoaded', () => {
     initComunidad();
     initTracking();
     initOutfitBuilder();
+
+    // Boot onboarding wizard if not completed
+    if (typeof window.checkOnboardingStartup === 'function') {
+        window.checkOnboardingStartup();
+    }
 });
 
 // 1. Dynamic Tab Navigation (Responsive support)
@@ -4490,6 +4495,179 @@ window.handleCustomGarmentSubmit = async function(event) {
         }
     } catch(e) {
         showToast("Error de red.", "error");
+    }
+};
+
+
+/* --- Onboarding & Settings Engine --- */
+
+window.onboardingData = {
+    name: '',
+    style: '',
+    color: '',
+    brand: ''
+};
+
+window.nextOnboardingStep = function(stepNum) {
+    if (stepNum === 1) {
+        const nameVal = document.getElementById('onboarding-user-name').value;
+        if (!nameVal.trim()) {
+            showToast("Por favor ingresa tu nombre", "error");
+            return;
+        }
+        window.onboardingData.name = nameVal;
+    }
+    
+    document.querySelectorAll('.onboarding-step').forEach(step => {
+        step.classList.remove('active');
+    });
+    
+    let stepId = '';
+    if (stepNum === 1) stepId = 'ostep-style';
+    else if (stepNum === 2) stepId = 'ostep-color';
+    else if (stepNum === 3) stepId = 'ostep-brand';
+    
+    const stepEl = document.getElementById(stepId);
+    if (stepEl) stepEl.classList.add('active');
+};
+
+window.selectOnboardingOption = function(type, value) {
+    const activeStep = document.querySelector('.onboarding-step.active');
+    if (!activeStep) return;
+    
+    activeStep.querySelectorAll('.onboarding-option').forEach(opt => {
+        opt.classList.remove('selected');
+    });
+    
+    event.currentTarget.classList.add('selected');
+    window.onboardingData[type] = value;
+    
+    let nextBtnId = '';
+    if (type === 'style') nextBtnId = 'btn-onboarding-next-1';
+    else if (type === 'color') nextBtnId = 'btn-onboarding-next-2';
+    else if (type === 'brand') nextBtnId = 'btn-onboarding-finish';
+    
+    const btn = document.getElementById(nextBtnId);
+    if (btn) btn.disabled = false;
+};
+
+window.completeOnboarding = function() {
+    localStorage.setItem('dy_user_name', window.onboardingData.name);
+    localStorage.setItem('dy_user_style', window.onboardingData.style);
+    localStorage.setItem('dy_user_color_season', window.onboardingData.color);
+    localStorage.setItem('dy_user_brand_focus', window.onboardingData.brand);
+    localStorage.setItem('dy_onboarding_completed', 'true');
+    
+    const settingsUsername = document.getElementById('settings-username');
+    if (settingsUsername) settingsUsername.value = window.onboardingData.name;
+    
+    const overlay = document.getElementById('onboarding-overlay');
+    if (overlay) {
+        overlay.style.transition = 'opacity 0.6s ease';
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            if (typeof createGoldParticleBurst === 'function') {
+                createGoldParticleBurst();
+            }
+            showToast(`¡Bienvenido, ${window.onboardingData.name}! Tu experiencia Maison de Mode ha sido activada.`);
+        }, 600);
+    }
+};
+
+window.checkOnboardingStartup = function() {
+    const completed = localStorage.getItem('dy_onboarding_completed');
+    if (completed !== 'true') {
+        const overlay = document.getElementById('onboarding-overlay');
+        if (overlay) {
+            overlay.style.display = 'flex';
+            overlay.style.opacity = '1';
+        }
+    } else {
+        const name = localStorage.getItem('dy_user_name') || 'Jorge Gomez';
+        const settingsUsername = document.getElementById('settings-username');
+        if (settingsUsername) settingsUsername.value = name;
+        
+        const lang = localStorage.getItem('dy_language') || 'es';
+        const langSelect = document.getElementById('settings-language');
+        if (langSelect) langSelect.value = lang;
+        
+        const cityIdx = localStorage.getItem('dy_selected_city_index') || '0';
+        const locSelect = document.getElementById('settings-location');
+        if (locSelect) locSelect.value = cityIdx;
+        
+        const isPro = localStorage.getItem('dy_is_pro') === 'true';
+        if (isPro) {
+            const proBtn = document.querySelector('.premium-checkout-btn span');
+            if (proBtn) proBtn.textContent = "Adquirido";
+            const proBtnParent = document.querySelector('.premium-checkout-btn');
+            if (proBtnParent) {
+                proBtnParent.disabled = true;
+                proBtn.textContent = "Adquirido";
+            }
+        }
+    }
+};
+
+window.handleSettingsAccountSubmit = function(e) {
+    e.preventDefault();
+    const username = document.getElementById('settings-username').value;
+    if (username.trim()) {
+        localStorage.setItem('dy_user_name', username);
+        showToast("Nombre de usuario actualizado.");
+    }
+};
+
+window.resetAccountData = async function() {
+    if (confirm("¿Estás seguro de que deseas restablecer los datos de tu clóset? Esto eliminará tus puestas registradas, viajes y combinaciones guardadas.")) {
+        localStorage.clear();
+        showToast("Datos locales restablecidos. Reiniciando aplicación...");
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+    }
+};
+
+window.changeSystemLanguage = function(lang) {
+    localStorage.setItem('dy_language', lang);
+    const translations = {
+        'es': "Idioma cambiado a Español.",
+        'en': "Language changed to English.",
+        'fr': "Langue changée en Français."
+    };
+    showToast(translations[lang] || "Idioma actualizado.");
+};
+
+window.changeSystemLocation = function(cityIdx) {
+    localStorage.setItem('dy_selected_city_index', cityIdx);
+    
+    const mainSelect = document.getElementById('location-select');
+    if (mainSelect) mainSelect.value = cityIdx;
+    
+    const saveBtn = document.getElementById('btn-save-location');
+    if (saveBtn) {
+        saveBtn.click();
+    }
+    
+    showToast("Ubicación climatológica principal actualizada.");
+};
+
+window.buyPremiumPro = function() {
+    showToast("Iniciando pasarela de pago segura con Babylon Pay...");
+    if (typeof triggerBabylonPaySuccessAnimation === 'function') {
+        triggerBabylonPaySuccessAnimation(() => {
+            localStorage.setItem('dy_is_pro', 'true');
+            showToast("¡Transacción Exitosa! Cuenta Premium PRO Activada.");
+            
+            const proBtn = document.querySelector('.premium-checkout-btn span');
+            if (proBtn) proBtn.textContent = "Adquirido";
+            
+            const proBtnParent = document.querySelector('.premium-checkout-btn');
+            if (proBtnParent) proBtnParent.disabled = true;
+        });
+    } else {
+        localStorage.setItem('dy_is_pro', 'true');
+        showToast("Cuenta Premium PRO Activada.");
     }
 };
 
