@@ -521,3 +521,5 @@ def increment_wear_count(clothing_id):
     conn.close()
 
 # BabylonSwarm_Commit_11: feat(brands): define JSON metadata structure for brand closets (Zara, Dior, Chanel)
+
+# BabylonSwarm_Commit_20: feat(brands): cache brand catalog JSON sets locally in SQLite for instant startup
