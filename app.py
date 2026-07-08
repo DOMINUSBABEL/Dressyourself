@@ -1056,3 +1056,5 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
 
 # BabylonSwarm_Commit_18: feat(brands): implement affiliate link generator tool with tracking IDs
+
+# BabylonSwarm_Commit_19: feat(brands): build custom metadata indexers for brand collection search
