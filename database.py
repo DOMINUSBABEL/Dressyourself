@@ -101,6 +101,37 @@ def init_db():
         )
     ''')
 
+    # Create schedule table for weekly planning
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS schedule (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date_str TEXT NOT NULL UNIQUE, -- e.g. '2026-07-08'
+            outfit_id INTEGER NOT NULL,
+            city_index INTEGER DEFAULT 0,
+            occasion TEXT DEFAULT 'Casual',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(outfit_id) REFERENCES outfits(id)
+        )
+    ''')
+
+    # Create cart table for boutique shopping budget
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS cart (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            clothing_id INTEGER NOT NULL UNIQUE,
+            quantity INTEGER DEFAULT 1,
+            added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(clothing_id) REFERENCES clothes(id)
+        )
+    ''')
+
+    # Migration: add wear_count and durability to clothes if they don't exist
+    for col, col_type, default_val in [('wear_count', 'INTEGER', '0'), ('durability', 'INTEGER', '100')]:
+        try:
+            cursor.execute(f"ALTER TABLE clothes ADD COLUMN {col} {col_type} DEFAULT {default_val}")
+        except sqlite3.OperationalError:
+            pass
+
     # Check if table is empty to prepopulate
     cursor.execute('SELECT COUNT(*) FROM clothes')
     if cursor.fetchone()[0] == 0:
@@ -397,3 +428,94 @@ def get_chat_history():
     rows = cursor.fetchall()
     conn.close()
     return [dict(row) for row in rows]
+
+
+def schedule_outfit(date_str, outfit_id, city_index=0, occasion='Casual'):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO schedule (date_str, outfit_id, city_index, occasion)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(date_str) DO UPDATE SET 
+            outfit_id = excluded.outfit_id,
+            city_index = excluded.city_index,
+            occasion = excluded.occasion
+    ''', (date_str, outfit_id, city_index, occasion))
+    conn.commit()
+    new_id = cursor.lastrowid
+    conn.close()
+    return new_id
+
+
+def get_outfit_schedule():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT s.*, o.name as outfit_name, o.justification as outfit_justification
+        FROM schedule s
+        JOIN outfits o ON s.outfit_id = o.id
+        ORDER BY s.date_str ASC
+    ''')
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
+def add_to_cart(clothing_id, quantity=1):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO cart (clothing_id, quantity)
+        VALUES (?, ?)
+        ON CONFLICT(clothing_id) DO UPDATE SET quantity = quantity + excluded.quantity
+    ''', (clothing_id, quantity))
+    conn.commit()
+    new_id = cursor.lastrowid
+    conn.close()
+    return new_id
+
+
+def get_cart():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT ca.*, cl.name as name, cl.image_url as image, cl.price as price, cl.store_name as brand, cl.category as cat
+        FROM cart ca
+        JOIN clothes cl ON ca.clothing_id = cl.id
+        ORDER BY ca.added_at DESC
+    ''')
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
+def delete_from_cart(clothing_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM cart WHERE clothing_id = ?', (clothing_id,))
+    conn.commit()
+    changes = cursor.rowcount
+    conn.close()
+    return changes > 0
+
+
+def clear_cart():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM cart')
+    conn.commit()
+    conn.close()
+
+
+def increment_wear_count(clothing_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    # Wear count increases by 1, durability drops by 2 (minimum 0)
+    cursor.execute('''
+        UPDATE clothes 
+        SET wear_count = wear_count + 1, 
+            durability = MAX(0, durability - 2) 
+        WHERE id = ?
+    ''', (clothing_id,))
+    conn.commit()
+    conn.close()
