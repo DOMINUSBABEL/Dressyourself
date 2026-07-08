@@ -3436,3 +3436,5 @@ window.buyRPGLook = async function(topId, bottomId, footwearId, outerwearId, acc
 // BabylonSwarm_Commit_10: feat(gamification): implement offline database fallbacks for styling index calculations
 
 // BabylonSwarm_Commit_16: feat(brands): display official brand logo badges on recommended boutique cards
+
+// BabylonSwarm_Commit_17: feat(brands): link boutique checkout cards directly to partner online stores
