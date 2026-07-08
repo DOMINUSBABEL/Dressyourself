@@ -562,6 +562,10 @@
                             <svg viewBox="0 0 24 24" class="btn-icon"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/></svg>
                             <span>Diseñar Outfit</span>
                         </button>
+                        <button id="btn-open-custom-garment" class="gold-btn-outline">
+                            <svg viewBox="0 0 24 24" class="btn-icon"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" fill="currentColor"/></svg>
+                            <span>Crear Prenda</span>
+                        </button>
                         <button class="gold-btn-outline trigger-scan" onclick="switchTab('innovaciones')">
                             <svg class="btn-icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/></svg>
                             Escanear Prenda
@@ -571,7 +575,7 @@
                             <span>Calendario</span>
                         </button>
                         <button class="gold-btn-outline" onclick="switchTab('capsula')">
-                            <svg viewBox="0 0 24 24" class="btn-icon"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zM9 4h6v2H9V4zm11 15H4v-8h16v8z" fill="currentColor"/></svg>
+                            <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zM9 4h6v2H9V4zm11 15H4v-8h16v8z" fill="currentColor"/></svg>
                             <span>Cápsula</span>
                         </button>
                     </div>
@@ -660,8 +664,8 @@
             <!-- SECTION 3: ASISTENTE (ARIA) -->
             <section id="asistente" class="tab-content">
                 <div class="section-header">
-                    <h2 class="editorial-title">Aria | Tu Asistente Personal</h2>
-                    <p class="section-desc">Asesoría de moda de alta costura interactiva con Aria.</p>
+                    <h2 class="editorial-title">Aria | Asesora de Estilo Personal</h2>
+                    <p class="section-desc">Asesoría de moda de alta costura interactiva a través de preguntas de estilo guiadas.</p>
                 </div>
 
                 <div class="asistente-container glass-card">
@@ -700,17 +704,16 @@
                         </div>
                     </div>
 
-                    <!-- Conversation bubble & chat -->
+                    <!-- Conversation bubble & options -->
                     <div class="chat-area">
                         <div class="chat-mode-header">
-                            <button id="btn-mode-libre" class="gold-btn-outline active">Asesoría Libre</button>
-                            <button id="btn-mode-rpg" class="gold-btn-outline">Juego de Rol</button>
+                            <h4 class="gold-text editorial-title" style="margin: 0; font-size: 0.95rem; font-weight: 700; letter-spacing: 2px;">Sesión de Asesoría Interactiva</h4>
                         </div>
                         
-                        <!-- RPG Progress Tracker -->
-                        <div id="rpg-progress-tracker" class="rpg-progress-tracker">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                                <span class="gold-text" style="font-size: 0.75rem; letter-spacing: 1px; font-weight: 500;">ESTILISMO DE ROL CON ISA</span>
+                        <!-- Progress Tracker -->
+                        <div id="rpg-progress-tracker" class="rpg-progress-tracker" style="display: flex;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; width: 100%;">
+                                <span class="gold-text" style="font-size: 0.75rem; letter-spacing: 1px; font-weight: 500;">ASISTENCIA DE ALTA COSTURA</span>
                                 <span id="rpg-step-indicator" style="color: var(--text-primary); font-weight: 600; font-size: 0.75rem;">Paso 1 de 3</span>
                             </div>
                             <div style="width: 100%; height: 4px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; overflow: hidden;">
@@ -720,22 +723,11 @@
 
                         <div class="bubble-speech">
                             <div class="bubble-tail"></div>
-                            <p id="aria-speech">¡Hola! Soy Aria. Selecciona mi estilo y personalidad a la izquierda, y te daré mi veredicto sobre tu estilo actual. O si lo prefieres, hazme una consulta de moda.</p>
+                            <p id="aria-speech">¡Hola! Soy Aria, tu asesora de estilo personal. Comencemos una sesión de asesoría guiada para crear tu próximo gran outfit.</p>
                         </div>
 
-                        <div class="chat-history" id="chat-history">
-                            <!-- Dynamically loaded chat entries -->
-                        </div>
-
-                        <div id="rpg-options-container" class="rpg-options-container">
+                        <div id="rpg-options-container" class="rpg-options-container" style="display: flex;">
                             <!-- Option buttons will be rendered here dynamically -->
-                        </div>
-
-                        <div class="chat-input-row">
-                            <input type="text" id="chat-input" placeholder="Pregúntale a Aria..." autocomplete="off">
-                            <button id="send-chat" class="gold-btn">
-                                <span>Enviar</span>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -1493,6 +1485,97 @@
             </div>
         </div>
     </div>
+
+    <!-- MODAL PARA CREAR PRENDA PERSONALIZADA -->
+    <div id="custom-garment-modal" class="modal-overlay" style="display:none; justify-content:center; align-items:center; z-index:10000; position:fixed; inset:0; background:rgba(0,0,0,0.85);">
+        <div class="modal-content glass-card animate-slide-up" style="max-width: 500px; padding: 25px; box-sizing: border-box; background: rgba(15,15,15,0.95); border: 1px solid var(--border-gold); width: 90%; max-height: 90vh; overflow-y: auto; border-radius: 12px; margin: 0 auto; box-shadow: 0 15px 40px rgba(0,0,0,0.8);">
+            <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid var(--border-gold); padding-bottom:10px;">
+                <h3 class="gold-text" style="margin:0; font-family:'Outfit', sans-serif; font-size:1.2rem;">✨ Personalizar Prenda</h3>
+                <span class="close-modal-btn" id="btn-close-custom-garment-modal" style="cursor:pointer; font-size:1.5rem; color:var(--text-muted);" onclick="window.closeCustomGarmentModal()">&times;</span>
+            </div>
+            <form id="custom-garment-form" onsubmit="window.handleCustomGarmentSubmit(event)" style="display:flex; flex-direction:column; gap:15px; text-align:left;">
+                
+                <div class="control-group">
+                    <label for="custom-garment-name" style="font-size:0.8rem; color:var(--text-secondary); margin-bottom: 5px;">Nombre de la Prenda:</label>
+                    <input type="text" id="custom-garment-name" placeholder="Ej. Camisa de Seda Italiana" class="gold-input" required autocomplete="off" style="width:100%; padding:10px; background:#111; border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:6px;">
+                </div>
+
+                <div class="control-group">
+                    <label for="custom-garment-category" style="font-size:0.8rem; color:var(--text-secondary); margin-bottom: 5px;">Categoría:</label>
+                    <select id="custom-garment-category" class="gold-select" style="width:100%; padding:10px; background:#111; border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:6px;" onchange="window.toggleCustomCategoryInput(this.value)">
+                        <option value="Top" selected>Top (Prenda Superior)</option>
+                        <option value="Bottom">Bottom (Prenda Inferior)</option>
+                        <option value="Outerwear">Outerwear (Abrigo/Chaqueta)</option>
+                        <option value="Footwear">Footwear (Calzado)</option>
+                        <option value="Accessory">Accessory (Accesorio)</option>
+                        <option value="custom">-- Crear Nueva Categoría --</option>
+                    </select>
+                </div>
+
+                <div class="control-group" id="custom-category-name-group" style="display:none;">
+                    <label for="custom-category-name" style="font-size:0.8rem; color:var(--text-secondary); margin-bottom: 5px;">Nombre de la Nueva Categoría:</label>
+                    <input type="text" id="custom-category-name" placeholder="Ej. Joyería, Guantes, Sombrero" class="gold-input" autocomplete="off" style="width:100%; padding:10px; background:#111; border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:6px;">
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div class="control-group">
+                        <label for="custom-garment-material" style="font-size:0.8rem; color:var(--text-secondary); margin-bottom: 5px;">Tejido/Material:</label>
+                        <select id="custom-garment-material" class="gold-select" style="width:100%; padding:10px; background:#111; border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:6px;">
+                            <option value="Seda" selected>Seda</option>
+                            <option value="Algodón">Algodón</option>
+                            <option value="Lana">Lana</option>
+                            <option value="Lino">Lino</option>
+                            <option value="Cuero">Cuero</option>
+                            <option value="Poliéster">Poliéster</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="custom-garment-style" style="font-size:0.8rem; color:var(--text-secondary); margin-bottom: 5px;">Estilo/Diseño:</label>
+                        <select id="custom-garment-style" class="gold-select" style="width:100%; padding:10px; background:#111; border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:6px;">
+                            <option value="Classic" selected>Clásico</option>
+                            <option value="Minimalist">Minimalista (Quiet Luxury)</option>
+                            <option value="Streetwear">Streetwear</option>
+                            <option value="Cyberpunk">Cyberpunk</option>
+                            <option value="Casual">Casual</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div class="control-group">
+                        <label for="custom-garment-color" style="font-size:0.8rem; color:var(--text-secondary); margin-bottom: 5px;">Color:</label>
+                        <select id="custom-garment-color" class="gold-select" style="width:100%; padding:10px; background:#111; border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:6px;">
+                            <option value="Negro Nocturno" selected>Negro Nocturno</option>
+                            <option value="Blanco Puro">Blanco Puro</option>
+                            <option value="Beige Arena">Beige Arena</option>
+                            <option value="Azul Marino">Azul Marino</option>
+                            <option value="Rojo Carmín">Rojo Carmín</option>
+                            <option value="Gris Oxford">Gris Oxford</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="custom-garment-price" style="font-size:0.8rem; color:var(--text-secondary); margin-bottom: 5px;">Precio ($ USD, opcional):</label>
+                        <input type="number" step="0.01" id="custom-garment-price" placeholder="Ej. 120.00" class="gold-input" autocomplete="off" style="width:100%; padding:10px; background:#111; border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:6px;">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label style="font-size:0.8rem; color:var(--text-secondary); margin-bottom: 5px;">Selecciona una Plantilla Ilustrada:</label>
+                    <div style="display:flex; gap:10px; overflow-x:auto; padding:5px 0; max-width: 100%; scrollbar-width: thin;" id="custom-garment-templates">
+                        <!-- Loaded dynamically via JS based on selected category -->
+                    </div>
+                    <input type="hidden" id="custom-garment-image-url">
+                </div>
+
+                <button type="submit" class="gold-btn-large" style="margin-top:10px; width:100%; display:flex; justify-content:center; align-items:center; padding: 12px; font-weight: bold; font-size: 0.9rem;">
+                    <span>Crear y Guardar en Closet</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
 
     <!-- TOAST NOTIFICATION CONTAINER -->
     <div id="toast-container" class="toast-container"></div>

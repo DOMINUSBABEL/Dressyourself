@@ -709,6 +709,15 @@ async function initCloset() {
     await loadSavedOutfits();
     if (typeof initQuestsPanel === 'function') initQuestsPanel();
 
+    const openCustomBtn = document.getElementById('btn-open-custom-garment');
+    if (openCustomBtn) {
+        openCustomBtn.onclick = () => {
+            if (typeof window.openCustomGarmentModal === 'function') {
+                window.openCustomGarmentModal();
+            }
+        };
+    }
+
     filterButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             filterButtons.forEach(b => b.classList.remove('active'));
@@ -939,75 +948,39 @@ function initAria() {
     const lookSelector = document.getElementById('aria-look');
     const personalitySelector = document.getElementById('personality');
     const portraitImg = document.getElementById('aria-portrait');
-    const sendBtn = document.getElementById('send-chat');
-    const chatInput = document.getElementById('chat-input');
 
-    // Initialize Empty Chat State
-    updateChatHistoryState();
-
-    // Load persisted chat history from SQLite
-    fetch('/api/chat/history')
-        .then(res => res.ok ? res.json() : [])
-        .then(historyData => {
-            if (historyData && historyData.length > 0) {
-                const historyEl = document.getElementById('chat-history');
-                if (historyEl) historyEl.innerHTML = '';
-                
-                historyData.forEach(item => {
-                    let scraped = null;
-                    if (item.scraped_item_json) {
-                        try {
-                            scraped = JSON.parse(item.scraped_item_json);
-                        } catch(e) {}
-                    }
-                    appendChatMessage(item.sender, item.message, scraped);
-                });
+    if (lookSelector) {
+        lookSelector.addEventListener('change', (e) => {
+            const lookKey = e.target.value;
+            STATE.ariaLook = lookKey;
+            
+            if (portraitImg) {
+                portraitImg.style.opacity = '0';
+                setTimeout(() => {
+                    portraitImg.src = ARIA_LOOK_IMAGES[lookKey] || ARIA_LOOK_IMAGES.base;
+                    portraitImg.style.opacity = '1';
+                }, 300);
             }
-        })
-        .catch(err => console.log("Persisted chat history not loaded:", err));
 
-    lookSelector.addEventListener('change', (e) => {
-        const lookKey = e.target.value;
-        STATE.ariaLook = lookKey;
-        
-        portraitImg.style.opacity = '0';
-        setTimeout(() => {
-            portraitImg.src = ARIA_LOOK_IMAGES[lookKey] || ARIA_LOOK_IMAGES.base;
-            portraitImg.style.opacity = '1';
-        }, 300);
-
-        triggerAriaSpeech(`He cambiado mi apariencia a ${e.target.options[e.target.selectedIndex].text}. ¿Qué tal me queda?`);
-    });
-
-    personalitySelector.addEventListener('change', (e) => {
-        STATE.ariaPersonality = e.target.value;
-        triggerAriaSpeech(getRandomQuote());
-    });
-
-    portraitImg.addEventListener('click', () => {
-        triggerAriaSpeech(getRandomQuote());
-    });
-
-    sendBtn.addEventListener('click', handleUserMessage);
-    chatInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleUserMessage();
-    });
-
-    // RPG Mode Switch Toggle Listeners
-    const btnLibre = document.getElementById('btn-mode-libre');
-    const btnRPG = document.getElementById('btn-mode-rpg');
-    
-    if (btnLibre && btnRPG) {
-        btnLibre.addEventListener('click', () => {
-            if (STATE.chatMode === 'libre') return;
-            switchChatMode('libre');
-        });
-        
-        btnRPG.addEventListener('click', () => {
-            if (STATE.chatMode === 'rpg') return;
-            switchChatMode('rpg');
+            triggerAriaSpeech(`He cambiado mi apariencia a ${e.target.options[e.target.selectedIndex].text}. ¿Qué tal me queda?`);
         });
     }
+
+    if (personalitySelector) {
+        personalitySelector.addEventListener('change', (e) => {
+            STATE.ariaPersonality = e.target.value;
+            triggerAriaSpeech(getRandomQuote());
+        });
+    }
+
+    if (portraitImg) {
+        portraitImg.addEventListener('click', () => {
+            triggerAriaSpeech(getRandomQuote());
+        });
+    }
+
+    // Automatically boot into the guided interactive styling session (formerly RPG)
+    switchChatMode('rpg');
 }
 
 function getRandomQuote() {
@@ -3162,7 +3135,7 @@ function switchChatMode(mode) {
                 portraitImg.style.opacity = '1';
             }, 300);
         }
-        triggerAriaSpeech("¡Hola! Soy Isa. Comencemos tu aventura de estilo de alta costura interactiva. Elige una opción abajo para empezar.");
+        triggerAriaSpeech("¡Hola! Soy Aria, tu asesora de estilo personal. Comencemos con una sesión interactiva para definir tu próximo gran outfit. Elige una opción abajo para empezar.");
         if (chatHistory) chatHistory.innerHTML = '';
         STATE.rpgAnswers = [];
         STATE.rpgCurrentNode = 'occasion_step';
@@ -4345,6 +4318,175 @@ window.deletePackingList = async function(listId) {
             initPacking();
         } else {
             showToast("Error al eliminar.", "error");
+        }
+    } catch(e) {
+        showToast("Error de red.", "error");
+    }
+};
+
+
+/* --- Custom Garment Personalization Engine --- */
+
+window.openCustomGarmentModal = function() {
+    const modal = document.getElementById('custom-garment-modal');
+    if (modal) modal.style.display = 'flex';
+    
+    // Reset form fields
+    const form = document.getElementById('custom-garment-form');
+    if (form) form.reset();
+    
+    const customGroup = document.getElementById('custom-category-name-group');
+    if (customGroup) customGroup.style.display = 'none';
+    
+    const customInput = document.getElementById('custom-category-name');
+    if (customInput) customInput.required = false;
+    
+    // Load presets for default category 'Top'
+    window.loadGarmentTemplates('Top');
+};
+
+window.closeCustomGarmentModal = function() {
+    const modal = document.getElementById('custom-garment-modal');
+    if (modal) modal.style.display = 'none';
+};
+
+window.toggleCustomCategoryInput = function(val) {
+    const group = document.getElementById('custom-category-name-group');
+    const input = document.getElementById('custom-category-name');
+    if (val === 'custom') {
+        if (group) group.style.display = 'block';
+        if (input) input.required = true;
+        window.loadGarmentTemplates('custom');
+    } else {
+        if (group) group.style.display = 'none';
+        if (input) input.required = false;
+        window.loadGarmentTemplates(val);
+    }
+};
+
+const TEMPLATE_PRESETS = {
+    'Top': [
+        'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=300', // White tee
+        'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=300', // Black shirt
+        'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300'  // Yellow sweater
+    ],
+    'Bottom': [
+        'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=300', // Denim jeans
+        'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300', // Sartorial pants
+        'https://images.unsplash.com/photo-1551854838-212c50b4c184?w=300'  // Skirt
+    ],
+    'Outerwear': [
+        'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=300', // Leather jacket
+        'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=300', // Trench coat
+        'https://images.unsplash.com/photo-1544923246-77307dd654cb?w=300'  // Puffer jacket
+    ],
+    'Footwear': [
+        'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=300', // Loafers
+        'https://images.unsplash.com/photo-1539185441755-769473a23570?w=300', // Black boots
+        'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=300'  // Sneakers
+    ],
+    'Accessory': [
+        'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300', // Watch
+        'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=300', // Sunglasses
+        'https://images.unsplash.com/photo-1566150905458-1bf1fc15a4a5?w=300'  // Designer bag
+    ],
+    'custom': [
+        'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=300', // General outfit sketch
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=300', // Stylized outfit silhouette
+        'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=300'  // Clothes layout sketch
+    ]
+};
+
+window.loadGarmentTemplates = function(category) {
+    const container = document.getElementById('custom-garment-templates');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    const urls = TEMPLATE_PRESETS[category] || TEMPLATE_PRESETS['custom'];
+    
+    urls.forEach((url, index) => {
+        const div = document.createElement('div');
+        div.className = 'scan-thumb';
+        if (index === 0) {
+            div.classList.add('active');
+            const imgUrlInput = document.getElementById('custom-garment-image-url');
+            if (imgUrlInput) imgUrlInput.value = url;
+        }
+        div.innerHTML = `<img src="${url}" alt="Plantilla" style="width:100%; height:100%; object-fit:cover;">`;
+        div.onclick = () => {
+            container.querySelectorAll('.scan-thumb').forEach(t => t.classList.remove('active'));
+            div.classList.add('active');
+            const imgUrlInput = document.getElementById('custom-garment-image-url');
+            if (imgUrlInput) imgUrlInput.value = url;
+        };
+        container.appendChild(div);
+    });
+};
+
+window.handleCustomGarmentSubmit = async function(event) {
+    event.preventDefault();
+    
+    const nameInput = document.getElementById('custom-garment-name');
+    const catSelect = document.getElementById('custom-garment-category');
+    const customCatInput = document.getElementById('custom-category-name');
+    const materialSelect = document.getElementById('custom-garment-material');
+    const styleSelect = document.getElementById('custom-garment-style');
+    const colorSelect = document.getElementById('custom-garment-color');
+    const priceInput = document.getElementById('custom-garment-price');
+    const imgUrlInput = document.getElementById('custom-garment-image-url');
+    
+    if (!nameInput || !catSelect || !imgUrlInput) return;
+    
+    const name = nameInput.value;
+    let category = catSelect.value;
+    
+    if (category === 'custom') {
+        category = customCatInput ? customCatInput.value : 'Custom';
+    }
+    
+    const material = materialSelect ? materialSelect.value : 'Seda';
+    const style = styleSelect ? styleSelect.value : 'Classic';
+    const color = colorSelect ? colorSelect.value : 'Negro Nocturno';
+    const priceVal = priceInput ? priceInput.value : '';
+    const imageUrl = imgUrlInput.value;
+    
+    const price = priceVal ? parseFloat(priceVal) : null;
+    
+    const bodyPayload = {
+        name: `${name} (${material})`,
+        image_url: imageUrl,
+        category: category,
+        subcategory: material,
+        color_primary: color,
+        pattern: style,
+        price: price,
+        is_owned: 1
+    };
+    
+    try {
+        const response = await fetch('/api/clothes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bodyPayload)
+        });
+        
+        if (response.ok) {
+            showToast("¡Prenda personalizada creada y agregada al clóset!");
+            window.closeCustomGarmentModal();
+            
+            // Reload closet
+            if (typeof loadClosetItems === 'function') {
+                await loadClosetItems();
+                renderCloset('all');
+            }
+            
+            // Refresh analytics
+            if (typeof initAnalytics === 'function') {
+                initAnalytics();
+            }
+        } else {
+            const err = await response.json();
+            showToast(err.error || "Error al crear la prenda.", "error");
         }
     } catch(e) {
         showToast("Error de red.", "error");
