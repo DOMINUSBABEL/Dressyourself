@@ -55,6 +55,8 @@ def init_db():
             minimalist_count INTEGER DEFAULT 0,
             classic_count INTEGER DEFAULT 0,
             oversize_count INTEGER DEFAULT 0,
+            rating_sum INTEGER DEFAULT 0,   -- Sum of stars (1 to 5)
+            rating_count INTEGER DEFAULT 0, -- Number of ratings
             justification TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(top_id) REFERENCES clothes(id),
@@ -66,7 +68,7 @@ def init_db():
     ''')
 
     # Dynamically alter table to add columns if database already exists
-    for col in ['aesthetic_count', 'streetwear_count', 'minimalist_count', 'classic_count', 'oversize_count']:
+    for col in ['aesthetic_count', 'streetwear_count', 'minimalist_count', 'classic_count', 'oversize_count', 'rating_sum', 'rating_count']:
         try:
             cursor.execute(f"ALTER TABLE outfits ADD COLUMN {col} INTEGER DEFAULT 0")
         except sqlite3.OperationalError:
@@ -249,7 +251,7 @@ def delete_clothing(clothing_id):
     cursor = conn.cursor()
     cursor.execute('DELETE FROM clothes WHERE id = ?', (clothing_id,))
     conn.commit()
-    changes = conn.total_changes
+    changes = cursor.rowcount
     conn.close()
     return changes > 0
 
@@ -258,6 +260,10 @@ def get_all_outfits():
     cursor = conn.cursor()
     cursor.execute('''
         SELECT o.*, 
+               CASE WHEN o.rating_count > 0 
+                    THEN ROUND(CAST(o.rating_sum AS REAL) / o.rating_count, 1) 
+                    ELSE 5.0 
+               END as rating,
                t.name as top_name, t.image_url as top_image, t.color_primary as top_color,
                b.name as bottom_name, b.image_url as bottom_image, b.color_primary as bottom_color,
                f.name as footwear_name, f.image_url as footwear_image, f.color_primary as footwear_color,
@@ -292,7 +298,7 @@ def delete_outfit(outfit_id):
     cursor = conn.cursor()
     cursor.execute('DELETE FROM outfits WHERE id = ?', (outfit_id,))
     conn.commit()
-    changes = conn.total_changes
+    changes = cursor.rowcount
     conn.close()
     return changes > 0
 
@@ -301,16 +307,48 @@ def share_outfit(outfit_id, share_status):
     cursor = conn.cursor()
     cursor.execute('UPDATE outfits SET is_shared = ? WHERE id = ?', (1 if share_status else 0, outfit_id))
     conn.commit()
-    changes = conn.total_changes
+    changes = cursor.rowcount
     conn.close()
     return changes > 0
 
-def like_outfit(outfit_id):
+def rate_outfit(outfit_id, stars):
+    # Ensure stars is within 1 to 5
+    stars = max(1, min(5, int(stars)))
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('UPDATE outfits SET likes = likes + 1 WHERE id = ?', (outfit_id,))
+    cursor.execute('''
+        UPDATE outfits 
+        SET rating_sum = rating_sum + ?, rating_count = rating_count + 1, likes = likes + 1
+        WHERE id = ?
+    ''', (stars, outfit_id))
     conn.commit()
-    # Get updated likes
+    
+    # Get updated rating average
+    cursor.execute('''
+        SELECT rating_sum, rating_count,
+               CASE WHEN rating_count > 0 
+                    THEN ROUND(CAST(rating_sum AS REAL) / rating_count, 1) 
+                    ELSE 5.0 
+               END as rating
+        FROM outfits 
+        WHERE id = ?
+    ''', (outfit_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        return dict(row)
+    return {"rating_sum": 0, "rating_count": 0, "rating": 5.0}
+
+def like_outfit(outfit_id):
+    # Backward compatibility: a like acts as a 5-star rating
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        UPDATE outfits 
+        SET likes = likes + 1, rating_sum = rating_sum + 5, rating_count = rating_count + 1 
+        WHERE id = ?
+    ''', (outfit_id,))
+    conn.commit()
     cursor.execute('SELECT likes FROM outfits WHERE id = ?', (outfit_id,))
     row = cursor.fetchone()
     conn.close()
@@ -334,13 +372,17 @@ def vote_outfit(outfit_id, style_tag):
     cursor = conn.cursor()
     cursor.execute(f'''
         UPDATE outfits 
-        SET {col_name} = {col_name} + 1, likes = likes + 1 
+        SET {col_name} = {col_name} + 1, likes = likes + 1, rating_sum = rating_sum + 5, rating_count = rating_count + 1
         WHERE id = ?
     ''', (outfit_id,))
     conn.commit()
     
     cursor.execute('''
-        SELECT aesthetic_count, streetwear_count, minimalist_count, classic_count, oversize_count, likes 
+        SELECT aesthetic_count, streetwear_count, minimalist_count, classic_count, oversize_count, likes,
+               CASE WHEN rating_count > 0 
+                    THEN ROUND(CAST(rating_sum AS REAL) / rating_count, 1) 
+                    ELSE 5.0 
+               END as rating
         FROM outfits 
         WHERE id = ?
     ''', (outfit_id,))

@@ -50,12 +50,12 @@ const STATE = {
 
 // Look image map for Aria
 const ARIA_LOOK_IMAGES = {
-    base: 'static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Propuesta Animada.png',
-    castano_corto: 'static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Versiones del personaje/Pelo Castaño Corto.jpeg',
-    rojo_corto: 'static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Versiones del personaje/Pelo Rojo corto.jpeg',
-    rojo_largo: 'static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Versiones del personaje/Pelo Rojo largo.jpeg',
-    castano_gafas: 'static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Versiones del personaje/Pelo castaño medio con gafas.jpeg',
-    castano_medio: 'static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Versiones del personaje/Pelo castaño medio.jpeg'
+    base: 'static/proposals/Propuestas%20de%20Asistente%20Personal/Propuesta%20(Animada%20)/Propuesta%20Animada.png',
+    castano_corto: 'static/proposals/Propuestas%20de%20Asistente%20Personal/Propuesta%20(Animada%20)/Versiones%20del%20personaje/Pelo%20Casta%C3%B1o%20Corto.jpeg',
+    rojo_corto: 'static/proposals/Propuestas%20de%20Asistente%20Personal/Propuesta%20(Animada%20)/Versiones%20del%20personaje/Pelo%20Rojo%20corto.jpeg',
+    rojo_largo: 'static/proposals/Propuestas%20de%20Asistente%20Personal/Propuesta%20(Animada%20)/Versiones%20del%20personaje/Pelo%20Rojo%20largo.jpeg',
+    castano_gafas: 'static/proposals/Propuestas%20de%20Asistente%20Personal/Propuesta%20(Animada%20)/Versiones%20del%20personaje/Pelo%20casta%C3%B1o%20medio%20con%20gafas.jpeg',
+    castano_medio: 'static/proposals/Propuestas%20de%20Asistente%20Personal/Propuesta%20(Animada%20)/Versiones%20del%20personaje/Pelo%20casta%C3%B1o%20medio.jpeg'
 };
 
 // Mock Databases (Fallback when Backend is offline)
@@ -146,9 +146,15 @@ const MOCK_DATA = {
         consejo: "Este blazer cuenta con hombreras estructuradas y un solapado impecable. Combínalo con pantalones crema ligeros de seda o jeans oscuros de corte recto para un look semi-formal sofisticado. Agrega joyería champaña sutil."
     },
     posts: [
+<<<<<<< HEAD
         { id: 1, user: 'Alessia V.', initials: 'AV', img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600&auto=format&fit=crop', desc: 'Tarde de lino y champaña con un blazer clásico.', votes: { aesthetic: 42, streetwear: 5, minimalist: 24, classic: 53, oversize: 8 }, userVoted: {} },
         { id: 2, user: 'Mateo Garces', initials: 'MG', img: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=600&auto=format&fit=crop', desc: 'Quiet luxury en la ciudad. Paletas crema y botas altas.', votes: { aesthetic: 18, streetwear: 35, minimalist: 62, classic: 41, oversize: 27 }, userVoted: {} },
         { id: 3, user: 'Sophia Atelier', initials: 'SA', img: 'https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?q=80&w=600&auto=format&fit=crop', desc: 'Probando el Vestidor de Isa. Combinación aprobada al 92%.', votes: { aesthetic: 75, streetwear: 12, minimalist: 19, classic: 25, oversize: 33 }, userVoted: {} }
+=======
+        { id: 'mock_1', user: 'Alessia V.', initials: 'AV', img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600&auto=format&fit=crop', desc: 'Tarde de lino y champaña con un blazer clásico.', rating: 4.8, rating_count: 53, userRating: 0 },
+        { id: 'mock_2', user: 'Mateo Garces', initials: 'MG', img: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=600&auto=format&fit=crop', desc: 'Quiet luxury en la ciudad. Paletas crema y botas altas.', rating: 4.2, rating_count: 41, userRating: 0 },
+        { id: 'mock_3', user: 'Sophia Atelier', initials: 'SA', img: 'https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?q=80&w=600&auto=format&fit=crop', desc: 'Probando el Vestidor de Aria. Combinación aprobada al 92%.', rating: 4.6, rating_count: 28, userRating: 0 }
+>>>>>>> main
     ],
     initialOutfits: [
         {
@@ -236,6 +242,7 @@ function switchTab(tabName) {
     }
 }
 
+<<<<<<< HEAD
 // 2. Weather & Daily Recommendations Integration (with interactive mannequin highlights)
 let weatherSelectorsBound = false;
 
@@ -282,12 +289,115 @@ async function initWeather() {
         } else {
             renderRecommendations(MOCK_DATA.climaRecommendation);
         }
+=======
+// 2. Weather & Daily Recommendations Integration (with GPS geolocation, Nominatim reverse geocoding & location picker)
+async function initWeather() {
+    initLocationModal();
+
+    // Check if user manually saved a location previously
+    const savedCityIndex = localStorage.getItem('dy_selected_city_index');
+    if (savedCityIndex !== null && localStorage.getItem('dy_use_gps') !== 'true') {
+        await loadWeatherByCityIndex(parseInt(savedCityIndex));
+        return;
+    }
+
+    // Try to get real GPS coordinates
+    let geoCoords = null;
+    try {
+        geoCoords = await getDeviceLocation();
+    } catch (geoErr) {
+        console.log("GPS not available, using default weather:", geoErr.message);
+    }
+
+    if (geoCoords) {
+        await loadWeatherByGPS(geoCoords.latitude, geoCoords.longitude);
+    } else {
+        // Fallback to default city (Bogota, index 0)
+        await loadWeatherByCityIndex(0);
+    }
+}
+
+// Get device GPS location
+function getDeviceLocation() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new Error("Geolocation API no soportada"));
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+            (err) => reject(err),
+            { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+        );
+    });
+}
+
+// Reverse geocode via Nominatim OSM or fallback to nearest Colombian city
+async function getReverseGeocoding(lat, lon) {
+    try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=12`, {
+            headers: { 'Accept-Language': 'es' }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            const addr = data.address || {};
+            const cityName = addr.city || addr.town || addr.village || addr.suburb || addr.county || addr.state;
+            return cityName ? `📍 ${cityName}` : null;
+        }
     } catch (e) {
-        renderWeather(MOCK_DATA.weather);
+        console.warn("Nominatim reverse geocoding failed, using fallback:", e);
+    }
+    
+    // Fallback: nearest city name in JS
+    const nearest = getNearestColombianCity(lat, lon);
+    return `📍 ${nearest.name} (Aprox.)`;
+}
+
+// Nearest Colombian city helper
+function getNearestColombianCity(lat, lon) {
+    const cities = [
+        { index: 0, name: "Bogotá", lat: 4.7110, lon: -74.0721 },
+        { index: 1, name: "Medellín", lat: 6.2442, lon: -75.5812 },
+        { index: 2, name: "Cali", lat: 3.4516, lon: -76.5320 },
+        { index: 3, name: "Barranquilla", lat: 10.9685, lon: -74.7813 },
+        { index: 4, name: "Cartagena", lat: 10.3910, lon: -75.5144 },
+        { index: 5, name: "Bucaramanga", lat: 7.1254, lon: -73.1198 },
+        { index: 6, name: "Pereira", lat: 4.8087, lon: -75.6906 },
+        { index: 7, name: "Santa Marta", lat: 11.2408, lon: -74.1990 },
+        { index: 8, name: "Manizales", lat: 5.0689, lon: -75.5174 },
+        { index: 9, name: "Ibagué", lat: 4.4389, lon: -75.2322 }
+    ];
+    let bestDist = Infinity;
+    let bestCity = cities[0];
+    for (const city of cities) {
+        const dist = Math.sqrt(Math.pow(lat - city.lat, 2) + Math.pow(lon - city.lon, 2));
+        if (dist < bestDist) {
+            bestDist = dist;
+            bestCity = city;
+        }
+    }
+    return bestCity;
+}
+
+// Load weather based on city index
+async function loadWeatherByCityIndex(cityIndex) {
+    try {
+        const response = await fetch(`/api/clima?city_index=${cityIndex}`);
+        if (!response.ok) throw new Error("API Clima Fallback");
+        const data = await response.json();
+        renderWeather(data);
+        await loadRecommendations();
+>>>>>>> main
+    } catch (e) {
+        // Mock fallback matching the index
+        const cities = ["Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Bucaramanga", "Pereira", "Santa Marta", "Manizales", "Ibagué"];
+        const mock = { ...MOCK_DATA.weather, city: cities[cityIndex] || "Bogotá" };
+        renderWeather(mock);
         renderRecommendations(MOCK_DATA.climaRecommendation);
     }
 }
 
+<<<<<<< HEAD
 function setupWeatherContextSelectors() {
     const ctxButtons = document.querySelectorAll('.context-btn');
     ctxButtons.forEach(btn => {
@@ -343,6 +453,102 @@ function setupWeatherContextSelectors() {
     }
 }
 
+=======
+// Load weather based on coordinates
+async function loadWeatherByGPS(lat, lon) {
+    const nearestCity = getNearestColombianCity(lat, lon);
+    const resolvedName = await getReverseGeocoding(lat, lon);
+
+    try {
+        const response = await fetch(`/api/clima?lat=${lat}&lon=${lon}`);
+        if (!response.ok) throw new Error("API GPS Fallback");
+        const data = await response.json();
+        if (resolvedName) data.city = resolvedName;
+        renderWeather(data);
+        await loadRecommendations();
+    } catch (e) {
+        // Offline / Fallback
+        const mock = {
+            city: resolvedName || `📍 ${nearestCity.name} (Aprox.)`,
+            temp: "17°C",
+            desc: "Nublado con ráfagas suaves (GPS activo, sin servidor)",
+            details: [
+                { label: "Condición", value: "Nublado" },
+                { label: "GPS", value: `${lat.toFixed(2)}°, ${lon.toFixed(2)}°` },
+                { label: "Ciudad Cercana", value: nearestCity.name }
+            ]
+        };
+        renderWeather(mock);
+        renderRecommendations(MOCK_DATA.climaRecommendation);
+    }
+}
+
+// Helper to fetch recommendations
+async function loadRecommendations() {
+    try {
+        const recResponse = await fetch('/api/recommend');
+        if (recResponse.ok) {
+            const recData = await recResponse.json();
+            renderRecommendations(recData.items || MOCK_DATA.climaRecommendation);
+        } else {
+            renderRecommendations(MOCK_DATA.climaRecommendation);
+        }
+    } catch (recErr) {
+        renderRecommendations(MOCK_DATA.climaRecommendation);
+    }
+}
+
+// Location Modal Event Handlers
+function initLocationModal() {
+    const btnChange = document.getElementById('btn-change-location');
+    const modal = document.getElementById('location-modal');
+    const btnClose = document.getElementById('btn-close-location');
+    const btnUseGps = document.getElementById('btn-use-gps');
+    const btnSave = document.getElementById('btn-save-location');
+    const select = document.getElementById('location-select');
+
+    if (!btnChange || !modal) return;
+
+    btnChange.onclick = () => {
+        modal.style.display = 'flex';
+        const savedIndex = localStorage.getItem('dy_selected_city_index');
+        if (savedIndex !== null) select.value = savedIndex;
+    };
+
+    btnClose.onclick = () => { modal.style.display = 'none'; };
+    modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+
+    btnUseGps.onclick = async () => {
+        btnUseGps.setAttribute('disabled', 'true');
+        btnUseGps.querySelector('span').textContent = "Buscando satélites...";
+        localStorage.setItem('dy_use_gps', 'true');
+
+        try {
+            const coords = await getDeviceLocation();
+            await loadWeatherByGPS(coords.latitude, coords.longitude);
+            showToast("Ubicación actualizada con éxito por GPS.");
+            modal.style.display = 'none';
+        } catch (err) {
+            showToast("No se pudo obtener la ubicación GPS.", "error");
+        } finally {
+            btnUseGps.removeAttribute('disabled');
+            btnUseGps.querySelector('span').textContent = "🛰️ Usar ubicación GPS actual";
+        }
+    };
+
+    btnSave.onclick = async () => {
+        const index = select.value;
+        localStorage.setItem('dy_use_gps', 'false');
+        localStorage.setItem('dy_selected_city_index', index);
+        
+        await loadWeatherByCityIndex(parseInt(index));
+        showToast("Ubicación cambiada manualmente.");
+        modal.style.display = 'none';
+    };
+}
+
+
+>>>>>>> main
 function renderWeather(data) {
     document.getElementById('weather-city').textContent = data.city;
     document.getElementById('weather-temp').textContent = data.temp;
@@ -366,16 +572,21 @@ function renderWeather(data) {
 
 function renderRecommendations(items) {
     const recShowcaseEl = document.getElementById('clima-recommendation');
-    recShowcaseEl.innerHTML = '';
+    if (recShowcaseEl) recShowcaseEl.innerHTML = '';
     
-    items.forEach(item => {
+    const flatlayCollage = document.getElementById('clima-flatlay-collage');
+    if (flatlayCollage) flatlayCollage.innerHTML = '';
+
+    items.forEach((item, index) => {
+        // 1. Create Showcase card (Right Panel)
         const card = document.createElement('div');
         card.className = 'rec-card';
         card.setAttribute('data-part', item.part);
+        card.setAttribute('data-idx', index);
         card.innerHTML = `
             <div class="rec-img-wrapper">
                 <span class="rec-badge">${item.badge}</span>
-                <img src="${item.image}" alt="${item.name}">
+                <img src="${item.image}" alt="${item.name}" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 fill=%27%23333%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%231a1a2e%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%23d4af37%27 font-family=%27sans-serif%27 font-size=%2714%27%3EImagen no disponible%3C/text%3E%3C/svg%3E';">
             </div>
             <div class="rec-details">
                 <span class="rec-type">${item.type}</span>
@@ -384,23 +595,67 @@ function renderRecommendations(items) {
             </div>
         `;
 
+        // 2. Create Flat Lay Polaroid Item for the Canvas
+        if (flatlayCollage) {
+            const rotation = [4, -5, 3, -6, 2][index % 5];
+            const polaroid = document.createElement('div');
+            polaroid.id = `clima-polaroid-${index}`;
+            polaroid.style.width = '75px';
+            polaroid.style.height = '75px';
+            polaroid.style.borderRadius = '6px';
+            polaroid.style.border = '1.5px solid var(--border-gold)';
+            polaroid.style.background = '#111';
+            polaroid.style.overflow = 'hidden';
+            polaroid.style.transform = `rotate(${rotation}deg)`;
+            polaroid.style.boxShadow = '2px 2px 8px rgba(0,0,0,0.3)';
+            polaroid.style.position = 'relative';
+            polaroid.style.transition = 'all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1)';
+            polaroid.style.cursor = 'pointer';
+            polaroid.innerHTML = `
+                <img src="${item.image}" alt="${item.name}" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect fill=%27%23222%27 width=%27100%27 height=%27100%27/%3E%3C/svg%3E';">
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(212,175,55,0); transition: background 0.2s;"></div>
+            `;
+
+            // Hover sync from Polaroid to Card
+            polaroid.addEventListener('mouseenter', () => {
+                polaroid.style.transform = 'scale(1.2) rotate(0deg)';
+                polaroid.style.boxShadow = '0 10px 20px rgba(0,0,0,0.5)';
+                polaroid.style.borderColor = '#00ff88';
+                card.classList.add('highlighted-card');
+                card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+
+            polaroid.addEventListener('mouseleave', () => {
+                polaroid.style.transform = `rotate(${rotation}deg)`;
+                polaroid.style.boxShadow = '2px 2px 8px rgba(0,0,0,0.3)';
+                polaroid.style.borderColor = 'var(--border-gold)';
+                card.classList.remove('highlighted-card');
+            });
+
+            flatlayCollage.appendChild(polaroid);
+        }
+
+        // Hover sync from Card to Polaroid
         card.addEventListener('mouseenter', () => {
-            const partId = card.getAttribute('data-part');
-            const mannequinPart = document.getElementById(partId);
-            if (mannequinPart) {
-                mannequinPart.classList.add('highlighted');
+            const polaroid = document.getElementById(`clima-polaroid-${index}`);
+            if (polaroid) {
+                polaroid.style.transform = 'scale(1.2) rotate(0deg)';
+                polaroid.style.boxShadow = '0 10px 20px rgba(0,0,0,0.5)';
+                polaroid.style.borderColor = '#00ff88';
             }
         });
 
         card.addEventListener('mouseleave', () => {
-            const partId = card.getAttribute('data-part');
-            const mannequinPart = document.getElementById(partId);
-            if (mannequinPart) {
-                mannequinPart.classList.remove('highlighted');
+            const polaroid = document.getElementById(`clima-polaroid-${index}`);
+            const rotation = [4, -5, 3, -6, 2][index % 5];
+            if (polaroid) {
+                polaroid.style.transform = `rotate(${rotation}deg)`;
+                polaroid.style.boxShadow = '2px 2px 8px rgba(0,0,0,0.3)';
+                polaroid.style.borderColor = 'var(--border-gold)';
             }
         });
 
-        recShowcaseEl.appendChild(card);
+        if (recShowcaseEl) recShowcaseEl.appendChild(card);
     });
 }
 
@@ -421,11 +676,31 @@ async function initCloset() {
     });
 }
 
+// Map backend category names to frontend category keys
+function mapCategory(backendCat) {
+    const map = {
+        'Top': 'superior',
+        'Bottom': 'inferior',
+        'Footwear': 'calzado',
+        'Outerwear': 'abrigo',
+        'Accessory': 'accesorio'
+    };
+    return map[backendCat] || backendCat;
+}
+
 async function loadClosetItems() {
     try {
-        const response = await fetch('/api/closet');
+        const response = await fetch('/api/clothes?owned=true');
         if (!response.ok) throw new Error("Fallback");
-        STATE.closetItems = await response.json();
+        const data = await response.json();
+        // Map backend field names to frontend expected shape
+        STATE.closetItems = data.map(item => ({
+            id: item.id,
+            cat: mapCategory(item.category),
+            name: item.name,
+            style: item.pattern || 'Classic',
+            image: item.image_url
+        }));
     } catch (e) {
         STATE.closetItems = [...MOCK_DATA.closet];
     }
@@ -463,8 +738,8 @@ function renderCloset(category) {
 
         card.innerHTML = `
             <div class="closet-img-wrapper">
-                <img src="${item.image}" alt="${item.name}">
-                <span class="closet-style-tag">${item.style}</span>
+                <img src="${item.image}" alt="${item.name}" onerror="this.onerror=null; this.style.objectFit='contain'; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 250%22><rect fill=%22%23171717%22 width=%22200%22 height=%22250%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23646464%22 font-size=%2214%22 text-anchor=%22middle%22 dy=%22.3em%22>Imagen no disponible</text></svg>';">
+                <span class="closet-style-tag">${item.style || ''}</span>
             </div>
             <div class="closet-info">
                 <span class="closet-cat">${item.cat}</span>
@@ -480,7 +755,22 @@ async function loadSavedOutfits() {
     try {
         const response = await fetch('/api/outfits');
         if (!response.ok) throw new Error("Fallback");
-        STATE.savedCombinations = await response.json();
+        const data = await response.json();
+        // Transform backend flat structure to frontend items-array structure
+        STATE.savedCombinations = data.map(outfit => {
+            const items = [];
+            if (outfit.top_image) items.push({ cat: 'superior', name: outfit.top_name, image: outfit.top_image });
+            if (outfit.bottom_image) items.push({ cat: 'inferior', name: outfit.bottom_name, image: outfit.bottom_image });
+            if (outfit.footwear_image) items.push({ cat: 'calzado', name: outfit.footwear_name, image: outfit.footwear_image });
+            if (outfit.outerwear_image) items.push({ cat: 'abrigo', name: outfit.outerwear_name, image: outfit.outerwear_image });
+            if (outfit.accessory_image) items.push({ cat: 'accesorio', name: outfit.accessory_name, image: outfit.accessory_image });
+            return {
+                id: outfit.id,
+                name: outfit.name,
+                occasion: outfit.justification ? 'Curado' : 'Casual',
+                items: items
+            };
+        });
     } catch (e) {
         STATE.savedCombinations = [...MOCK_DATA.initialOutfits];
     }
@@ -510,7 +800,7 @@ function renderSavedCombinations() {
             if (itm && itm.image) {
                 thumbsHTML += `
                     <div class="combo-item-thumb" title="${itm.name}">
-                        <img src="${itm.image}" alt="${itm.name}">
+                        <img src="${itm.image}" alt="${itm.name}" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 fill=%27%23333%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%231a1a2e%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%23d4af37%27 font-family=%27sans-serif%27 font-size=%2714%27%3EImagen no disponible%3C/text%3E%3C/svg%3E';">
                     </div>
                 `;
             }
@@ -637,7 +927,13 @@ async function handleUserMessage() {
         const response = await fetch(`/api/ganchito/quote?personality=${STATE.ariaPersonality}&q=${encodeURIComponent(text)}`);
         if (!response.ok) throw new Error("Fallback");
         const data = await response.json();
-        appendChatMessage('bot', data.response);
+        
+        // Check if query contained a shop URL resulting in a scraped item
+        if (data.scraped_item) {
+            appendChatMessage('bot', data.response, data.scraped_item);
+        } else {
+            appendChatMessage('bot', data.response);
+        }
         triggerAriaSpeech(data.response);
     } catch (e) {
         setTimeout(() => {
@@ -654,16 +950,178 @@ async function handleUserMessage() {
     }
 }
 
-function appendChatMessage(sender, text) {
+function appendChatMessage(sender, text, scrapedItem = null) {
     const history = document.getElementById('chat-history');
     const msg = document.createElement('div');
     msg.className = `chat-msg ${sender}`;
     msg.textContent = text;
+    
+    if (scrapedItem) {
+        const card = document.createElement('div');
+        card.style.marginTop = '10px';
+        card.style.padding = '12px';
+        card.style.background = 'rgba(255,255,255,0.04)';
+        card.style.border = '1px solid var(--border-gold)';
+        card.style.borderRadius = '8px';
+        card.style.display = 'flex';
+        card.style.gap = '10px';
+        card.style.alignItems = 'center';
+        
+        // Escape single quotes for HTML attribute JSON
+        const escapedItem = JSON.stringify(scrapedItem).replace(/'/g, "&apos;");
+        
+        card.innerHTML = `
+            <img src="${scrapedItem.image}" alt="${scrapedItem.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(212,175,55,0.2);">
+            <div style="flex-grow: 1; display: flex; flex-direction: column; text-align: left;">
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">${scrapedItem.brand}</span>
+                <span style="font-size: 0.85rem; font-weight: bold; color: var(--text-primary); max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${scrapedItem.name}</span>
+                <span style="font-size: 0.8rem; color: var(--accent-gold); font-weight: 600;">${scrapedItem.price}</span>
+            </div>
+            <button class="gold-btn" style="padding: 6px 10px; font-size: 0.7rem; text-transform: none; letter-spacing: 0;" onclick='loadScrapedToFitting(${escapedItem})'>
+                Probar
+            </button>
+        `;
+        msg.appendChild(card);
+    }
+    
     history.appendChild(msg);
     history.scrollTop = history.scrollHeight;
 }
 
 // 5. Vision Scanner & AI Cataloging (With mandatory 2-second scan delay)
+// Helper: Analiza la imagen localmente usando Canvas para extraer color predominante y estimar categoría
+function analyzeImageLocally(file) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 50;
+                canvas.height = 50;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, 50, 50);
+                
+                let imgData;
+                try {
+                    imgData = ctx.getImageData(0, 0, 50, 50).data;
+                } catch (err) {
+                    // Fallback if canvas tainted
+                    resolve({
+                        tipo: "Prenda Casual",
+                        estilo: "Liso",
+                        colores: ["#708090"],
+                        confianza: 85,
+                        consejo: "Análisis básico completado. Combina con neutros."
+                    });
+                    return;
+                }
+
+                let rSum = 0, gSum = 0, bSum = 0, count = 0;
+                for (let i = 0; i < imgData.length; i += 4) {
+                    const r = imgData[i];
+                    const g = imgData[i+1];
+                    const b = imgData[i+2];
+                    const a = imgData[i+3];
+                    if (a > 150) {
+                        const isWhite = r > 235 && g > 235 && b > 235;
+                        const isBlack = r < 25 && g < 25 && b < 25;
+                        if (!isWhite && !isBlack) {
+                            rSum += r; gSum += g; bSum += b; count++;
+                        }
+                    }
+                }
+                
+                if (count === 0) {
+                    for (let i = 0; i < imgData.length; i += 4) {
+                        rSum += imgData[i]; gSum += imgData[i+1]; bSum += imgData[i+2]; count++;
+                    }
+                }
+                
+                const r = Math.round(rSum / count);
+                const g = Math.round(gSum / count);
+                const b = Math.round(bSum / count);
+                
+                // Map color name in Spanish
+                const colorMap = {
+                    "Blanco": [245, 245, 245],
+                    "Negro": [25, 25, 25],
+                    "Gris": [128, 128, 128],
+                    "Azul Marino": [15, 32, 67],
+                    "Azul Celeste": [135, 206, 250],
+                    "Verde Oliva": [85, 107, 47],
+                    "Verde Esmeralda": [0, 201, 87],
+                    "Rojo": [200, 20, 30],
+                    "Marrón": [139, 69, 19],
+                    "Beige": [245, 245, 220],
+                    "Amarillo": [218, 165, 32],
+                    "Naranja": [210, 105, 30],
+                    "Rosa": [255, 192, 203],
+                    "Morado": [128, 0, 128]
+                };
+                
+                let color_name = "Gris";
+                let min_d = Infinity;
+                for (const [name, rgb] of Object.entries(colorMap)) {
+                    const dist = Math.sqrt((r - rgb[0])**2 + (g - rgb[1])**2 + (b - rgb[2])**2);
+                    if (dist < min_d) {
+                        min_d = dist; color_name = name;
+                    }
+                }
+                
+                const hexColor = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+                
+                // Categorize by file name heuristics
+                const fname = (file.name || "").toLowerCase();
+                let cat = "superior";
+                let tipo = "Camiseta";
+                
+                if (fname.includes("pant") || fname.includes("jean") || fname.includes("short") || fname.includes("falda") || fname.includes("leggin")) {
+                    cat = "inferior";
+                    tipo = fname.includes("falda") ? "Falda" : (fname.includes("jean") ? "Jeans" : "Pantalón");
+                } else if (fname.includes("shoe") || fname.includes("zapa") || fname.includes("bota") || fname.includes("tenis") || fname.includes("heel") || fname.includes("calzado")) {
+                    cat = "calzado";
+                    tipo = fname.includes("bota") ? "Botas" : (fname.includes("tenis") ? "Tenis" : "Zapatos");
+                } else if (fname.includes("jacket") || fname.includes("coat") || fname.includes("abrigo") || fname.includes("saco") || fname.includes("blazer") || fname.includes("chaqueta")) {
+                    cat = "abrigo";
+                    tipo = fname.includes("blazer") ? "Blazer" : "Chaqueta / Abrigo";
+                } else if (fname.includes("bag") || fname.includes("bols") || fname.includes("glass") || fname.includes("gafa") || fname.includes("belt") || fname.includes("accesorio")) {
+                    cat = "accesorio";
+                    tipo = fname.includes("gafa") ? "Gafas de Sol" : "Bolso / Accesorio";
+                } else {
+                    const cats = ["superior", "inferior", "calzado", "abrigo", "accesorio"];
+                    cat = cats[Math.floor(Math.random() * cats.length)];
+                    const types = {
+                        superior: ["Camiseta", "Camisa de Seda", "Top Knit", "Blusa"],
+                        inferior: ["Pantalón Sastrero", "Jeans Denim", "Falda Plisada"],
+                        calzado: ["Tacones de Cuero", "Mocasines", "Tenis Deportivos"],
+                        abrigo: ["Blazer Cruzado", "Chaqueta Denim", "Abrigo de Lana"],
+                        accesorio: ["Bolso de Mano", "Bufanda de Seda", "Gafas de Sol"]
+                    };
+                    tipo = types[cat][Math.floor(Math.random() * types[cat].length)];
+                }
+                
+                const estilos = ["Minimalista", "Quiet Luxury", "Streetwear", "Clásico", "Moderno"];
+                const estilo = estilos[Math.floor(Math.random() * estilos.length)];
+                const confianza = Math.round(75 + Math.random() * 23);
+                
+                resolve({
+                    tipo: tipo,
+                    estilo: estilo,
+                    colores: [hexColor],
+                    confianza: confianza,
+                    consejo: `Prenda catalogada localmente (GPS/Offline). Tipo: ${tipo} (${color_name}). Estilo: ${estilo}. Combina excelente con tonos complementarios.`,
+                    cat: cat,
+                    offline: true
+                });
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// 5. Vision Scanner & AI Cataloging (With multiple file and camera support)
 function initScanner() {
     const dropZone = document.getElementById('scanner-drop-zone');
     const fileInput = document.getElementById('scanner-file-input');
@@ -673,8 +1131,16 @@ function initScanner() {
     const previewImg = document.getElementById('scan-preview-img');
     const laser = document.getElementById('scan-laser');
     const resultsBox = document.getElementById('scan-results-box');
+    const thumbsContainer = document.getElementById('scan-thumbnails-container');
 
-    dropZone.addEventListener('click', () => fileInput.click());
+    STATE.scanQueue = [];
+    STATE.activeScanIndex = 0;
+
+    dropZone.addEventListener('click', (e) => {
+        // Prevent click trigger if clicking inside thumbnails container
+        if (thumbsContainer.contains(e.target)) return;
+        fileInput.click();
+    });
     
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -689,90 +1155,274 @@ function initScanner() {
         e.preventDefault();
         dropZone.style.borderColor = 'var(--border-gold)';
         if (e.dataTransfer.files.length) {
-            handleSelectedFile(e.dataTransfer.files[0]);
+            handleSelectedFiles(e.dataTransfer.files);
         }
     });
 
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length) {
-            handleSelectedFile(e.target.files[0]);
+            handleSelectedFiles(e.target.files);
         }
     });
 
-    function handleSelectedFile(file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            previewImg.src = event.target.result;
-            uploadPlaceholder.style.display = 'none';
-            previewWrapper.style.display = 'flex';
-            btnScan.removeAttribute('disabled');
-            resultsBox.style.display = 'none';
-        };
-        reader.readAsDataURL(file);
+    function handleSelectedFiles(fileList) {
+        STATE.scanQueue = [];
+        STATE.activeScanIndex = 0;
+        thumbsContainer.innerHTML = '';
+        resultsBox.style.display = 'none';
+
+        const files = Array.from(fileList);
+        let loadedCount = 0;
+
+        files.forEach((file, index) => {
+            const item = {
+                file: file,
+                base64: null,
+                status: 'pending',
+                result: null
+            };
+            STATE.scanQueue.push(item);
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                item.base64 = event.target.result;
+                
+                // Create thumbnail
+                const thumb = document.createElement('div');
+                thumb.className = `scan-thumb ${index === 0 ? 'active' : ''}`;
+                thumb.id = `scan-thumb-${index}`;
+                thumb.innerHTML = `
+                    <img src="${event.target.result}" alt="Thumbnail">
+                    <span class="scan-thumb-badge pending" id="scan-badge-${index}">⌛</span>
+                `;
+                
+                thumb.onclick = (e) => {
+                    e.stopPropagation();
+                    selectQueueItem(index);
+                };
+                
+                thumbsContainer.appendChild(thumb);
+
+                loadedCount++;
+                if (loadedCount === files.length) {
+                    selectQueueItem(0);
+                    uploadPlaceholder.style.display = 'none';
+                    previewWrapper.style.display = 'flex';
+                    btnScan.removeAttribute('disabled');
+                    
+                    if (files.length > 1) {
+                        btnScan.querySelector('.btn-text').textContent = `Escanear prendas (${files.length})`;
+                    } else {
+                        btnScan.querySelector('.btn-text').textContent = 'Iniciar Escaneo';
+                    }
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function selectQueueItem(index) {
+        STATE.activeScanIndex = index;
+        document.querySelectorAll('.scan-thumb').forEach(t => t.classList.remove('active'));
+        
+        const activeThumb = document.getElementById(`scan-thumb-${index}`);
+        if (activeThumb) activeThumb.classList.add('active');
+
+        const activeItem = STATE.scanQueue[index];
+        if (activeItem) {
+            previewImg.src = activeItem.base64;
+            if (activeItem.status === 'completed' && activeItem.result) {
+                showScanResults(activeItem.result);
+            } else {
+                resultsBox.style.display = 'none';
+            }
+        }
     }
 
     btnScan.addEventListener('click', async () => {
         btnScan.setAttribute('disabled', 'true');
-        btnScan.querySelector('.btn-text').textContent = 'Escaneando con Visión IA...';
-        btnScan.querySelector('.spinner-small').style.display = 'block';
         laser.classList.add('active');
 
-        const startTime = Date.now();
-        const formData = new FormData();
-        formData.append('image', fileInput.files[0] || 'mock_file');
+        if (STATE.scanQueue.length === 1) {
+            // SINGLE SCAN FLOW
+            btnScan.querySelector('.btn-text').textContent = 'Escaneando prenda...';
+            btnScan.querySelector('.spinner-small').style.display = 'block';
+            
+            const activeItem = STATE.scanQueue[0];
+            const badge = document.getElementById('scan-badge-0');
+            if (badge) badge.textContent = '⚙️';
 
-        let scanResultData = null;
-        try {
-            const response = await fetch('/api/closet/scan', {
-                method: 'POST',
-                body: formData
-            });
-            if (response.ok) {
-                scanResultData = await response.json();
+            const startTime = Date.now();
+            let result = null;
+
+            const formData = new FormData();
+            formData.append('image', activeItem.file);
+
+            try {
+                const response = await fetch('/api/scan', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (response.ok) {
+                    result = await response.json();
+                }
+            } catch (err) {
+                console.log("Offline scan, using Canvas color analysis");
             }
-        } catch (err) {
-            console.log("Using local mock scan data.");
-        }
 
-        const elapsed = Date.now() - startTime;
-        const remainingDelay = Math.max(2200 - elapsed, 0);
+            if (!result) {
+                result = await analyzeImageLocally(activeItem.file);
+            }
 
-        setTimeout(() => {
+            const elapsed = Date.now() - startTime;
+            const remainingDelay = Math.max(1500 - elapsed, 0);
+
+            setTimeout(() => {
+                laser.classList.remove('active');
+                btnScan.removeAttribute('disabled');
+                btnScan.querySelector('.btn-text').textContent = 'Iniciar Escaneo';
+                btnScan.querySelector('.spinner-small').style.display = 'none';
+                
+                activeItem.status = 'completed';
+                activeItem.result = result;
+                if (badge) {
+                    badge.className = 'scan-thumb-badge scanned';
+                    badge.textContent = '✓';
+                }
+                showScanResults(result);
+            }, remainingDelay);
+
+        } else {
+            // MULTIPLE SEQUENTIAL BATCH SCAN FLOW
+            btnScan.querySelector('.spinner-small').style.display = 'block';
+            
+            const catMap = {
+                'Camiseta': 'superior', 'Blusa': 'superior', 'Camisa': 'superior', 'Top Knit': 'superior',
+                'Jeans': 'inferior', 'Pantalón de Vestir': 'inferior', 'Falda': 'inferior', 'Pantalón': 'inferior',
+                'Tenis': 'calzado', 'Botas': 'calzado', 'Mocasines': 'calzado', 'Zapatos': 'calzado',
+                'Abrigo': 'abrigo', 'Chaqueta': 'abrigo', 'Blazer': 'abrigo',
+                'Gafas de Sol': 'accesorio', 'Bolso': 'accesorio'
+            };
+
+            for (let i = 0; i < STATE.scanQueue.length; i++) {
+                selectQueueItem(i);
+                btnScan.querySelector('.btn-text').textContent = `Escaneando prenda ${i+1}/${STATE.scanQueue.length}...`;
+                
+                const item = STATE.scanQueue[i];
+                const badge = document.getElementById(`scan-badge-${i}`);
+                if (badge) badge.textContent = '⚙️';
+
+                let result = null;
+                const formData = new FormData();
+                formData.append('image', item.file);
+
+                try {
+                    const response = await fetch('/api/scan', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (response.ok) result = await response.json();
+                } catch (err) {}
+
+                if (!result) {
+                    result = await analyzeImageLocally(item.file);
+                }
+
+                // Save directly into the closet during batch scans
+                const newGarment = {
+                    id: 'c_scanned_' + Date.now() + '_' + i,
+                    cat: result.cat || catMap[result.tipo] || 'superior',
+                    name: result.tipo || 'Prenda Escaneada',
+                    style: result.estilo || 'Classic',
+                    image: item.base64
+                };
+                STATE.closetItems.unshift(newGarment);
+                
+                item.status = 'completed';
+                item.result = result;
+                if (badge) {
+                    badge.className = 'scan-thumb-badge scanned';
+                    badge.textContent = '✓';
+                }
+
+                // Small delay to let laser and visual changes be visible to user
+                await new Promise(r => setTimeout(r, 1200));
+            }
+
+            // Finish batch
             laser.classList.remove('active');
             btnScan.removeAttribute('disabled');
             btnScan.querySelector('.btn-text').textContent = 'Iniciar Escaneo';
             btnScan.querySelector('.spinner-small').style.display = 'none';
             
-            showScanResults(scanResultData || MOCK_DATA.scanResults);
-        }, remainingDelay);
+            renderCloset('all');
+            showToast(`¡Se escanearon y guardaron ${STATE.scanQueue.length} prendas con éxito!`);
+            
+            // Hide preview wrapper and reset
+            uploadPlaceholder.style.display = 'flex';
+            previewWrapper.style.display = 'none';
+            STATE.scanQueue = [];
+            
+            // Switch to closet tab to see newly added garments
+            switchTab('closet');
+        }
     });
 
     document.getElementById('btn-save-scanned').addEventListener('click', () => {
+        const scanCategory = document.getElementById('res-tipo').textContent;
+        const catMap = {
+            'Camiseta': 'superior', 'Blusa': 'superior', 'Camisa': 'superior', 'Top Knit': 'superior',
+            'Jeans': 'inferior', 'Pantalón de Vestir': 'inferior', 'Falda': 'inferior', 'Pantalón': 'inferior',
+            'Tenis': 'calzado', 'Botas': 'calzado', 'Mocasines': 'calzado', 'Zapatos': 'calzado',
+            'Abrigo': 'abrigo', 'Chaqueta': 'abrigo', 'Blazer': 'abrigo',
+            'Gafas de Sol': 'accesorio', 'Bolso': 'accesorio'
+        };
+        const activeItem = STATE.scanQueue[STATE.activeScanIndex];
         const newGarment = {
             id: 'c_scanned_' + Date.now(),
-            cat: 'superior',
-            name: document.getElementById('res-tipo').textContent,
+            cat: (activeItem && activeItem.result && activeItem.result.cat) || catMap[scanCategory] || 'superior',
+            name: scanCategory || 'Prenda Escaneada',
             style: document.getElementById('res-estilo').textContent,
             image: previewImg.src
         };
         STATE.closetItems.unshift(newGarment);
         renderCloset('all');
-        alert("Prenda guardada exitosamente en tu Closet.");
+        showToast("Prenda guardada exitosamente en tu Closet.");
+        
+        // Remove from queue or reset if single
+        if (STATE.scanQueue.length <= 1) {
+            uploadPlaceholder.style.display = 'flex';
+            previewWrapper.style.display = 'none';
+            STATE.scanQueue = [];
+        }
         switchTab('closet');
     });
 }
 
+
 function showScanResults(results) {
     const resultsBox = document.getElementById('scan-results-box');
     
-    document.getElementById('res-tipo').textContent = results.tipo;
-    document.getElementById('res-estilo').textContent = results.estilo;
-    document.getElementById('res-confianza').textContent = results.confianza;
-    document.getElementById('res-consejo').textContent = results.consejo;
+    // Support both backend API shape and mock data shape
+    document.getElementById('res-tipo').textContent = results.tipo || results.subcategory || results.category || '--';
+    document.getElementById('res-estilo').textContent = results.estilo || results.pattern || '--';
+    document.getElementById('res-confianza').textContent = results.confianza || results.confidence || '--';
+    document.getElementById('res-consejo').textContent = results.consejo || 
+        (results.category ? `Prenda detectada: ${results.category} / ${results.subcategory}. Color principal: ${results.color_primary}. Patrón: ${results.pattern}.` : 'Sin datos.');
     
     const colorBox = document.getElementById('res-colores');
     colorBox.innerHTML = '';
-    results.colores.forEach(hex => {
+    
+    // Handle both hex array (mock) and color name strings (backend)
+    const colores = results.colores || [];
+    if (colores.length === 0 && results.color_primary) {
+        // Show color name labels instead of swatches for backend data
+        const label = document.createElement('span');
+        label.style.cssText = 'font-size:0.9rem; color:var(--text-primary);';
+        label.textContent = results.color_primary + (results.color_secondary && results.color_secondary !== 'N/A' ? ', ' + results.color_secondary : '');
+        colorBox.appendChild(label);
+    }
+    colores.forEach(hex => {
         const swatch = document.createElement('div');
         swatch.className = 'color-swatch';
         swatch.style.backgroundColor = hex;
@@ -787,9 +1437,17 @@ function showScanResults(results) {
 // 6. Boutique Catalog Manager
 async function initBoutique() {
     try {
-        const response = await fetch('/api/boutique');
+        const response = await fetch('/api/clothes?owned=false');
         if (!response.ok) throw new Error("Fallback");
-        STATE.boutiqueItems = await response.json();
+        const data = await response.json();
+        STATE.boutiqueItems = data.map(item => ({
+            id: item.id,
+            cat: mapCategory(item.category),
+            brand: item.store_name || 'DressYourself',
+            name: item.name,
+            price: item.price ? `$${item.price.toFixed(2)}` : '$0.00',
+            image: item.image_url
+        }));
     } catch (e) {
         STATE.boutiqueItems = [...MOCK_DATA.boutique];
     }
@@ -845,7 +1503,7 @@ function renderBoutique() {
         card.innerHTML = `
             <button class="btn-fav-boutique ${favClass}" title="Rastrear Precio">♥</button>
             <div class="boutique-img-wrapper">
-                <img src="${item.image}" alt="${item.name}">
+                <img src="${item.image}" alt="${item.name}" onerror="this.onerror=null; this.style.objectFit='contain'; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 280%22><rect fill=%22%23171717%22 width=%22200%22 height=%22280%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23646464%22 font-size=%2214%22 text-anchor=%22middle%22 dy=%22.3em%22>Imagen no disponible</text></svg>';">
                 <div class="boutique-card-overlay">
                     <button class="gold-btn btn-try-boutique">Probar en Vestidor</button>
                 </div>
@@ -911,7 +1569,7 @@ function renderFittingSource(sourceType) {
         const itemEl = document.createElement('div');
         itemEl.className = 'fitting-source-item';
         itemEl.innerHTML = `
-            <img src="${item.image}" alt="${item.name}">
+            <img src="${item.image}" alt="${item.name}" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 fill=%27%23333%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%231a1a2e%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%23d4af37%27 font-family=%27sans-serif%27 font-size=%2714%27%3EImagen no disponible%3C/text%3E%3C/svg%3E';">
             <div class="fitting-source-item-meta">${item.name}</div>
         `;
         itemEl.addEventListener('click', () => {
@@ -929,7 +1587,7 @@ function selectForFitting(type, item) {
     
     const content = slot.querySelector('.slot-content');
     content.innerHTML = `
-        <img src="${item.image}" alt="${item.name}">
+        <img src="${item.image}" alt="${item.name}" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 fill=%27%23333%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%231a1a2e%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%23d4af37%27 font-family=%27sans-serif%27 font-size=%2714%27%3EImagen no disponible%3C/text%3E%3C/svg%3E';">
         <div class="slot-item-info">
             <span class="slot-item-cat">${item.cat}</span>
             <h4 class="slot-item-name">${item.name}</h4>
@@ -948,20 +1606,17 @@ window.clearFittingSlot = function(type) {
     document.getElementById('fitting-verdict').style.display = 'none';
 };
 
-function evaluateFittingMatch() {
+window.loadScrapedToFitting = function(item) {
+    selectForFitting('boutique', item);
+    switchTab('probador');
+    showToast(`¡Prenda de ${item.brand} cargada en el Probador!`);
+};
+
+async function evaluateFittingMatch() {
     const closetItem = STATE.fittingSlots.closet;
     const boutiqueItem = STATE.fittingSlots.boutique;
 
     if (!closetItem || !boutiqueItem) return;
-
-    let baseScore = 70;
-    if (closetItem.cat !== boutiqueItem.cat) {
-        baseScore += 15;
-    }
-    if (closetItem.style && boutiqueItem.brand) {
-        baseScore += Math.floor(Math.random() * 11);
-    }
-    const score = Math.min(baseScore, 100);
 
     const scoreBar = document.getElementById('score-bar');
     const scorePct = document.getElementById('score-pct');
@@ -971,31 +1626,44 @@ function evaluateFittingMatch() {
 
     verdictBox.style.display = 'flex';
     
-    setTimeout(() => {
-        scoreBar.style.width = `${score}%`;
-        scorePct.textContent = `${score}%`;
-    }, 100);
+    const bdColor = document.getElementById('breakdown-color');
+    const bdStyle = document.getElementById('breakdown-style');
+    const bdPattern = document.getElementById('breakdown-pattern');
+    const bdWeather = document.getElementById('breakdown-weather');
 
-    const personalityAdvisories = {
-        classy: [
-            `Una combinación refinada. El contraste entre ${closetItem.name} y la pieza de ${boutiqueItem.brand} es digno de una editorial parisina.`,
-            `Me convence. La caída estructural de ambas piezas conversa en perfecto equilibrio visual.`
-        ],
-        diva: [
-            `¡Uf, espectacular! Eso sí es tener buen ojo. Estás a un par de tacones altos de dominar la semana de la moda.`,
-            `Es decente, pero agrégale joyas de oro macizo. De lo contrario, parece que vas a la oficina.`
-        ],
-        sarcastic: [
-            `Al menos no chocan por completo, lo cual ya es una mejora respecto a tu outfit de ayer. Felicidades.`,
-            `La pieza de boutique está rescatando tu prenda del closet del abismo del mal gusto. Cómprala para salvarte.`
-        ],
-        nervous: [
-            `Se ve... bien, ¿verdad? Digo, no es demasiado arriesgado. ¡Por favor dime que te sientes cómodo!`
-        ]
-    };
-
-    const quotesList = personalityAdvisories[STATE.ariaPersonality] || personalityAdvisories.classy;
-    verdictText.textContent = `"${quotesList[Math.floor(Math.random() * quotesList.length)]}"`;
+    try {
+        const cityIndex = localStorage.getItem('dy_selected_city_index') || 0;
+        const occasion = 'Casual';
+        const url = `/api/recommend?city_index=${cityIndex}&occasion=${occasion}&closet_id=${closetItem.id}&boutique_id=${boutiqueItem.id}`;
+        
+        const response = await fetch(url);
+        if (response.ok) {
+            const data = await response.json();
+            
+            scoreBar.style.width = `${data.total_score}%`;
+            scorePct.textContent = `${data.total_score}%`;
+            
+            if (bdColor) bdColor.textContent = `${data.color_score}%`;
+            if (bdStyle) bdStyle.textContent = `${data.style_score}%`;
+            if (bdPattern) bdPattern.textContent = `${data.pattern_score}%`;
+            if (bdWeather) bdWeather.textContent = `${data.weather_score}%`;
+            
+            const quoteResponse = await fetch(`/api/ganchito/quote?personality=${STATE.ariaPersonality}&closet_id=${closetItem.id}&boutique_id=${boutiqueItem.id}`);
+            if (quoteResponse.ok) {
+                const quoteData = await quoteResponse.json();
+                verdictText.textContent = `"${quoteData.response}"`;
+                
+                const ariaSpeech = document.getElementById('aria-speech');
+                if (ariaSpeech) {
+                    ariaSpeech.textContent = `¡Bonjour! El ensamble califica en un ${data.total_score}%. ${data.advice}`;
+                }
+            } else {
+                verdictText.textContent = `"${data.advice}"`;
+            }
+        }
+    } catch (e) {
+        console.error("Error evaluating fitting match:", e);
+    }
 
     btnPurchase.style.display = 'block';
     btnPurchase.onclick = () => {
@@ -1026,64 +1694,188 @@ function initComunidad() {
     renderComunidadFeed();
 }
 
-function renderComunidadFeed() {
+async function renderComunidadFeed() {
     const feedEl = document.getElementById('comunidad-feed');
     if (!feedEl) return;
     feedEl.innerHTML = '';
 
-    MOCK_DATA.posts.forEach((post, index) => {
+    let sharedOutfits = [];
+    try {
+        const response = await fetch('/api/outfits');
+        if (response.ok) {
+            const allOutfits = await response.json();
+            sharedOutfits = allOutfits.filter(o => o.is_shared === 1);
+        }
+    } catch (e) {
+        console.error("Error loading outfits for community feed:", e);
+    }
+
+    // Map database outfits to post format
+    const dbPosts = sharedOutfits.map(o => {
+        // Collect outfit garments
+        const items = [];
+        if (o.top_image) items.push({ cat: 'superior', name: o.top_name, image: o.top_image });
+        if (o.bottom_image) items.push({ cat: 'inferior', name: o.bottom_name, image: o.bottom_image });
+        if (o.outerwear_image) items.push({ cat: 'abrigo', name: o.outerwear_name, image: o.outerwear_image });
+        if (o.footwear_image) items.push({ cat: 'calzado', name: o.footwear_name, image: o.footwear_image });
+        if (o.accessory_image) items.push({ cat: 'accesorio', name: o.accessory_name, image: o.accessory_image });
+
+        return {
+            id: o.id,
+            isDb: true,
+            user: 'Diseñador Virtual',
+            initials: 'DV',
+            desc: o.name + '. ' + (o.justification || 'Estilo sastrero minimalista.'),
+            rating: o.rating || 5.0,
+            rating_count: o.rating_count || 0,
+            userRating: parseInt(localStorage.getItem(`dy_rated_outfit_${o.id}`)) || 0,
+            items: items
+        };
+    });
+
+    // Combine mock posts with DB posts
+    const allFeedPosts = [...dbPosts, ...MOCK_DATA.posts];
+
+    if (allFeedPosts.length === 0) {
+        feedEl.innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); padding: 40px 0; font-style: italic; width: 100%;">
+                No hay combinaciones compartidas en la comunidad todavía. ¡Sé el primero en compartir la tuya!
+            </div>
+        `;
+        return;
+    }
+
+    allFeedPosts.forEach((post) => {
         const card = document.createElement('div');
         card.className = 'post-card';
+        card.style.marginBottom = '25px';
+
+        // Check if DB post or mock post to render image vs flatlay collage
+        let imageContent = '';
+        if (post.isDb && post.items && post.items.length) {
+            // Render Flat Lay collage for real DB outfits (unisex, Pinterest vibe)
+            let itemsHtml = post.items.map((item, idx) => {
+                const rotation = [5, -4, 3, -6, 2][idx % 5];
+                return `
+                    <div style="width: 75px; height: 75px; border-radius: 6px; border: 1.5px solid var(--border-gold); background: #111; overflow: hidden; transform: rotate(${rotation}deg); box-shadow: 2px 2px 8px rgba(0,0,0,0.4); flex-shrink: 0; position: relative; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.15) z-index(5)'" onmouseout="this.style.transform='scale(1) rotate(${rotation}deg)'">
+                        <img src="${item.image}" alt="${item.name}" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect fill=%27%23222%27 width=%27100%27 height=%27100%27/%3E%3C/svg%3E';">
+                    </div>
+                `;
+            }).join('');
+
+            imageContent = `
+                <div style="background: radial-gradient(circle, #fcfbf9 0%, #f5f2e8 100%); border-radius: 8px; border: 1px solid var(--border-gold); padding: 20px 10px; display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; position: relative; overflow: hidden; min-height: 140px;">
+                    <div style="position: absolute; inset: 0; background-image: radial-gradient(var(--border-gold) 1px, transparent 1px); background-size: 20px 20px; opacity: 0.08; pointer-events: none;"></div>
+                    ${itemsHtml}
+                </div>
+            `;
+        } else {
+            imageContent = `
+                <div class="post-image-wrapper">
+                    <img src="${post.img}" alt="Outfit post" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 fill=%27%23333%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%231a1a2e%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%23d4af37%27 font-family=%27sans-serif%27 font-size=%2714%27%3EImagen no disponible%3C/text%3E%3C/svg%3E';">
+                </div>
+            `;
+        }
+
+        // Render 5-star rating widget
+        const userRating = post.userRating || 0;
+        let starsHtml = '';
+        for (let star = 1; star <= 5; star++) {
+            const activeClass = star <= userRating ? 'active-star' : '';
+            starsHtml += `
+                <span class="star-rating-icon ${activeClass}" data-value="${star}" style="cursor: pointer; font-size: 1.5rem; color: ${star <= userRating ? 'var(--accent-gold)' : 'var(--text-muted)'}; margin-right: 4px; transition: color 0.15s, transform 0.1s;">★</span>
+            `;
+        }
+
         card.innerHTML = `
-            <div class="post-header">
-                <div class="post-avatar">${post.initials}</div>
+            <div class="post-header" style="margin-bottom: 12px;">
+                <div class="post-avatar" style="background: var(--border-gold); color: #000; font-weight: bold;">${post.initials}</div>
                 <div class="post-user-info">
-                    <span class="post-username">${post.user}</span>
-                    <span class="post-time">Hace 2 horas</span>
+                    <span class="post-username" style="font-family: 'Outfit', sans-serif;">${post.user}</span>
+                    <span class="post-time" style="font-size: 0.75rem; color: var(--text-muted);">Calificación de Estilo</span>
                 </div>
             </div>
-            <div class="post-image-wrapper">
-                <img src="${post.img}" alt="Outfit post">
-            </div>
             
-            <div class="valuation-bar">
-                <button class="tag-vote-btn ${post.userVoted.aesthetic ? 'active' : ''}" data-post-idx="${index}" data-tag="aesthetic">
-                    ✨ Aesthetic <span class="vote-count">${post.votes.aesthetic}</span>
-                </button>
-                <button class="tag-vote-btn ${post.userVoted.streetwear ? 'active' : ''}" data-post-idx="${index}" data-tag="streetwear">
-                    🛹 Streetwear <span class="vote-count">${post.votes.streetwear}</span>
-                </button>
-                <button class="tag-vote-btn ${post.userVoted.minimalist ? 'active' : ''}" data-post-idx="${index}" data-tag="minimalist">
-                    🖤 Minimalist <span class="vote-count">${post.votes.minimalist}</span>
-                </button>
-                <button class="tag-vote-btn ${post.userVoted.classic ? 'active' : ''}" data-post-idx="${index}" data-tag="classic">
-                    👔 Classic <span class="vote-count">${post.votes.classic}</span>
-                </button>
-                <button class="tag-vote-btn ${post.userVoted.oversize ? 'active' : ''}" data-post-idx="${index}" data-tag="oversize">
-                    🧥 Oversize <span class="vote-count">${post.votes.oversize}</span>
-                </button>
+            ${imageContent}
+            
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid rgba(212, 175, 55, 0.1);">
+                <div class="star-rating-widget" data-post-id="${post.id}" data-is-db="${post.isDb || false}">
+                    ${starsHtml}
+                </div>
+                <span style="font-size: 0.85rem; color: var(--text-muted); font-family: 'Outfit', sans-serif;">
+                    ⭐ <strong style="color: var(--text-primary);" class="rating-avg-display">${post.rating}</strong> / 5 (${post.rating_count || 0} votos)
+                </span>
             </div>
 
-            <div class="post-body">
-                <p class="post-caption"><strong>@${post.user.toLowerCase().replace(/\s/g, '')}</strong> ${post.desc}</p>
+            <div class="post-body" style="padding-top: 10px;">
+                <p class="post-caption" style="font-size: 0.9rem; line-height: 1.4;"><strong>@${post.user.toLowerCase().replace(/\s/g, '')}</strong> ${post.desc}</p>
             </div>
         `;
 
-        card.querySelectorAll('.tag-vote-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const tag = btn.getAttribute('data-tag');
-                const postIdx = parseInt(btn.getAttribute('data-post-idx'));
-                const postItem = MOCK_DATA.posts[postIdx];
+        // Star rating click handlers
+        card.querySelectorAll('.star-rating-icon').forEach(star => {
+            star.addEventListener('mouseenter', () => {
+                const val = parseInt(star.getAttribute('data-value'));
+                const siblings = star.parentNode.querySelectorAll('.star-rating-icon');
+                siblings.forEach(s => {
+                    const sVal = parseInt(s.getAttribute('data-value'));
+                    s.style.color = sVal <= val ? 'var(--accent-gold)' : 'var(--text-muted)';
+                    s.style.transform = sVal <= val ? 'scale(1.25)' : 'scale(1)';
+                });
+            });
 
-                if (postItem.userVoted[tag]) {
-                    postItem.userVoted[tag] = false;
-                    postItem.votes[tag]--;
+            star.addEventListener('mouseleave', () => {
+                const siblings = star.parentNode.querySelectorAll('.star-rating-icon');
+                siblings.forEach(s => {
+                    const sVal = parseInt(s.getAttribute('data-value'));
+                    const isBookmarked = sVal <= userRating;
+                    s.style.color = isBookmarked ? 'var(--accent-gold)' : 'var(--text-muted)';
+                    s.style.transform = 'scale(1)';
+                });
+            });
+
+            star.addEventListener('click', async () => {
+                const val = parseInt(star.getAttribute('data-value'));
+                const isDb = star.parentNode.getAttribute('data-is-db') === 'true';
+                const postId = star.parentNode.getAttribute('data-post-id');
+
+                // Save user rating locally to prevent double rating
+                localStorage.setItem(`dy_rated_outfit_${postId}`, val);
+                post.userRating = val;
+
+                if (isDb) {
+                    try {
+                        const response = await fetch(`/api/outfits/${postId}/rate`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ rating: val })
+                        });
+                        if (response.ok) {
+                            const result = await response.json();
+                            post.rating = result.rating;
+                            post.rating_count = result.rating_count;
+                            showToast("¡Gracias por tu valoración de estilo!");
+                        }
+                    } catch (e) {
+                        console.error("Error rating outfit:", e);
+                    }
                 } else {
-                    postItem.userVoted[tag] = true;
-                    postItem.votes[tag]++;
+                    // Update mock locally
+                    const postItem = MOCK_DATA.posts.find(p => p.id === postId);
+                    if (postItem) {
+                        const oldSum = postItem.rating * postItem.rating_count;
+                        postItem.rating_count++;
+                        postItem.rating = parseFloat(((oldSum + val) / postItem.rating_count).toFixed(1));
+                        postItem.userRating = val;
+                    }
+                    showToast("¡Valoración guardada localmente!");
                 }
 
-                renderComunidadFeed();
+                // Animate and re-render
+                star.style.transform = 'scale(1.6)';
+                setTimeout(() => {
+                    renderComunidadFeed();
+                }, 150);
             });
         });
 
@@ -1256,6 +2048,7 @@ function initOutfitBuilder() {
 
     // Save Action
     btnSave.addEventListener('click', saveCombination);
+    document.getElementById('outfit-occasion')?.addEventListener('change', updateBuilderScore);
 }
 
 function openGarmentDrawer(category) {
@@ -1297,7 +2090,7 @@ function openGarmentDrawer(category) {
         itemCard.className = 'drawer-item-card animate-fade-in';
         itemCard.innerHTML = `
             <div class="drawer-item-img">
-                <img src="${item.image}" alt="${item.name}">
+                <img src="${item.image}" alt="${item.name}" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 fill=%27%23333%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%231a1a2e%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%23d4af37%27 font-family=%27sans-serif%27 font-size=%2714%27%3EImagen no disponible%3C/text%3E%3C/svg%3E';">
             </div>
             <div class="drawer-item-name">${item.name}</div>
         `;
@@ -1320,7 +2113,7 @@ function selectGarmentForBuilder(category, item) {
     // Render info inside slot
     const preview = slot.querySelector('.selected-item-preview');
     preview.innerHTML = `
-        <img class="preview-thumb" src="${item.image}" alt="${item.name}">
+        <img class="preview-thumb" src="${item.image}" alt="${item.name}" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 fill=%27%23333%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%231a1a2e%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%23d4af37%27 font-family=%27sans-serif%27 font-size=%2714%27%3EImagen no disponible%3C/text%3E%3C/svg%3E';">
         <span class="preview-name">${item.name}</span>
     `;
 
@@ -1342,6 +2135,7 @@ function selectGarmentForBuilder(category, item) {
         playerContainer.style.display = 'flex';
         playerContainer.classList.add('animate-fade-in');
     }
+    updateBuilderScore();
 }
 
 function clearBuilderSlot(category) {
@@ -1366,6 +2160,115 @@ function clearBuilderSlot(category) {
     if (playerContainer) {
         playerContainer.style.display = 'none';
         playerContainer.querySelector('img').src = '';
+    }
+    updateBuilderScore();
+}
+
+async function updateBuilderScore() {
+    const superior = STATE.builderSlots.superior;
+    const inferior = STATE.builderSlots.inferior;
+    const calzado = STATE.builderSlots.calzado;
+    const abrigo = STATE.builderSlots.abrigo;
+    const accesorio = STATE.builderSlots.accesorio;
+    const occasion = document.getElementById('outfit-occasion')?.value || 'Casual';
+
+    const container = document.getElementById('builder-score-container');
+    const flatlayCollage = document.getElementById('builder-flatlay-collage');
+    
+    // Draw flat-lay collage dynamically
+    if (flatlayCollage) {
+        flatlayCollage.innerHTML = '';
+        const slotsToDraw = [
+            { cat: 'superior', label: 'Superior', item: superior, rot: 4 },
+            { cat: 'inferior', label: 'Inferior', item: inferior, rot: -5 },
+            { cat: 'abrigo', label: 'Abrigo', item: abrigo, rot: 3 },
+            { cat: 'calzado', label: 'Calzado', item: calzado, rot: -3 },
+            { cat: 'accesorio', label: 'Accesorio', item: accesorio, rot: 6 }
+        ];
+
+        let activeDrawings = 0;
+        slotsToDraw.forEach(slot => {
+            if (slot.item) {
+                activeDrawings++;
+                const card = document.createElement('div');
+                card.style.width = '75px';
+                card.style.height = '75px';
+                card.style.borderRadius = '6px';
+                card.style.border = '1.5px solid var(--border-gold)';
+                card.style.background = '#111';
+                card.style.overflow = 'hidden';
+                card.style.transform = `rotate(${slot.rot}deg)`;
+                card.style.boxShadow = '2px 2px 8px rgba(0,0,0,0.3)';
+                card.style.position = 'relative';
+                card.style.transition = 'all 0.2s';
+                card.innerHTML = `
+                    <img src="${slot.item.image}" alt="${slot.item.name}" style="width:100%; height:100%; object-fit:cover;">
+                    <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.75); color: var(--accent-gold); font-size: 8px; text-align: center; padding: 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        ${slot.label}
+                    </div>
+                `;
+                flatlayCollage.appendChild(card);
+            } else if (slot.cat === 'superior' || slot.cat === 'inferior' || slot.cat === 'calzado') {
+                // Show elegant placeholder for mandatory items
+                const placeholder = document.createElement('div');
+                placeholder.style.width = '75px';
+                placeholder.style.height = '75px';
+                placeholder.style.borderRadius = '6px';
+                placeholder.style.border = '1.5px dashed rgba(212,175,55,0.3)';
+                placeholder.style.display = 'flex';
+                placeholder.style.flexDirection = 'column';
+                placeholder.style.justifyContent = 'center';
+                placeholder.style.alignItems = 'center';
+                placeholder.style.fontSize = '8px';
+                placeholder.style.color = 'var(--text-muted)';
+                placeholder.style.textAlign = 'center';
+                placeholder.style.padding = '5px';
+                placeholder.style.boxSizing = 'border-box';
+                placeholder.style.transform = `rotate(${slot.rot}deg)`;
+                placeholder.innerHTML = `
+                    <span style="font-size: 1.1rem; margin-bottom: 2px;">+</span>
+                    <span>${slot.label}</span>
+                `;
+                flatlayCollage.appendChild(placeholder);
+            }
+        });
+
+        if (activeDrawings === 0) {
+            flatlayCollage.innerHTML = `
+                <div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; font-style: italic; padding: 40px 0; width: 100%;">
+                    Selecciona prendas en la izquierda para ver el lienzo de diseño flat-lay...
+                </div>
+            `;
+        }
+    }
+
+    if (!superior || !inferior || !calzado) {
+        if (container) container.style.display = 'none';
+        return;
+    }
+
+    try {
+        const cityIndex = localStorage.getItem('dy_selected_city_index') || 0;
+        let url = `/api/recommend?city_index=${cityIndex}&occasion=${occasion}&top_id=${superior.id}&bottom_id=${inferior.id}&footwear_id=${calzado.id}`;
+        if (abrigo) url += `&outerwear_id=${abrigo.id}`;
+        if (accesorio) url += `&accessory_id=${accesorio.id}`;
+
+        const response = await fetch(url);
+        if (response.ok) {
+            const data = await response.json();
+            if (container) {
+                container.style.display = 'block';
+                document.getElementById('builder-score-pct').textContent = `${data.total_score}%`;
+                document.getElementById('builder-score-bar').style.width = `${data.total_score}%`;
+                document.getElementById('bbreakdown-color').textContent = `${data.color_score}%`;
+                document.getElementById('bbreakdown-style').textContent = `${data.style_score}%`;
+                document.getElementById('bbreakdown-pattern').textContent = `${data.pattern_score}%`;
+                document.getElementById('bbreakdown-weather').textContent = `${data.weather_score}%`;
+                document.getElementById('builder-advice-text').textContent = `"${data.advice}"`;
+            }
+        }
+    } catch (e) {
+        console.error("Error updating builder score:", e);
     }
 }
 
