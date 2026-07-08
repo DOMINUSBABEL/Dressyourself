@@ -356,6 +356,31 @@ def make_order():
         }), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+# --- Chat History Endpoints ---
+@app.route('/api/chat/history', methods=['GET'])
+def get_chat_history_endpoint():
+    try:
+        history = database.get_chat_history()
+        return jsonify(history), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/chat/message', methods=['POST'])
+def add_chat_message_endpoint():
+    try:
+        data = request.json or {}
+        sender = data.get('sender')
+        message = data.get('message')
+        scraped_item_json = data.get('scraped_item_json')
+        
+        if not sender or not message:
+            return jsonify({"error": "Faltan campos obligatorios: sender, message"}), 400
+            
+        new_id = database.save_chat_message(sender, message, scraped_item_json)
+        return jsonify({"id": new_id, "message": "Mensaje guardado correctamente."}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 # 6. Weather & Cities
 @app.route('/api/weather', methods=['GET'])
@@ -427,6 +452,33 @@ GANCHITO_QUOTES = {
 }
 
 
+def get_reverse_geocode_nominatim(lat, lon):
+    import requests
+    url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lon}&zoom=12"
+    headers = {
+        'User-Agent': 'DressYourself/1.0 (contact@dressyourself.com)',
+        'Accept-Language': 'es'
+    }
+    retries = 3
+    backoff = 1.0
+    for attempt in range(retries):
+        try:
+            # 2.0 second timeout to prevent slow network blocks
+            response = requests.get(url, headers=headers, timeout=2.0)
+            if response.status_code == 200:
+                data = response.json()
+                addr = data.get('address', {})
+                city_name = addr.get('city') or addr.get('town') or addr.get('village') or addr.get('suburb') or addr.get('county') or addr.get('state')
+                if city_name:
+                    return city_name
+        except Exception as e:
+            print(f"[GPS] Nominatim reverse geocoding attempt {attempt + 1} failed: {e}", flush=True)
+        if attempt < retries - 1:
+            time.sleep(backoff)
+            backoff *= 2.0
+    return None
+
+
 @app.route('/api/clima', methods=['GET'])
 def get_clima():
     """Frontend expects { city, temp, desc, details[] }.
@@ -448,7 +500,10 @@ def get_clima():
                 lon = float(lon_param)
                 gps_active = True
 
-                # GPS coordinate mapping for Colombian cities in the CITIES array
+                # Try Nominatim reverse geocode first
+                resolved_city = get_reverse_geocode_nominatim(lat, lon)
+
+                # GPS coordinate mapping for cities
                 # Approximate coordinates for nearest-city lookup
                 city_coords = {
                     "Bogotá": (4.7110, -74.0721),
@@ -461,22 +516,53 @@ def get_clima():
                     "Santa Marta": (11.2408, -74.1990),
                     "Manizales": (5.0689, -75.5174),
                     "Ibagué": (4.4389, -75.2322),
+                    "Londres": (51.5074, -0.1278),
+                    "Nueva York": (40.7128, -74.0060),
                 }
 
-                # Find the nearest city by simple Euclidean distance
-                best_dist = float('inf')
-                best_city_name = None
-                for name, (clat, clon) in city_coords.items():
-                    dist = ((lat - clat) ** 2 + (lon - clon) ** 2) ** 0.5
-                    if dist < best_dist:
-                        best_dist = dist
-                        best_city_name = name
+                # Mapping from all cities to the ones available in CITIES array
+                city_to_available = {
+                    "Bogotá": "Bogotá",
+                    "Medellín": "Medellín",
+                    "Cali": "Cali",
+                    "Barranquilla": "Cartagena",
+                    "Cartagena": "Cartagena",
+                    "Bucaramanga": "Medellín",
+                    "Pereira": "Medellín",
+                    "Santa Marta": "Cartagena",
+                    "Manizales": "Medellín",
+                    "Ibagué": "Bogotá",
+                    "Londres": "Londres",
+                    "Nueva York": "Nueva York",
+                }
+
+                matched_city_name = None
+                if resolved_city:
+                    norm_resolved = styling_engine.normalize_str(resolved_city)
+                    # First try direct match/substring match in city_coords keys
+                    for name in city_coords.keys():
+                        norm_name = styling_engine.normalize_str(name)
+                        if norm_name in norm_resolved or norm_resolved in norm_name:
+                            matched_city_name = city_to_available.get(name)
+                            break
+
+                # Fallback if Nominatim failed or resolved city didn't map to predefined Colombian/external cities
+                if not matched_city_name:
+                    # Find the nearest city by simple Euclidean distance
+                    best_dist = float('inf')
+                    best_offline_city = None
+                    for name, (clat, clon) in city_coords.items():
+                        dist = ((lat - clat) ** 2 + (lon - clon) ** 2) ** 0.5
+                        if dist < best_dist:
+                            best_dist = dist
+                            best_offline_city = name
+                    matched_city_name = city_to_available.get(best_offline_city, "Bogotá")
 
                 # Try to find the matched city in the CITIES array
-                if best_city_name:
-                    city = next((c for c in cities if c["name"] == best_city_name), None)
-            except (ValueError, TypeError):
-                pass  # Invalid GPS coords, fall through to default
+                if matched_city_name:
+                    city = next((c for c in cities if c["name"] == matched_city_name), None)
+            except (ValueError, TypeError) as e:
+                print(f"[GPS Error] Failed parsing GPS parameters: {e}", flush=True)
 
         # Fallback: use city_index parameter or first city
         if city is None:
@@ -710,17 +796,25 @@ def get_ganchito_quote():
             else: # nervous
                 response_text = f"¡Ay! Encontraste un/a {name} en {brand}. ¿Crees que sí combine bien? Suena a que el estilo {subcat} puede ser un poco arriesgado, ¡deberíamos verificarlo en el Probador de inmediato!"
                 
+            scraped_item = {
+                "id": 99999, # unique temp id for local scrap
+                "name": name,
+                "brand": brand,
+                "cat": cat.lower(),
+                "price": f"${price:.2f}",
+                "image": scraped["image"],
+                "source_url": url
+            }
+            
+            # Save user and bot message to chat history
+            if user_query:
+                database.save_chat_message(sender="user", message=user_query)
+            import json
+            database.save_chat_message(sender="bot", message=response_text, scraped_item_json=json.dumps(scraped_item))
+            
             return jsonify({
                 "response": response_text,
-                "scraped_item": {
-                    "id": 99999, # unique temp id for local scrap
-                    "name": name,
-                    "brand": brand,
-                    "cat": cat.lower(),
-                    "price": f"${price:.2f}",
-                    "image": scraped["image"],
-                    "source_url": url
-                }
+                "scraped_item": scraped_item
             }), 200
 
         closet_id = request.args.get('closet_id')
@@ -770,6 +864,11 @@ def get_ganchito_quote():
             }
             prefix = personality_prefixes.get(personality, '')
             quote = prefix + quote
+
+        # Save user and bot message to chat history
+        if user_query:
+            database.save_chat_message(sender="user", message=user_query)
+            database.save_chat_message(sender="bot", message=quote)
 
         return jsonify({"response": quote}), 200
     except Exception as e:

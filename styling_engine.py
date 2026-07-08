@@ -785,25 +785,81 @@ def recommend_outfit(clothes, city_index, occasion):
     city = next((c for c in CITIES if c["index"] == int(city_index)), CITIES[0])
     temp = city["temp"]
     rain = city["rain"]
+    
+    # 1. Check if we have owned clothes that can form a basic outfit (Top + Bottom + Footwear)
     owned_clothes = [c for c in clothes if c.get("is_owned") == 1]
-    if not owned_clothes:
-        owned_clothes = clothes
+    
+    owned_tops = [c for c in owned_clothes if c.get("category") == "Top"]
+    owned_bottoms = [c for c in owned_clothes if c.get("category") == "Bottom"]
+    owned_footwear = [c for c in owned_clothes if c.get("category") == "Footwear"]
+    
+    use_boutique_fallback = False
+    if not (owned_tops and owned_bottoms and owned_footwear):
+        use_boutique_fallback = True
+        # Recommend from boutique instead (is_owned = 0)
+        recommended_set = [c for c in clothes if c.get("is_owned") == 0]
+        # If even boutique is empty, use all clothes
+        if not recommended_set:
+            recommended_set = clothes
+    else:
+        recommended_set = owned_clothes
+
     def fits_temp(item, t, tolerance=0.0):
         min_t = item.get("min_temp") or -99.0
         max_t = item.get("max_temp") or 99.0
         return (min_t - tolerance) <= t <= (max_t + tolerance)
-    for tol in [0.0, 5.0, 10.0, 20.0]:
-        temp_filtered = [c for c in owned_clothes if fits_temp(c, temp, tol)]
-        if len([c for c in temp_filtered if c["category"] == "Top"]) > 0 and \
-           len([c for c in temp_filtered if c["category"] == "Bottom"]) > 0 and \
-           len([c for c in temp_filtered if c["category"] == "Footwear"]) > 0:
-            owned_clothes = temp_filtered
-            break
-    tops = [c for c in owned_clothes if c["category"] == "Top"]
-    bottoms = [c for c in owned_clothes if c["category"] == "Bottom"]
-    footwear = [c for c in owned_clothes if c["category"] == "Footwear"]
-    outerwear = [c for c in owned_clothes if c["category"] == "Outerwear"]
-    accessories = [c for c in owned_clothes if c["category"] == "Accessory"]
+
+    # Filter recommended set by temperature if possible
+    temp_filtered_set = list(recommended_set)
+    if temp_filtered_set:
+        for tol in [0.0, 5.0, 10.0, 20.0]:
+            temp_filtered = [c for c in temp_filtered_set if fits_temp(c, temp, tol)]
+            if len([c for c in temp_filtered if c.get("category") == "Top"]) > 0 and \
+               len([c for c in temp_filtered if c.get("category") == "Bottom"]) > 0 and \
+               len([c for c in temp_filtered if c.get("category") == "Footwear"]) > 0:
+                temp_filtered_set = temp_filtered
+                break
+                
+    tops = [c for c in temp_filtered_set if c.get("category") == "Top"]
+    bottoms = [c for c in temp_filtered_set if c.get("category") == "Bottom"]
+    footwear = [c for c in temp_filtered_set if c.get("category") == "Footwear"]
+    outerwear = [c for c in temp_filtered_set if c.get("category") == "Outerwear"]
+    accessories = [c for c in temp_filtered_set if c.get("category") == "Accessory"]
+    
+    # In case the temp filter left some categories empty, fallback to non-temp-filtered recommended_set
+    if not tops:
+        tops = [c for c in recommended_set if c.get("category") == "Top"]
+    if not bottoms:
+        bottoms = [c for c in recommended_set if c.get("category") == "Bottom"]
+    if not footwear:
+        footwear = [c for c in recommended_set if c.get("category") == "Footwear"]
+    if not outerwear:
+        outerwear = [c for c in recommended_set if c.get("category") == "Outerwear"]
+    if not accessories:
+        accessories = [c for c in recommended_set if c.get("category") == "Accessory"]
+
+    # In case they are STILL empty (e.g. no items of that category exist in recommended_set at all),
+    # fallback to the global list of clothes
+    if not tops:
+        tops = [c for c in clothes if c.get("category") == "Top"]
+    if not bottoms:
+        bottoms = [c for c in clothes if c.get("category") == "Bottom"]
+    if not footwear:
+        footwear = [c for c in clothes if c.get("category") == "Footwear"]
+    if not outerwear:
+        outerwear = [c for c in clothes if c.get("category") == "Outerwear"]
+    if not accessories:
+        accessories = [c for c in clothes if c.get("category") == "Accessory"]
+
+    # Clever defaults if absolutely nothing is found in the database
+    DUMMY_DEFAULTS = {
+        "Top": {"id": -1, "name": "Camiseta Básica de Boutique", "image_url": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600", "category": "Top", "subcategory": "Camiseta", "color_primary": "Blanco Puro", "pattern": "Liso", "price": 29.99, "store_name": "Boutique", "is_owned": 0},
+        "Bottom": {"id": -2, "name": "Jeans Clásicos de Boutique", "image_url": "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=600", "category": "Bottom", "subcategory": "Jeans", "color_primary": "Azul Índigo", "pattern": "Liso", "price": 49.99, "store_name": "Boutique", "is_owned": 0},
+        "Footwear": {"id": -3, "name": "Tenis Urbanos de Boutique", "image_url": "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=600", "category": "Footwear", "subcategory": "Tenis", "color_primary": "Blanco Puro", "pattern": "Liso", "price": 79.99, "store_name": "Boutique", "is_owned": 0},
+        "Outerwear": {"id": -4, "name": "Chaqueta Ligera de Boutique", "image_url": "https://images.unsplash.com/photo-1611312449412-6cefac5dc3e4?w=600", "category": "Outerwear", "subcategory": "Chaqueta", "color_primary": "Azul Índigo", "pattern": "Liso", "price": 89.99, "store_name": "Boutique", "is_owned": 0},
+        "Accessory": {"id": -5, "name": "Gafas de Sol de Boutique", "image_url": "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=600", "category": "Accessory", "subcategory": "Gafas de Sol", "color_primary": "Negro Carbón", "pattern": "Liso", "price": 19.99, "store_name": "Boutique", "is_owned": 0}
+    }
+
     def score_item(item):
         score = 100
         subcat = item.get("subcategory") or ""
@@ -822,6 +878,7 @@ def recommend_outfit(clothes, city_index, occasion):
             else:
                 score -= 30
         return score
+
     def select_best(items):
         if not items:
             return None
@@ -829,17 +886,24 @@ def recommend_outfit(clothes, city_index, occasion):
         scored.sort(key=lambda x: x[0], reverse=True)
         candidates = [x[1] for x in scored[:2]]
         return random.choice(candidates)
-    selected_top = select_best(tops)
-    selected_bottom = select_best(bottoms)
-    selected_footwear = select_best(footwear)
+
+    selected_top = select_best(tops) or DUMMY_DEFAULTS["Top"]
+    selected_bottom = select_best(bottoms) or DUMMY_DEFAULTS["Bottom"]
+    selected_footwear = select_best(footwear) or DUMMY_DEFAULTS["Footwear"]
+    
     selected_outerwear = None
     if temp <= 15.0 or (temp <= 18.0 and rain == 1):
         selected_outerwear = select_best(outerwear)
+        if not selected_outerwear and not outerwear:
+            selected_outerwear = DUMMY_DEFAULTS["Outerwear"]
+            
     selected_accessory = None
     if accessories and random.random() > 0.3:
         selected_accessory = select_best(accessories)
+
     justification = ""
     city_str = f"en {city['name']} (a {int(temp)}°C{' y con lluvia' if rain else ''})"
+    
     if selected_outerwear:
         justification = (
             f"Para el clima frío {city_str}, hemos estructurado una propuesta elegante en capas. "
@@ -853,15 +917,30 @@ def recommend_outfit(clothes, city_index, occasion):
             f"La combinación de {selected_top['name']} y {selected_bottom['name']} crea una silueta limpia "
             f"y moderna, perfectamente complementada por {selected_footwear['name']}. "
         )
+        
     if selected_accessory:
         justification += f" e integramos {selected_accessory['name']} como el toque de sofisticación final."
     else:
         justification += " logrando una estética minimalista y depurada."
-    
+
+    if use_boutique_fallback:
+        justification = (
+            "¡Tu closet digital no tiene suficientes prendas! Escanea tu ropa para personalizar "
+            "los outfits. Mientras tanto, te recomendamos esta increíble combinación de nuestra boutique curada: "
+        ) + justification
+
     # Calculate fashion score for the outfit
     rec_items = [selected_top, selected_bottom, selected_footwear, selected_outerwear, selected_accessory]
     score_details = calculate_fashion_score(rec_items, city["name"], occasion, temp, rain)
     
+    advice = score_details["advice"]
+    if use_boutique_fallback:
+        advice = (
+            "¡Tu armario digital está vacío o incompleto! Te animamos a usar el botón 'Escanear Prenda' "
+            "con tu cámara para ir registrando tu closet. Para inspirarte, te sugerimos adquirir estas "
+            "prendas recomendadas directamente desde la boutique: "
+        ) + advice
+
     return {
         "city": city["name"],
         "temp": temp,
@@ -879,7 +958,7 @@ def recommend_outfit(clothes, city_index, occasion):
         "pattern_score": score_details["pattern_score"],
         "weather_score": score_details["weather_score"],
         "total_score": score_details["total_score"],
-        "advice": score_details["advice"]
+        "advice": advice
     }
 
 def get_style_innovations(clothes):

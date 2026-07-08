@@ -8,6 +8,7 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     try:
         conn.execute('PRAGMA journal_mode=WAL')
+        conn.execute('PRAGMA synchronous=NORMAL')
     except sqlite3.OperationalError:
         pass
     return conn
@@ -86,6 +87,17 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             delivery_progress INTEGER DEFAULT 0, -- 0 to 100
             FOREIGN KEY(clothing_id) REFERENCES clothes(id)
+        )
+    ''')
+
+    # Create chat_history table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS chat_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            sender TEXT NOT NULL,
+            message TEXT NOT NULL,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            scraped_item_json TEXT
         )
     ''')
 
@@ -363,3 +375,25 @@ def update_order_progress(order_id, progress, status):
     ''', (progress, status, order_id))
     conn.commit()
     conn.close()
+
+
+def save_chat_message(sender, message, scraped_item_json=None):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO chat_history (sender, message, scraped_item_json)
+        VALUES (?, ?, ?)
+    ''', (sender, message, scraped_item_json))
+    conn.commit()
+    new_id = cursor.lastrowid
+    conn.close()
+    return new_id
+
+
+def get_chat_history():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM chat_history ORDER BY timestamp ASC')
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]

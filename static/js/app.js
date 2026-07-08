@@ -50,6 +50,111 @@ const ARIA_LOOK_IMAGES = {
     castano_medio: 'static/proposals/Propuestas%20de%20Asistente%20Personal/Propuesta%20(Animada%20)/Versiones%20del%20personaje/Pelo%20casta%C3%B1o%20medio.jpeg'
 };
 
+// Luxury empty state template function
+function getEmptyStateHTML(type) {
+    if (type === 'closet') {
+        return `
+            <div class="empty-state animate-fade-in" style="grid-column: 1 / -1; width: 100%;">
+                <svg viewBox="0 0 100 100" class="empty-state-svg" style="width: 80px; height: 80px; fill: none; stroke: var(--accent-gold); stroke-width: 1.5; opacity: 0.6; margin-bottom: 15px;">
+                    <path d="M50 20 C47 20, 45 23, 48 26 C52 30, 50 35, 50 38 M50 38 L25 55 C23 56.5, 25 58, 27 58 L73 58 C75 58, 77 56.5, 75 55 Z" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h4 style="font-family: var(--font-editorial); color: var(--accent-gold); margin-bottom: 8px; letter-spacing: 1px; font-size: 0.9rem;">CLOSET VACÍO</h4>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); max-width: 320px; line-height: 1.4; margin: 0 auto;">Aún no tienes prendas registradas en esta categoría. Digitaliza tu colección usando el escáner de IA.</p>
+            </div>
+        `;
+    } else if (type === 'wardrobe') {
+        return `
+            <div class="empty-state animate-fade-in" style="grid-column: 1 / -1; width: 100%;">
+                <svg viewBox="0 0 100 100" class="empty-state-svg" style="width: 80px; height: 80px; fill: none; stroke: var(--accent-gold); stroke-width: 1.5; opacity: 0.6; margin-bottom: 15px;">
+                    <rect x="25" y="15" width="50" height="70" rx="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="50" y1="15" x2="50" y2="85" stroke-dasharray="1 1"/>
+                    <circle cx="45" cy="50" r="1.5" fill="var(--accent-gold)"/>
+                    <circle cx="55" cy="50" r="1.5" fill="var(--accent-gold)"/>
+                    <line x1="20" y1="85" x2="80" y2="85"/>
+                </svg>
+                <h4 style="font-family: var(--font-editorial); color: var(--accent-gold); margin-bottom: 8px; letter-spacing: 1px; font-size: 0.9rem;">COLECCIÓN SIN DISEÑAR</h4>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); max-width: 340px; line-height: 1.4; margin: 0 auto;">Aún no has guardado ninguna combinación de outfits. Haz clic en "Diseñar Outfit" para crear tu primera composición de alta costura.</p>
+            </div>
+        `;
+    } else if (type === 'chat') {
+        return `
+            <div class="empty-state animate-fade-in" style="margin: 30px auto; border: none; background: transparent;">
+                <svg viewBox="0 0 100 100" class="empty-state-svg" style="width: 80px; height: 80px; fill: none; stroke: var(--accent-gold); stroke-width: 1.2; opacity: 0.7; margin-bottom: 15px;">
+                    <path d="M30 25 H70 C75 25, 78 28, 78 33 V57 C78 62, 75 65, 70 65 H50 L35 75 V65 H30 C25 65, 22 62, 22 57 V33 C22 28, 25 25, 30 25 Z" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M40 40 H60 M40 50 H55" stroke-linecap="round"/>
+                </svg>
+                <h4 style="font-family: var(--font-editorial); color: var(--accent-gold); margin-bottom: 8px; letter-spacing: 1.5px; font-size: 0.9rem;">CONVERSACIÓN CON ARIA</h4>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); max-width: 280px; line-height: 1.4; margin: 0 auto;">Pregúntale a Aria sobre tendencias, colores o consejos personalizados de costura.</p>
+            </div>
+        `;
+    }
+    return '';
+}
+
+function updateChatHistoryState() {
+    const history = document.getElementById('chat-history');
+    if (!history) return;
+    
+    const hasMessages = history.querySelector('.chat-msg');
+    const existingEmpty = history.querySelector('.empty-state');
+    
+    if (!hasMessages && !existingEmpty) {
+        history.innerHTML = getEmptyStateHTML('chat');
+    } else if (hasMessages && existingEmpty) {
+        existingEmpty.remove();
+    }
+}
+
+// Gold particle burst effect generator for ratings
+function createGoldParticleBurst(element) {
+    const rect = element.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    
+    const container = document.body;
+    const particleCount = 12;
+    
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'gold-star-particle';
+        
+        const angle = (i / particleCount) * 2 * Math.PI + (Math.random() - 0.5) * 0.4;
+        const speed = 2 + Math.random() * 4;
+        const size = 3 + Math.random() * 4;
+        
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.left = `${x}px`;
+        particle.style.top = `${y}px`;
+        
+        container.appendChild(particle);
+        
+        const velocityX = Math.cos(angle) * speed;
+        const velocityY = Math.sin(angle) * speed;
+        let currentX = x;
+        let currentY = y;
+        let opacity = 1;
+        
+        const animate = () => {
+            currentX += velocityX;
+            currentY += velocityY + 0.1; // gravity
+            opacity -= 0.03;
+            
+            particle.style.left = `${currentX}px`;
+            particle.style.top = `${currentY}px`;
+            particle.style.opacity = opacity;
+            
+            if (opacity > 0) {
+                requestAnimationFrame(animate);
+            } else {
+                particle.remove();
+            }
+        };
+        
+        requestAnimationFrame(animate);
+    }
+}
+
 // Mock Databases (Fallback when Backend is offline)
 const MOCK_DATA = {
     weather: {
@@ -196,6 +301,9 @@ function initNavigation() {
 
 function switchTab(tabName) {
     if (!tabName) return;
+    if (STATE.currentTab === tabName) return; // Prevent duplicate transition if clicking active tab
+    
+    const prevTabName = STATE.currentTab;
     STATE.currentTab = tabName;
     
     document.querySelectorAll('.nav-btn, .bottom-nav-btn').forEach(btn => {
@@ -206,14 +314,48 @@ function switchTab(tabName) {
         }
     });
 
-    document.querySelectorAll('.tab-content').forEach(section => {
-        section.classList.remove('active');
-    });
+    const mainContent = document.querySelector('.main-content');
+    const oldSection = document.getElementById(prevTabName);
+    const newSection = document.getElementById(tabName);
 
-    const activeSection = document.getElementById(tabName);
-    if (activeSection) {
-        activeSection.classList.add('active');
-        document.querySelector('.main-content').scrollTop = 0;
+    if (oldSection && newSection) {
+        // Create or show a blur-out overlay for an organic feel
+        let overlay = document.getElementById('tab-transition-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'tab-transition-overlay';
+            mainContent.appendChild(overlay);
+        }
+        
+        // Trigger overlay fade & blur
+        overlay.classList.add('transitioning');
+        
+        // Animate old section out
+        oldSection.classList.remove('active');
+        oldSection.classList.add('tab-leaving');
+        
+        // Wait for old section exit animation (200ms)
+        setTimeout(() => {
+            oldSection.classList.remove('tab-leaving');
+            
+            // Activate new section
+            newSection.classList.add('active');
+            newSection.classList.add('tab-entering');
+            mainContent.scrollTop = 0;
+            
+            // Remove entering class and transition overlay after entering
+            setTimeout(() => {
+                newSection.classList.remove('tab-entering');
+                overlay.classList.remove('transitioning');
+            }, 300);
+        }, 200);
+    } else if (newSection) {
+        // Fallback for first load
+        document.querySelectorAll('.tab-content').forEach(section => {
+            section.classList.remove('active');
+        });
+        newSection.classList.add('active');
+        mainContent.scrollTop = 0;
     }
     
     if (tabName === 'pedidos') {
@@ -590,11 +732,7 @@ function renderCloset(category) {
         : STATE.closetItems.filter(item => item.cat === category);
 
     if (filtered.length === 0) {
-        closetGrid.innerHTML = `
-            <div class="loading-spinner-container">
-                <p>No tienes prendas registradas en esta categoría.</p>
-            </div>
-        `;
+        closetGrid.innerHTML = getEmptyStateHTML('closet');
         return;
     }
 
@@ -656,11 +794,7 @@ function renderSavedCombinations() {
     grid.innerHTML = '';
 
     if (STATE.savedCombinations.length === 0) {
-        grid.innerHTML = `
-            <div class="loading-spinner-container" style="grid-column: 1 / -1; padding: 30px;">
-                <p style="font-size:0.9rem; color:var(--text-muted);">Aún no has diseñado ninguna combinación. ¡Haz clic arriba en "Diseñar Outfit" para comenzar!</p>
-            </div>
-        `;
+        grid.innerHTML = getEmptyStateHTML('wardrobe');
         return;
     }
 
@@ -736,6 +870,30 @@ function initAria() {
     const portraitImg = document.getElementById('aria-portrait');
     const sendBtn = document.getElementById('send-chat');
     const chatInput = document.getElementById('chat-input');
+
+    // Initialize Empty Chat State
+    updateChatHistoryState();
+
+    // Load persisted chat history from SQLite
+    fetch('/api/chat/history')
+        .then(res => res.ok ? res.json() : [])
+        .then(historyData => {
+            if (historyData && historyData.length > 0) {
+                const historyEl = document.getElementById('chat-history');
+                if (historyEl) historyEl.innerHTML = '';
+                
+                historyData.forEach(item => {
+                    let scraped = null;
+                    if (item.scraped_item_json) {
+                        try {
+                            scraped = JSON.parse(item.scraped_item_json);
+                        } catch(e) {}
+                    }
+                    appendChatMessage(item.sender, item.message, scraped);
+                });
+            }
+        })
+        .catch(err => console.log("Persisted chat history not loaded:", err));
 
     lookSelector.addEventListener('change', (e) => {
         const lookKey = e.target.value;
@@ -826,6 +984,13 @@ async function handleUserMessage() {
 
 function appendChatMessage(sender, text, scrapedItem = null) {
     const history = document.getElementById('chat-history');
+    
+    // Remove empty state if present
+    const existingEmpty = history.querySelector('.empty-state');
+    if (existingEmpty) {
+        existingEmpty.remove();
+    }
+
     const msg = document.createElement('div');
     msg.className = `chat-msg ${sender}`;
     msg.textContent = text;
@@ -1067,6 +1232,15 @@ function initScanner() {
                 thumb.id = `scan-thumb-${index}`;
                 thumb.innerHTML = `
                     <img src="${event.target.result}" alt="Thumbnail">
+                    <div class="scan-thumb-spinner-overlay">
+                        <svg viewBox="0 0 36 36" class="circular-spinner">
+                            <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path class="circle" stroke-dasharray="100, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        </svg>
+                    </div>
+                    <div class="scan-thumb-success-overlay">
+                        <span class="success-checkmark">✓</span>
+                    </div>
                     <span class="scan-thumb-badge pending" id="scan-badge-${index}">⌛</span>
                 `;
                 
@@ -1124,7 +1298,12 @@ function initScanner() {
             
             const activeItem = STATE.scanQueue[0];
             const badge = document.getElementById('scan-badge-0');
+            const thumb = document.getElementById('scan-thumb-0');
             if (badge) badge.textContent = '⚙️';
+            if (thumb) {
+                thumb.classList.add('scanning');
+                thumb.classList.add('scanning-active');
+            }
 
             const startTime = Date.now();
             let result = null;
@@ -1163,6 +1342,11 @@ function initScanner() {
                     badge.className = 'scan-thumb-badge scanned';
                     badge.textContent = '✓';
                 }
+                if (thumb) {
+                    thumb.classList.remove('scanning');
+                    thumb.classList.remove('scanning-active');
+                    thumb.classList.add('scanned-success');
+                }
                 showScanResults(result);
             }, remainingDelay);
 
@@ -1184,7 +1368,12 @@ function initScanner() {
                 
                 const item = STATE.scanQueue[i];
                 const badge = document.getElementById(`scan-badge-${i}`);
+                const thumb = document.getElementById(`scan-thumb-${i}`);
                 if (badge) badge.textContent = '⚙️';
+                if (thumb) {
+                    thumb.classList.add('scanning');
+                    thumb.classList.add('scanning-active');
+                }
 
                 let result = null;
                 const formData = new FormData();
@@ -1217,6 +1406,11 @@ function initScanner() {
                 if (badge) {
                     badge.className = 'scan-thumb-badge scanned';
                     badge.textContent = '✓';
+                }
+                if (thumb) {
+                    thumb.classList.remove('scanning');
+                    thumb.classList.remove('scanning-active');
+                    thumb.classList.add('scanned-success');
                 }
 
                 // Small delay to let laser and visual changes be visible to user
@@ -1402,11 +1596,23 @@ function renderFittingSource(sourceType) {
     list.forEach(item => {
         const itemEl = document.createElement('div');
         itemEl.className = 'fitting-source-item';
+        
+        // Highlight if currently loaded in fitting slots
+        const isFitted = (sourceType === 'closet' && STATE.fittingSlots.closet && STATE.fittingSlots.closet.id === item.id) ||
+                         (sourceType === 'boutique' && STATE.fittingSlots.boutique && STATE.fittingSlots.boutique.id === item.id);
+        if (isFitted) {
+            itemEl.classList.add('selected-source-item');
+        }
+
         itemEl.innerHTML = `
             <img src="${item.image}" alt="${item.name}" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 fill=%27%23333%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%231a1a2e%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%23d4af37%27 font-family=%27sans-serif%27 font-size=%2714%27%3EImagen no disponible%3C/text%3E%3C/svg%3E';">
             <div class="fitting-source-item-meta">${item.name}</div>
         `;
         itemEl.addEventListener('click', () => {
+            scroller.querySelectorAll('.fitting-source-item').forEach(el => {
+                el.classList.remove('selected-source-item');
+            });
+            itemEl.classList.add('selected-source-item');
             selectForFitting(sourceType, item);
         });
         scroller.appendChild(itemEl);
@@ -1428,6 +1634,11 @@ function selectForFitting(type, item) {
         </div>
     `;
 
+    // Apply elastic flash loaded animation to the slot
+    slot.classList.remove('slot-loaded');
+    void slot.offsetWidth; // Force DOM reflow to trigger CSS animation
+    slot.classList.add('slot-loaded');
+
     evaluateFittingMatch();
 }
 
@@ -1436,6 +1647,15 @@ window.clearFittingSlot = function(type) {
     const slot = document.getElementById(`slot-${type}`);
     slot.setAttribute('data-empty', 'true');
     slot.querySelector('.slot-content').innerHTML = '';
+    slot.classList.remove('slot-loaded');
+
+    // Deselect from active source scroller elements if visible
+    const scroller = document.getElementById('fitting-scroller');
+    if (scroller) {
+        scroller.querySelectorAll('.fitting-source-item').forEach(el => {
+            el.classList.remove('selected-source-item');
+        });
+    }
     
     document.getElementById('fitting-verdict').style.display = 'none';
 };
@@ -1653,8 +1873,15 @@ async function renderComunidadFeed() {
                 const siblings = star.parentNode.querySelectorAll('.star-rating-icon');
                 siblings.forEach(s => {
                     const sVal = parseInt(s.getAttribute('data-value'));
-                    s.style.color = sVal <= val ? 'var(--accent-gold)' : 'var(--text-muted)';
-                    s.style.transform = sVal <= val ? 'scale(1.25)' : 'scale(1)';
+                    if (sVal <= val) {
+                        s.classList.add('active-star');
+                        s.style.color = 'var(--accent-gold)';
+                        s.style.transform = 'scale(1.3)';
+                    } else {
+                        s.classList.remove('active-star');
+                        s.style.color = 'var(--text-muted)';
+                        s.style.transform = 'scale(1)';
+                    }
                 });
             });
 
@@ -1663,7 +1890,13 @@ async function renderComunidadFeed() {
                 siblings.forEach(s => {
                     const sVal = parseInt(s.getAttribute('data-value'));
                     const isBookmarked = sVal <= userRating;
-                    s.style.color = isBookmarked ? 'var(--accent-gold)' : 'var(--text-muted)';
+                    if (isBookmarked) {
+                        s.classList.add('active-star');
+                        s.style.color = 'var(--accent-gold)';
+                    } else {
+                        s.classList.remove('active-star');
+                        s.style.color = 'var(--text-muted)';
+                    }
                     s.style.transform = 'scale(1)';
                 });
             });
@@ -1672,6 +1905,21 @@ async function renderComunidadFeed() {
                 const val = parseInt(star.getAttribute('data-value'));
                 const isDb = star.parentNode.getAttribute('data-is-db') === 'true';
                 const postId = star.parentNode.getAttribute('data-post-id');
+
+                // Burst effect on click
+                createGoldParticleBurst(star);
+
+                // Add bounce animation class to all rated stars
+                const siblings = star.parentNode.querySelectorAll('.star-rating-icon');
+                siblings.forEach(s => {
+                    const sVal = parseInt(s.getAttribute('data-value'));
+                    if (sVal <= val) {
+                        s.classList.add('star-elastic-bounce');
+                        s.classList.add('active-star');
+                        s.style.color = 'var(--accent-gold)';
+                        setTimeout(() => s.classList.remove('star-elastic-bounce'), 600);
+                    }
+                });
 
                 // Save user rating locally to prevent double rating
                 localStorage.setItem(`dy_rated_outfit_${postId}`, val);
@@ -1706,10 +1954,9 @@ async function renderComunidadFeed() {
                 }
 
                 // Animate and re-render
-                star.style.transform = 'scale(1.6)';
                 setTimeout(() => {
                     renderComunidadFeed();
-                }, 150);
+                }, 500);
             });
         });
 
@@ -1955,6 +2202,11 @@ function selectGarmentForBuilder(category, item) {
     const clearBtn = slot.querySelector('.clear-bslot-btn');
     if (clearBtn) clearBtn.style.display = 'flex';
 
+    // Apply flash loaded animation to the builder slot
+    slot.classList.remove('slot-filled-glow');
+    void slot.offsetWidth; // Force DOM reflow to trigger CSS animation
+    slot.classList.add('slot-filled-glow');
+
     // Highlight silhouette part in modal mannequin
     const mannequinPart = document.getElementById(`bmannequin-${category}`);
     if (mannequinPart) {
@@ -1977,6 +2229,7 @@ function clearBuilderSlot(category) {
 
     const slot = document.getElementById(`bslot-${category}`);
     slot.setAttribute('data-empty', 'true');
+    slot.classList.remove('slot-filled-glow');
     
     // Hide clear button
     const clearBtn = slot.querySelector('.clear-bslot-btn');
