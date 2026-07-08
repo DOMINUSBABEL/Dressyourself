@@ -1930,3 +1930,5 @@ def process_rpg_completion(answers, clothes):
 # BabylonSwarm_Commit_3: feat(rpg): implement personality weights matching user seasonal color palettes
 
 # BabylonSwarm_Commit_4: feat(rpg): calculate alignment score for tailored bodies (hourglass, triangle, rectangle)
+
+# BabylonSwarm_Commit_13: feat(brands): precailor capsule wardrobes specifically matching Zara summer collection
