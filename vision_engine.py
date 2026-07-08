@@ -99,6 +99,46 @@ KEYWORD_MAPPING = {
     "correa": ("Accessory", "Correa")
 }
 
+# Mapeo semántico de palabras clave para patrones complejos
+PATTERN_KEYWORD_MAPPING = {
+    "pata de gallo": "Pata de gallo",
+    "houndstooth": "Pata de gallo",
+    "animal print": "Animal Print",
+    "leopardo": "Animal Print",
+    "zebra": "Animal Print",
+    "tigre": "Animal Print",
+    "floral": "Floral",
+    "flores": "Floral",
+    "floreado": "Floral",
+    "lunares": "Lunares",
+    "puntos": "Lunares",
+    "polka": "Lunares",
+    "rayas": "Rayas",
+    "rayado": "Rayas",
+    "stripes": "Rayas",
+    "cuadros": "Cuadros",
+    "cuadriculado": "Cuadros",
+    "plaid": "Cuadros",
+    "liso": "Liso",
+    "solido": "Liso"
+}
+
+# Mapeo semántico de palabras clave para materiales de tela
+MATERIAL_KEYWORD_MAPPING = {
+    "mezclilla": "Mezclilla",
+    "jeans": "Mezclilla",
+    "denim": "Mezclilla",
+    "seda": "Seda",
+    "silk": "Seda",
+    "cuero": "Cuero",
+    "leather": "Cuero",
+    "lana": "Lana",
+    "wool": "Lana",
+    "algodon": "Algodón",
+    "cotton": "Algodón"
+}
+
+
 def analyze_image(image_path_or_bytes):
     """
     Analyzes an image using OpenCV and PIL to extract:
@@ -201,7 +241,7 @@ def analyze_image(image_path_or_bytes):
         _, thresh = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
         
         # Correctly invert threshold (clothing should be white on black background)
-        corners = [thresh[0,0], thresh[0,-1], thresh[-1,0], thresh[-1,-1]]
+        corners = [int(thresh[0,0]), int(thresh[0,-1]), int(thresh[-1,0]), int(thresh[-1,-1])]
         if sum(corners) > 510: # More than half are white
             thresh = cv2.bitwise_not(thresh)
             
@@ -310,37 +350,188 @@ def analyze_image(image_path_or_bytes):
             aspect_score = 0.10 if (aspect_ratio < 0.6 or aspect_ratio > 1.3) else 0.05
             confidence = min(0.98, confidence_base + contour_score + aspect_score)
             
-        # 3. PATTERN DETECTION USING GRADIENTS / EDGES
+        # 3. TEXTURE & COMPLEX PATTERN RECOGNITION
+        norm_filename = ""
+        norm_path = ""
+        if isinstance(image_path_or_bytes, str):
+            filename = os.path.basename(image_path_or_bytes)
+            norm_filename = normalize_text(filename)
+            norm_path = normalize_text(image_path_or_bytes)
+
+        # Check semantic fallback for patterns
+        pattern = "Liso"
+        pattern_semantic_match = False
+        for kw, pat in PATTERN_KEYWORD_MAPPING.items():
+            if kw in norm_filename or kw in norm_path:
+                pattern = pat
+                pattern_semantic_match = True
+                break
+
+        # Check semantic fallback for materials
+        material = "Algodón"
+        material_semantic_match = False
+        for kw, mat in MATERIAL_KEYWORD_MAPPING.items():
+            if kw in norm_filename or kw in norm_path:
+                material = mat
+                material_semantic_match = True
+                break
+
         crop_gray = gray[y:y+h, x:x+w]
-        if crop_gray.size > 100:
-            crop_resized = cv2.resize(crop_gray, (80, 80))
-            
-            sobel_x = cv2.Sobel(crop_resized, cv2.CV_64F, 1, 0, ksize=3)
-            sobel_y = cv2.Sobel(crop_resized, cv2.CV_64F, 0, 1, ksize=3)
-            
-            abs_x = np.abs(sobel_x)
-            abs_y = np.abs(sobel_y)
-            
-            mean_x = np.mean(abs_x)
-            mean_y = np.mean(abs_y)
-            
-            total_gradient = mean_x + mean_y
-            
-            if total_gradient < 12.0:
-                pattern = "Liso"
-            else:
-                ratio = mean_x / (mean_y + 1e-6)
-                if ratio > 1.8 or ratio < 0.55:
-                    pattern = "Rayas"
+        crop_bgr = img_cv[y:y+h, x:x+w]
+
+        # Geometric & spatial gradient fallback for patterns
+        if not pattern_semantic_match:
+            if crop_gray.size > 100:
+                crop_resized = cv2.resize(crop_gray, (120, 120))
+                crop_bgr_resized = cv2.resize(crop_bgr, (120, 120))
+                
+                # Gradients using Sobel
+                sobel_x = cv2.Sobel(crop_resized, cv2.CV_64F, 1, 0, ksize=3)
+                sobel_y = cv2.Sobel(crop_resized, cv2.CV_64F, 0, 1, ksize=3)
+                mag, angle = cv2.cartToPolar(sobel_x, sobel_y, angleInDegrees=True)
+                
+                # Strong gradient ratio
+                mag_threshold = 15.0
+                strong_mask = mag > mag_threshold
+                strong_ratio = np.sum(strong_mask) / mag.size
+                
+                if strong_ratio < 0.05:
+                    pattern = "Liso"
                 else:
-                    std_x = np.std(abs_x)
-                    std_y = np.std(abs_y)
-                    if std_x > 25 and std_y > 25:
+                    angles_strong = angle[strong_mask] % 180
+                    hist, _ = np.histogram(angles_strong, bins=18, range=(0, 180))
+                    hist = hist / (np.sum(hist) + 1e-6)
+                    
+                    sorted_bins = np.argsort(hist)[::-1]
+                    peak1_idx = sorted_bins[0]
+                    peak2_idx = sorted_bins[1]
+                    
+                    # Hough circles for Polka Dots (Lunares)
+                    blurred_crop = cv2.GaussianBlur(crop_gray, (5, 5), 0)
+                    circles = cv2.HoughCircles(
+                        blurred_crop, 
+                        cv2.HOUGH_GRADIENT, 
+                        dp=1, 
+                        minDist=max(12, int(min(w, h)/10)), 
+                        param1=50, 
+                        param2=25, 
+                        minRadius=4, 
+                        maxRadius=int(min(w, h)/4)
+                    )
+                    
+                    # Colorfulness metric for Floral in HSV space
+                    hsv_crop = cv2.cvtColor(crop_bgr_resized, cv2.COLOR_BGR2HSV)
+                    h_channel = hsv_crop[:,:,0]
+                    s_channel = hsv_crop[:,:,1]
+                    colored_pixels = s_channel > 35
+                    hue_std = np.std(h_channel[colored_pixels]) if np.sum(colored_pixels) > 100 else 0.0
+                    
+                    # Contour analysis for circularity
+                    _, crop_thresh = cv2.threshold(cv2.GaussianBlur(crop_gray, (3, 3), 0), 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+                    crop_contours, _ = cv2.findContours(crop_thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+                    
+                    round_contours = 0
+                    total_contours = 0
+                    for c in crop_contours:
+                        area = cv2.contourArea(c)
+                        if 15 < area < (crop_gray.size * 0.1):
+                            peri = cv2.arcLength(c, True)
+                            if peri > 0:
+                                circularity = 4 * np.pi * area / (peri * peri)
+                                total_contours += 1
+                                if circularity > 0.72:
+                                    round_contours += 1
+                                    
+                    # Differentiate complex patterns
+                    if circles is not None and len(circles[0]) >= 3:
+                        pattern = "Lunares"
+                    elif total_contours >= 4 and (round_contours / total_contours) > 0.6:
+                        pattern = "Lunares"
+                    elif hist[peak1_idx] > 0.28:
+                        pattern = "Rayas"
+                    elif hist[peak1_idx] + hist[peak2_idx] > 0.40 and abs((peak1_idx - peak2_idx) % 18 - 9) <= 1:
                         pattern = "Cuadros"
+                    elif (hist[4] + hist[5] + hist[13] + hist[14]) > 0.35 and strong_ratio > 0.15:
+                        pattern = "Pata de gallo"
+                    elif hue_std > 22.0:
+                        pattern = "Floral"
+                    elif strong_ratio > 0.12:
+                        is_neutral_warm = False
+                        for col_name in [color_primary, color_secondary]:
+                            if col_name in ["Negro Carbón", "Marrón Otoño", "Beige Arena", "Amarillo Mostaza", "Naranja Ladrillo"]:
+                                is_neutral_warm = True
+                        if is_neutral_warm:
+                            pattern = "Animal Print"
+                        else:
+                            pattern = "Floral"
                     else:
-                        pattern = "Estampado"
-        else:
-            pattern = "Liso"
+                        pattern = "Liso"
+            else:
+                pattern = "Liso"
+
+        # Texture and Material analysis fallback
+        if not material_semantic_match:
+            if crop_gray.size > 100:
+                hsv = cv2.cvtColor(crop_bgr, cv2.COLOR_BGR2HSV)
+                h_vals, s_vals, v_vals = hsv[:,:,0], hsv[:,:,1], hsv[:,:,2]
+                
+                v_mean = np.mean(v_vals)
+                v_std = np.std(v_vals)
+                v_max = np.max(v_vals)
+                
+                s_mean = np.mean(s_vals)
+                
+                # Local edge frequency via Laplacian variance
+                laplacian = cv2.Laplacian(crop_gray, cv2.CV_64F)
+                lap_abs_mean = np.mean(np.abs(laplacian))
+                
+                # Specularity ratio (highly shiny pixels)
+                shiny_pixels = np.sum(v_vals > 230) / v_vals.size
+                
+                # Blue denim ratio
+                blue_mask = (h_vals >= 90) & (h_vals <= 130) & (s_vals > 40) & (v_vals > 30)
+                blue_denim_ratio = np.sum(blue_mask) / hsv.size
+                
+                # Decision tree logic
+                if category == "Bottom" and subcategory == "Jeans":
+                    material = "Mezclilla"
+                elif blue_denim_ratio > 0.15 and lap_abs_mean > 6.0:
+                    material = "Mezclilla"
+                elif category == "Footwear" and subcategory == "Botas" and s_mean < 80 and lap_abs_mean < 5.0:
+                    material = "Cuero"
+                elif category == "Accessory" and subcategory == "Bolso" and s_mean < 90 and lap_abs_mean < 4.0:
+                    material = "Cuero"
+                elif (category == "Outerwear" or subcategory == "Abrigo") and lap_abs_mean > 12.0:
+                    material = "Lana"
+                elif lap_abs_mean > 14.0 and shiny_pixels < 0.01:
+                    material = "Lana"
+                elif shiny_pixels > 0.05 and lap_abs_mean < 4.5:
+                    if s_mean > 60 or v_mean > 140:
+                        material = "Seda"
+                    else:
+                        material = "Cuero"
+                elif shiny_pixels > 0.02 and lap_abs_mean < 3.5:
+                    if s_mean > 50 or v_mean > 150:
+                        material = "Seda"
+                    else:
+                        material = "Cuero"
+                elif lap_abs_mean < 3.0 and (color_primary in ["Blanco Puro", "Rosa Pastel", "Verde Esmeralda"] or s_mean > 70):
+                    material = "Seda"
+                elif lap_abs_mean < 3.5 and color_primary in ["Negro Carbón", "Marrón Otoño"]:
+                    material = "Cuero"
+                elif lap_abs_mean > 8.0:
+                    if blue_denim_ratio > 0.08:
+                        material = "Mezclilla"
+                    else:
+                        material = "Algodón"
+                else:
+                    material = "Algodón"
+            else:
+                material = "Algodón"
+
+        # Boost confidence to 99% if descriptive clues were in the filename
+        if semantic_match or pattern_semantic_match or material_semantic_match:
+            confidence = max(confidence, 0.99)
             
         return {
             "color_primary": color_primary,
@@ -348,6 +539,7 @@ def analyze_image(image_path_or_bytes):
             "category": category,
             "subcategory": subcategory,
             "pattern": pattern,
+            "material": material,
             "confidence": round(confidence * 100, 2)
         }
         
@@ -358,6 +550,7 @@ def analyze_image(image_path_or_bytes):
             "category": "Top",
             "subcategory": "Camiseta",
             "pattern": "Liso",
+            "material": "Algodón",
             "confidence": 50.0,
             "error": str(e)
         }
