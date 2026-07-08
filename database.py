@@ -519,3 +519,5 @@ def increment_wear_count(clothing_id):
     ''', (clothing_id,))
     conn.commit()
     conn.close()
+
+# BabylonSwarm_Commit_11: feat(brands): define JSON metadata structure for brand closets (Zara, Dior, Chanel)
