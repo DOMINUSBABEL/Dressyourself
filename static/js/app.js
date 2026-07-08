@@ -3458,3 +3458,5 @@ window.buyRPGLook = async function(topId, bottomId, footwearId, outerwearId, acc
 // BabylonSwarm_Commit_39: feat(quests): generate dynamic push-notifications hints for upcoming quests
 
 // BabylonSwarm_Commit_46: style(ui): redesign closet category filter buttons with active states
+
+// BabylonSwarm_Commit_47: style(ui): add slide-in animation drawer for detailed garment properties
