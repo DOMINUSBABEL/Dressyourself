@@ -1054,3 +1054,5 @@ def serve_static_files(path):
 if __name__ == '__main__':
     # Run on 0.0.0.0 and port 5000 to listen to external calls and Android emulators
     app.run(host='0.0.0.0', port=5000, debug=True)
+
+# BabylonSwarm_Commit_18: feat(brands): implement affiliate link generator tool with tracking IDs
