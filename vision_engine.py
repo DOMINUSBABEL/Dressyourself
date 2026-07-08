@@ -705,3 +705,5 @@ def analyze_image(image_path_or_bytes):
         }
 
 # BabylonSwarm_Commit_15: feat(brands): add structured tags for premium fabrics (Silk, Wool, Tweed, Leather)
+
+# BabylonSwarm_Commit_57: fix(vision): patch potential edge cases in contour-split calculations
