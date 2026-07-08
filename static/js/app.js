@@ -138,9 +138,9 @@ const MOCK_DATA = {
         consejo: "Este blazer cuenta con hombreras estructuradas y un solapado impecable. Combínalo con pantalones crema ligeros de seda o jeans oscuros de corte recto para un look semi-formal sofisticado. Agrega joyería champaña sutil."
     },
     posts: [
-        { id: 1, user: 'Alessia V.', initials: 'AV', img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600&auto=format&fit=crop', desc: 'Tarde de lino y champaña con un blazer clásico.', votes: { aesthetic: 42, streetwear: 5, minimalist: 24, classic: 53, oversize: 8 }, userVoted: {} },
-        { id: 2, user: 'Mateo Garces', initials: 'MG', img: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=600&auto=format&fit=crop', desc: 'Quiet luxury en la ciudad. Paletas crema y botas altas.', votes: { aesthetic: 18, streetwear: 35, minimalist: 62, classic: 41, oversize: 27 }, userVoted: {} },
-        { id: 3, user: 'Sophia Atelier', initials: 'SA', img: 'https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?q=80&w=600&auto=format&fit=crop', desc: 'Probando el Vestidor de Aria. Combinación aprobada al 92%.', votes: { aesthetic: 75, streetwear: 12, minimalist: 19, classic: 25, oversize: 33 }, userVoted: {} }
+        { id: 'mock_1', user: 'Alessia V.', initials: 'AV', img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600&auto=format&fit=crop', desc: 'Tarde de lino y champaña con un blazer clásico.', rating: 4.8, rating_count: 53, userRating: 0 },
+        { id: 'mock_2', user: 'Mateo Garces', initials: 'MG', img: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=600&auto=format&fit=crop', desc: 'Quiet luxury en la ciudad. Paletas crema y botas altas.', rating: 4.2, rating_count: 41, userRating: 0 },
+        { id: 'mock_3', user: 'Sophia Atelier', initials: 'SA', img: 'https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?q=80&w=600&auto=format&fit=crop', desc: 'Probando el Vestidor de Aria. Combinación aprobada al 92%.', rating: 4.6, rating_count: 28, userRating: 0 }
     ],
     initialOutfits: [
         {
@@ -446,12 +446,17 @@ function renderWeather(data) {
 
 function renderRecommendations(items) {
     const recShowcaseEl = document.getElementById('clima-recommendation');
-    recShowcaseEl.innerHTML = '';
+    if (recShowcaseEl) recShowcaseEl.innerHTML = '';
     
-    items.forEach(item => {
+    const flatlayCollage = document.getElementById('clima-flatlay-collage');
+    if (flatlayCollage) flatlayCollage.innerHTML = '';
+
+    items.forEach((item, index) => {
+        // 1. Create Showcase card (Right Panel)
         const card = document.createElement('div');
         card.className = 'rec-card';
         card.setAttribute('data-part', item.part);
+        card.setAttribute('data-idx', index);
         card.innerHTML = `
             <div class="rec-img-wrapper">
                 <span class="rec-badge">${item.badge}</span>
@@ -464,23 +469,67 @@ function renderRecommendations(items) {
             </div>
         `;
 
+        // 2. Create Flat Lay Polaroid Item for the Canvas
+        if (flatlayCollage) {
+            const rotation = [4, -5, 3, -6, 2][index % 5];
+            const polaroid = document.createElement('div');
+            polaroid.id = `clima-polaroid-${index}`;
+            polaroid.style.width = '75px';
+            polaroid.style.height = '75px';
+            polaroid.style.borderRadius = '6px';
+            polaroid.style.border = '1.5px solid var(--border-gold)';
+            polaroid.style.background = '#111';
+            polaroid.style.overflow = 'hidden';
+            polaroid.style.transform = `rotate(${rotation}deg)`;
+            polaroid.style.boxShadow = '2px 2px 8px rgba(0,0,0,0.3)';
+            polaroid.style.position = 'relative';
+            polaroid.style.transition = 'all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1)';
+            polaroid.style.cursor = 'pointer';
+            polaroid.innerHTML = `
+                <img src="${item.image}" alt="${item.name}" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect fill=%27%23222%27 width=%27100%27 height=%27100%27/%3E%3C/svg%3E';">
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(212,175,55,0); transition: background 0.2s;"></div>
+            `;
+
+            // Hover sync from Polaroid to Card
+            polaroid.addEventListener('mouseenter', () => {
+                polaroid.style.transform = 'scale(1.2) rotate(0deg)';
+                polaroid.style.boxShadow = '0 10px 20px rgba(0,0,0,0.5)';
+                polaroid.style.borderColor = '#00ff88';
+                card.classList.add('highlighted-card');
+                card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+
+            polaroid.addEventListener('mouseleave', () => {
+                polaroid.style.transform = `rotate(${rotation}deg)`;
+                polaroid.style.boxShadow = '2px 2px 8px rgba(0,0,0,0.3)';
+                polaroid.style.borderColor = 'var(--border-gold)';
+                card.classList.remove('highlighted-card');
+            });
+
+            flatlayCollage.appendChild(polaroid);
+        }
+
+        // Hover sync from Card to Polaroid
         card.addEventListener('mouseenter', () => {
-            const partId = card.getAttribute('data-part');
-            const mannequinPart = document.getElementById(partId);
-            if (mannequinPart) {
-                mannequinPart.classList.add('highlighted');
+            const polaroid = document.getElementById(`clima-polaroid-${index}`);
+            if (polaroid) {
+                polaroid.style.transform = 'scale(1.2) rotate(0deg)';
+                polaroid.style.boxShadow = '0 10px 20px rgba(0,0,0,0.5)';
+                polaroid.style.borderColor = '#00ff88';
             }
         });
 
         card.addEventListener('mouseleave', () => {
-            const partId = card.getAttribute('data-part');
-            const mannequinPart = document.getElementById(partId);
-            if (mannequinPart) {
-                mannequinPart.classList.remove('highlighted');
+            const polaroid = document.getElementById(`clima-polaroid-${index}`);
+            const rotation = [4, -5, 3, -6, 2][index % 5];
+            if (polaroid) {
+                polaroid.style.transform = `rotate(${rotation}deg)`;
+                polaroid.style.boxShadow = '2px 2px 8px rgba(0,0,0,0.3)';
+                polaroid.style.borderColor = 'var(--border-gold)';
             }
         });
 
-        recShowcaseEl.appendChild(card);
+        if (recShowcaseEl) recShowcaseEl.appendChild(card);
     });
 }
 
@@ -752,7 +801,13 @@ async function handleUserMessage() {
         const response = await fetch(`/api/ganchito/quote?personality=${STATE.ariaPersonality}&q=${encodeURIComponent(text)}`);
         if (!response.ok) throw new Error("Fallback");
         const data = await response.json();
-        appendChatMessage('bot', data.response);
+        
+        // Check if query contained a shop URL resulting in a scraped item
+        if (data.scraped_item) {
+            appendChatMessage('bot', data.response, data.scraped_item);
+        } else {
+            appendChatMessage('bot', data.response);
+        }
         triggerAriaSpeech(data.response);
     } catch (e) {
         setTimeout(() => {
@@ -769,11 +824,40 @@ async function handleUserMessage() {
     }
 }
 
-function appendChatMessage(sender, text) {
+function appendChatMessage(sender, text, scrapedItem = null) {
     const history = document.getElementById('chat-history');
     const msg = document.createElement('div');
     msg.className = `chat-msg ${sender}`;
     msg.textContent = text;
+    
+    if (scrapedItem) {
+        const card = document.createElement('div');
+        card.style.marginTop = '10px';
+        card.style.padding = '12px';
+        card.style.background = 'rgba(255,255,255,0.04)';
+        card.style.border = '1px solid var(--border-gold)';
+        card.style.borderRadius = '8px';
+        card.style.display = 'flex';
+        card.style.gap = '10px';
+        card.style.alignItems = 'center';
+        
+        // Escape single quotes for HTML attribute JSON
+        const escapedItem = JSON.stringify(scrapedItem).replace(/'/g, "&apos;");
+        
+        card.innerHTML = `
+            <img src="${scrapedItem.image}" alt="${scrapedItem.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(212,175,55,0.2);">
+            <div style="flex-grow: 1; display: flex; flex-direction: column; text-align: left;">
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">${scrapedItem.brand}</span>
+                <span style="font-size: 0.85rem; font-weight: bold; color: var(--text-primary); max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${scrapedItem.name}</span>
+                <span style="font-size: 0.8rem; color: var(--accent-gold); font-weight: 600;">${scrapedItem.price}</span>
+            </div>
+            <button class="gold-btn" style="padding: 6px 10px; font-size: 0.7rem; text-transform: none; letter-spacing: 0;" onclick='loadScrapedToFitting(${escapedItem})'>
+                Probar
+            </button>
+        `;
+        msg.appendChild(card);
+    }
+    
     history.appendChild(msg);
     history.scrollTop = history.scrollHeight;
 }
@@ -1356,6 +1440,12 @@ window.clearFittingSlot = function(type) {
     document.getElementById('fitting-verdict').style.display = 'none';
 };
 
+window.loadScrapedToFitting = function(item) {
+    selectForFitting('boutique', item);
+    switchTab('probador');
+    showToast(`¡Prenda de ${item.brand} cargada en el Probador!`);
+};
+
 async function evaluateFittingMatch() {
     const closetItem = STATE.fittingSlots.closet;
     const boutiqueItem = STATE.fittingSlots.boutique;
@@ -1438,64 +1528,188 @@ function initComunidad() {
     renderComunidadFeed();
 }
 
-function renderComunidadFeed() {
+async function renderComunidadFeed() {
     const feedEl = document.getElementById('comunidad-feed');
     if (!feedEl) return;
     feedEl.innerHTML = '';
 
-    MOCK_DATA.posts.forEach((post, index) => {
+    let sharedOutfits = [];
+    try {
+        const response = await fetch('/api/outfits');
+        if (response.ok) {
+            const allOutfits = await response.json();
+            sharedOutfits = allOutfits.filter(o => o.is_shared === 1);
+        }
+    } catch (e) {
+        console.error("Error loading outfits for community feed:", e);
+    }
+
+    // Map database outfits to post format
+    const dbPosts = sharedOutfits.map(o => {
+        // Collect outfit garments
+        const items = [];
+        if (o.top_image) items.push({ cat: 'superior', name: o.top_name, image: o.top_image });
+        if (o.bottom_image) items.push({ cat: 'inferior', name: o.bottom_name, image: o.bottom_image });
+        if (o.outerwear_image) items.push({ cat: 'abrigo', name: o.outerwear_name, image: o.outerwear_image });
+        if (o.footwear_image) items.push({ cat: 'calzado', name: o.footwear_name, image: o.footwear_image });
+        if (o.accessory_image) items.push({ cat: 'accesorio', name: o.accessory_name, image: o.accessory_image });
+
+        return {
+            id: o.id,
+            isDb: true,
+            user: 'Diseñador Virtual',
+            initials: 'DV',
+            desc: o.name + '. ' + (o.justification || 'Estilo sastrero minimalista.'),
+            rating: o.rating || 5.0,
+            rating_count: o.rating_count || 0,
+            userRating: parseInt(localStorage.getItem(`dy_rated_outfit_${o.id}`)) || 0,
+            items: items
+        };
+    });
+
+    // Combine mock posts with DB posts
+    const allFeedPosts = [...dbPosts, ...MOCK_DATA.posts];
+
+    if (allFeedPosts.length === 0) {
+        feedEl.innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); padding: 40px 0; font-style: italic; width: 100%;">
+                No hay combinaciones compartidas en la comunidad todavía. ¡Sé el primero en compartir la tuya!
+            </div>
+        `;
+        return;
+    }
+
+    allFeedPosts.forEach((post) => {
         const card = document.createElement('div');
         card.className = 'post-card';
+        card.style.marginBottom = '25px';
+
+        // Check if DB post or mock post to render image vs flatlay collage
+        let imageContent = '';
+        if (post.isDb && post.items && post.items.length) {
+            // Render Flat Lay collage for real DB outfits (unisex, Pinterest vibe)
+            let itemsHtml = post.items.map((item, idx) => {
+                const rotation = [5, -4, 3, -6, 2][idx % 5];
+                return `
+                    <div style="width: 75px; height: 75px; border-radius: 6px; border: 1.5px solid var(--border-gold); background: #111; overflow: hidden; transform: rotate(${rotation}deg); box-shadow: 2px 2px 8px rgba(0,0,0,0.4); flex-shrink: 0; position: relative; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.15) z-index(5)'" onmouseout="this.style.transform='scale(1) rotate(${rotation}deg)'">
+                        <img src="${item.image}" alt="${item.name}" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect fill=%27%23222%27 width=%27100%27 height=%27100%27/%3E%3C/svg%3E';">
+                    </div>
+                `;
+            }).join('');
+
+            imageContent = `
+                <div style="background: radial-gradient(circle, #fcfbf9 0%, #f5f2e8 100%); border-radius: 8px; border: 1px solid var(--border-gold); padding: 20px 10px; display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; position: relative; overflow: hidden; min-height: 140px;">
+                    <div style="position: absolute; inset: 0; background-image: radial-gradient(var(--border-gold) 1px, transparent 1px); background-size: 20px 20px; opacity: 0.08; pointer-events: none;"></div>
+                    ${itemsHtml}
+                </div>
+            `;
+        } else {
+            imageContent = `
+                <div class="post-image-wrapper">
+                    <img src="${post.img}" alt="Outfit post" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 fill=%27%23333%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%231a1a2e%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%23d4af37%27 font-family=%27sans-serif%27 font-size=%2714%27%3EImagen no disponible%3C/text%3E%3C/svg%3E';">
+                </div>
+            `;
+        }
+
+        // Render 5-star rating widget
+        const userRating = post.userRating || 0;
+        let starsHtml = '';
+        for (let star = 1; star <= 5; star++) {
+            const activeClass = star <= userRating ? 'active-star' : '';
+            starsHtml += `
+                <span class="star-rating-icon ${activeClass}" data-value="${star}" style="cursor: pointer; font-size: 1.5rem; color: ${star <= userRating ? 'var(--accent-gold)' : 'var(--text-muted)'}; margin-right: 4px; transition: color 0.15s, transform 0.1s;">★</span>
+            `;
+        }
+
         card.innerHTML = `
-            <div class="post-header">
-                <div class="post-avatar">${post.initials}</div>
+            <div class="post-header" style="margin-bottom: 12px;">
+                <div class="post-avatar" style="background: var(--border-gold); color: #000; font-weight: bold;">${post.initials}</div>
                 <div class="post-user-info">
-                    <span class="post-username">${post.user}</span>
-                    <span class="post-time">Hace 2 horas</span>
+                    <span class="post-username" style="font-family: 'Outfit', sans-serif;">${post.user}</span>
+                    <span class="post-time" style="font-size: 0.75rem; color: var(--text-muted);">Calificación de Estilo</span>
                 </div>
             </div>
-            <div class="post-image-wrapper">
-                <img src="${post.img}" alt="Outfit post" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 fill=%27%23333%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%231a1a2e%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%23d4af37%27 font-family=%27sans-serif%27 font-size=%2714%27%3EImagen no disponible%3C/text%3E%3C/svg%3E';">
-            </div>
             
-            <div class="valuation-bar">
-                <button class="tag-vote-btn ${post.userVoted.aesthetic ? 'active' : ''}" data-post-idx="${index}" data-tag="aesthetic">
-                    ✨ Aesthetic <span class="vote-count">${post.votes.aesthetic}</span>
-                </button>
-                <button class="tag-vote-btn ${post.userVoted.streetwear ? 'active' : ''}" data-post-idx="${index}" data-tag="streetwear">
-                    🛹 Streetwear <span class="vote-count">${post.votes.streetwear}</span>
-                </button>
-                <button class="tag-vote-btn ${post.userVoted.minimalist ? 'active' : ''}" data-post-idx="${index}" data-tag="minimalist">
-                    🖤 Minimalist <span class="vote-count">${post.votes.minimalist}</span>
-                </button>
-                <button class="tag-vote-btn ${post.userVoted.classic ? 'active' : ''}" data-post-idx="${index}" data-tag="classic">
-                    👔 Classic <span class="vote-count">${post.votes.classic}</span>
-                </button>
-                <button class="tag-vote-btn ${post.userVoted.oversize ? 'active' : ''}" data-post-idx="${index}" data-tag="oversize">
-                    🧥 Oversize <span class="vote-count">${post.votes.oversize}</span>
-                </button>
+            ${imageContent}
+            
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid rgba(212, 175, 55, 0.1);">
+                <div class="star-rating-widget" data-post-id="${post.id}" data-is-db="${post.isDb || false}">
+                    ${starsHtml}
+                </div>
+                <span style="font-size: 0.85rem; color: var(--text-muted); font-family: 'Outfit', sans-serif;">
+                    ⭐ <strong style="color: var(--text-primary);" class="rating-avg-display">${post.rating}</strong> / 5 (${post.rating_count || 0} votos)
+                </span>
             </div>
 
-            <div class="post-body">
-                <p class="post-caption"><strong>@${post.user.toLowerCase().replace(/\s/g, '')}</strong> ${post.desc}</p>
+            <div class="post-body" style="padding-top: 10px;">
+                <p class="post-caption" style="font-size: 0.9rem; line-height: 1.4;"><strong>@${post.user.toLowerCase().replace(/\s/g, '')}</strong> ${post.desc}</p>
             </div>
         `;
 
-        card.querySelectorAll('.tag-vote-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const tag = btn.getAttribute('data-tag');
-                const postIdx = parseInt(btn.getAttribute('data-post-idx'));
-                const postItem = MOCK_DATA.posts[postIdx];
+        // Star rating click handlers
+        card.querySelectorAll('.star-rating-icon').forEach(star => {
+            star.addEventListener('mouseenter', () => {
+                const val = parseInt(star.getAttribute('data-value'));
+                const siblings = star.parentNode.querySelectorAll('.star-rating-icon');
+                siblings.forEach(s => {
+                    const sVal = parseInt(s.getAttribute('data-value'));
+                    s.style.color = sVal <= val ? 'var(--accent-gold)' : 'var(--text-muted)';
+                    s.style.transform = sVal <= val ? 'scale(1.25)' : 'scale(1)';
+                });
+            });
 
-                if (postItem.userVoted[tag]) {
-                    postItem.userVoted[tag] = false;
-                    postItem.votes[tag]--;
+            star.addEventListener('mouseleave', () => {
+                const siblings = star.parentNode.querySelectorAll('.star-rating-icon');
+                siblings.forEach(s => {
+                    const sVal = parseInt(s.getAttribute('data-value'));
+                    const isBookmarked = sVal <= userRating;
+                    s.style.color = isBookmarked ? 'var(--accent-gold)' : 'var(--text-muted)';
+                    s.style.transform = 'scale(1)';
+                });
+            });
+
+            star.addEventListener('click', async () => {
+                const val = parseInt(star.getAttribute('data-value'));
+                const isDb = star.parentNode.getAttribute('data-is-db') === 'true';
+                const postId = star.parentNode.getAttribute('data-post-id');
+
+                // Save user rating locally to prevent double rating
+                localStorage.setItem(`dy_rated_outfit_${postId}`, val);
+                post.userRating = val;
+
+                if (isDb) {
+                    try {
+                        const response = await fetch(`/api/outfits/${postId}/rate`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ rating: val })
+                        });
+                        if (response.ok) {
+                            const result = await response.json();
+                            post.rating = result.rating;
+                            post.rating_count = result.rating_count;
+                            showToast("¡Gracias por tu valoración de estilo!");
+                        }
+                    } catch (e) {
+                        console.error("Error rating outfit:", e);
+                    }
                 } else {
-                    postItem.userVoted[tag] = true;
-                    postItem.votes[tag]++;
+                    // Update mock locally
+                    const postItem = MOCK_DATA.posts.find(p => p.id === postId);
+                    if (postItem) {
+                        const oldSum = postItem.rating * postItem.rating_count;
+                        postItem.rating_count++;
+                        postItem.rating = parseFloat(((oldSum + val) / postItem.rating_count).toFixed(1));
+                        postItem.userRating = val;
+                    }
+                    showToast("¡Valoración guardada localmente!");
                 }
 
-                renderComunidadFeed();
+                // Animate and re-render
+                star.style.transform = 'scale(1.6)';
+                setTimeout(() => {
+                    renderComunidadFeed();
+                }, 150);
             });
         });
 
@@ -1793,6 +2007,75 @@ async function updateBuilderScore() {
     const occasion = document.getElementById('outfit-occasion')?.value || 'Casual';
 
     const container = document.getElementById('builder-score-container');
+    const flatlayCollage = document.getElementById('builder-flatlay-collage');
+    
+    // Draw flat-lay collage dynamically
+    if (flatlayCollage) {
+        flatlayCollage.innerHTML = '';
+        const slotsToDraw = [
+            { cat: 'superior', label: 'Superior', item: superior, rot: 4 },
+            { cat: 'inferior', label: 'Inferior', item: inferior, rot: -5 },
+            { cat: 'abrigo', label: 'Abrigo', item: abrigo, rot: 3 },
+            { cat: 'calzado', label: 'Calzado', item: calzado, rot: -3 },
+            { cat: 'accesorio', label: 'Accesorio', item: accesorio, rot: 6 }
+        ];
+
+        let activeDrawings = 0;
+        slotsToDraw.forEach(slot => {
+            if (slot.item) {
+                activeDrawings++;
+                const card = document.createElement('div');
+                card.style.width = '75px';
+                card.style.height = '75px';
+                card.style.borderRadius = '6px';
+                card.style.border = '1.5px solid var(--border-gold)';
+                card.style.background = '#111';
+                card.style.overflow = 'hidden';
+                card.style.transform = `rotate(${slot.rot}deg)`;
+                card.style.boxShadow = '2px 2px 8px rgba(0,0,0,0.3)';
+                card.style.position = 'relative';
+                card.style.transition = 'all 0.2s';
+                card.innerHTML = `
+                    <img src="${slot.item.image}" alt="${slot.item.name}" style="width:100%; height:100%; object-fit:cover;">
+                    <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.75); color: var(--accent-gold); font-size: 8px; text-align: center; padding: 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        ${slot.label}
+                    </div>
+                `;
+                flatlayCollage.appendChild(card);
+            } else if (slot.cat === 'superior' || slot.cat === 'inferior' || slot.cat === 'calzado') {
+                // Show elegant placeholder for mandatory items
+                const placeholder = document.createElement('div');
+                placeholder.style.width = '75px';
+                placeholder.style.height = '75px';
+                placeholder.style.borderRadius = '6px';
+                placeholder.style.border = '1.5px dashed rgba(212,175,55,0.3)';
+                placeholder.style.display = 'flex';
+                placeholder.style.flexDirection = 'column';
+                placeholder.style.justifyContent = 'center';
+                placeholder.style.alignItems = 'center';
+                placeholder.style.fontSize = '8px';
+                placeholder.style.color = 'var(--text-muted)';
+                placeholder.style.textAlign = 'center';
+                placeholder.style.padding = '5px';
+                placeholder.style.boxSizing = 'border-box';
+                placeholder.style.transform = `rotate(${slot.rot}deg)`;
+                placeholder.innerHTML = `
+                    <span style="font-size: 1.1rem; margin-bottom: 2px;">+</span>
+                    <span>${slot.label}</span>
+                `;
+                flatlayCollage.appendChild(placeholder);
+            }
+        });
+
+        if (activeDrawings === 0) {
+            flatlayCollage.innerHTML = `
+                <div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; font-style: italic; padding: 40px 0; width: 100%;">
+                    Selecciona prendas en la izquierda para ver el lienzo de diseño flat-lay...
+                </div>
+            `;
+        }
+    }
+
     if (!superior || !inferior || !calzado) {
         if (container) container.style.display = 'none';
         return;
