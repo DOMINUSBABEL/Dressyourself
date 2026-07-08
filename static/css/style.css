@@ -2546,3 +2546,277 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     #player-calzado { width: 40px; height: 18px; top: 147px; }
     #player-accesorio { width: 20px; height: 20px; top: 30px; }
 }
+
+/* Antigravity added styles for brand filters, calendar, capsule and quests */
+.boutique-filters {
+    margin-bottom: 25px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.brand-filter-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(212, 175, 55, 0.15);
+    color: var(--text-secondary);
+    padding: 10px 22px;
+    border-radius: 20px;
+    font-family: var(--font-ui);
+    font-weight: 500;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.brand-filter-btn:hover {
+    background: rgba(212, 175, 55, 0.08);
+    border-color: rgba(212, 175, 55, 0.4);
+    color: #fff;
+}
+
+.brand-filter-btn.active {
+    background: linear-gradient(135deg, var(--accent-gold) 0%, #a28325 100%);
+    border-color: var(--accent-gold);
+    color: #000;
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.35);
+    font-weight: 600;
+}
+
+.weekly-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 15px;
+}
+
+@media (max-width: 992px) {
+    .weekly-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+@media (max-width: 576px) {
+    .weekly-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.calendar-day-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    transition: var(--transition-smooth);
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.calendar-day-card:hover {
+    border-color: var(--border-gold);
+    background: rgba(212, 175, 55, 0.02);
+    transform: translateY(-3px);
+}
+
+.calendar-day-card.today {
+    border: 1px solid var(--accent-gold);
+    background: rgba(212, 175, 55, 0.05);
+}
+
+.calendar-day-header {
+    margin-bottom: 12px;
+}
+
+.calendar-day-name {
+    font-family: var(--font-editorial);
+    color: var(--accent-gold);
+    font-size: 1rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+.calendar-day-date {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 2px 0 0 0;
+}
+
+.calendar-outfit-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+}
+
+.calendar-outfit-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.calendar-outfit-badge {
+    font-size: 0.65rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    padding: 2px 8px;
+    border-radius: 10px;
+    display: inline-block;
+}
+
+.calendar-empty-slot {
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    padding: 20px 10px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    transition: var(--transition-smooth);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 100%;
+}
+
+.calendar-empty-slot:hover {
+    border-color: var(--accent-gold);
+    color: var(--accent-gold);
+    background: rgba(212, 175, 55, 0.03);
+}
+
+.capsule-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.capsule-item-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    transition: var(--transition-smooth);
+}
+
+.capsule-item-card:hover {
+    border-color: var(--border-gold);
+    transform: translateY(-2px);
+}
+
+.capsule-item-img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    background: #141414;
+}
+
+.capsule-item-name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 4px 0 2px 0;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.capsule-item-cat {
+    font-size: 0.65rem;
+    color: var(--accent-gold);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.capsule-outfits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.capsule-outfit-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: var(--transition-smooth);
+    min-height: 250px;
+}
+
+.capsule-outfit-card:hover {
+    border-color: var(--accent-gold);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+}
+
+.capsule-outfit-score-badge {
+    background: rgba(212, 175, 55, 0.1);
+    border: 1px solid var(--accent-gold);
+    color: var(--accent-gold);
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.quest-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 12px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    transition: var(--transition-smooth);
+}
+
+.quest-card:hover {
+    border-color: rgba(212, 175, 55, 0.3);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.quest-card.completed {
+    border-color: #2e7d32 !important;
+    background: rgba(46, 125, 50, 0.05) !important;
+}
+
+.quest-badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+}
+
+.quest-badge.active {
+    background: rgba(212, 175, 55, 0.15);
+    color: var(--accent-gold);
+    border: 1px solid var(--accent-gold);
+}
+
+.quest-badge.completed {
+    background: rgba(46, 125, 50, 0.2);
+    color: #4caf50;
+    border: 1px solid #4caf50;
+}
+

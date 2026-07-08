@@ -42,7 +42,14 @@ const STATE = {
     // RPG Styling State
     chatMode: 'libre',
     rpgCurrentNode: 'occasion_step',
-    rpgAnswers: []
+    rpgAnswers: [],
+
+    // Antigravity added state variables
+    selectedBrand: 'all',
+    scheduledOutfits: [],
+    capsuleEssentials: [],
+    capsuleOutfits: [],
+    dailyQuests: null
 };
 
 // Look image map for Aria
@@ -368,6 +375,14 @@ function switchTab(tabName) {
     } else {
         stopTrackingSimulation();
     }
+
+    if (tabName === 'calendario') {
+        if (typeof initCalendar === 'function') initCalendar();
+    } else if (tabName === 'capsula') {
+        if (typeof initCapsule === 'function') initCapsule();
+    } else if (tabName === 'closet') {
+        if (typeof initQuestsPanel === 'function') initQuestsPanel();
+    }
 }
 
 // 2. Weather & Daily Recommendations Integration (with GPS geolocation, Nominatim reverse geocoding & location picker)
@@ -686,6 +701,7 @@ async function initCloset() {
 
     await loadClosetItems();
     await loadSavedOutfits();
+    if (typeof initQuestsPanel === 'function') initQuestsPanel();
 
     filterButtons.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1898,14 +1914,31 @@ async function initBoutique() {
     } catch (e) {
         STATE.boutiqueItems = [...MOCK_DATA.boutique];
     }
+
+    // Bind brand filter buttons
+    const filterBtns = document.querySelectorAll('.brand-filter-btn');
+    filterBtns.forEach(btn => {
+        btn.onclick = () => {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            STATE.selectedBrand = btn.getAttribute('data-brand');
+            renderBoutique();
+        };
+    });
+
     renderBoutique();
 }
 
 function renderBoutique() {
     const boutiqueGrid = document.getElementById('boutique-grid');
+    if (!boutiqueGrid) return;
     boutiqueGrid.innerHTML = '';
 
-    STATE.boutiqueItems.forEach(item => {
+    const filteredItems = STATE.selectedBrand === 'all' 
+        ? STATE.boutiqueItems 
+        : STATE.boutiqueItems.filter(item => item.brand.toLowerCase() === STATE.selectedBrand.toLowerCase());
+
+    filteredItems.forEach(item => {
         const card = document.createElement('div');
         card.className = 'boutique-card';
         card.setAttribute('draggable', 'true');
@@ -2094,6 +2127,11 @@ async function evaluateFittingMatch() {
                 }
             } else {
                 verdictText.textContent = `"${data.advice}"`;
+            }
+
+            // Check daily quests completion
+            if (typeof checkDailyQuestsCompletion === 'function') {
+                checkDailyQuestsCompletion(closetItem, boutiqueItem);
             }
         }
     } catch (e) {
@@ -3464,3 +3502,443 @@ window.buyRPGLook = async function(topId, bottomId, footwearId, outerwearId, acc
 // BabylonSwarm_Commit_49: style(ui): add loading-spinner skeletons to boutique image lazy loads
 
 // BabylonSwarm_Commit_54: test(qa): audit JS codebase with strict V8 check rules
+
+
+// Antigravity additions: Weekly Calendar, Capsule Wardrobe, Daily Fashion Quests
+
+// --- Weekly Calendar Manager ---
+async function initCalendar() {
+    try {
+        const response = await fetch('/api/schedule');
+        if (response.ok) {
+            STATE.scheduledOutfits = await response.json();
+        }
+    } catch (e) {
+        console.error("Error loading schedule:", e);
+    }
+    renderCalendar();
+}
+
+function renderCalendar() {
+    const grid = document.getElementById('weekly-calendar-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    const weekdays = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const today = new Date();
+    
+    for (let i = 0; i < 7; i++) {
+        const currentDay = new Date(today);
+        currentDay.setDate(today.getDate() + i);
+        
+        const yyyy = currentDay.getFullYear();
+        const mm = String(currentDay.getMonth() + 1).padStart(2, '0');
+        const dd = String(currentDay.getDate()).padStart(2, '0');
+        const dateStr = `${yyyy}-${mm}-${dd}`;
+        
+        const isToday = i === 0;
+        const weekdayName = weekdays[currentDay.getDay()];
+        const dateLabel = currentDay.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+        
+        const dayCard = document.createElement('div');
+        dayCard.className = `calendar-day-card ${isToday ? 'today' : ''} animate-fade-in`;
+        
+        const scheduleEntry = STATE.scheduledOutfits.find(s => s.date_str === dateStr);
+        
+        let cardContent = '';
+        if (scheduleEntry) {
+            const savedOutfit = STATE.savedCombinations.find(o => o.id === scheduleEntry.outfit_id);
+            let thumbsHTML = '';
+            if (savedOutfit && savedOutfit.items) {
+                thumbsHTML = '<div class="combo-elements-previews" style="margin: 8px 0; justify-content: center; display: flex; gap: 4px; flex-wrap: wrap;">';
+                savedOutfit.items.forEach(itm => {
+                    if (itm.image) {
+                        thumbsHTML += `
+                            <div class="combo-item-thumb" title="${itm.name}" style="width: 25px; height: 25px; border-radius: 50%; overflow: hidden; border: 1.5px solid var(--accent-gold);">
+                                <img src="${itm.image}" alt="${itm.name}" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                        `;
+                    }
+                });
+                thumbsHTML += '</div>';
+            }
+            
+            const citiesList = ["Bogotá", "Medellín", "Cali", "Cartagena", "Bucaramanga", "Pereira", "Santa Marta", "Manizales", "Ibagué", "Londres", "Nueva York"];
+            const cityName = citiesList[scheduleEntry.city_index] || "Bogotá";
+            
+            cardContent = `
+                <div class="calendar-day-header">
+                    <h4 class="calendar-day-name">${weekdayName}</h4>
+                    <p class="calendar-day-date">${dateLabel}</p>
+                </div>
+                <div class="calendar-outfit-container">
+                    <h5 class="calendar-outfit-name" title="${scheduleEntry.outfit_name}">${scheduleEntry.outfit_name}</h5>
+                    ${thumbsHTML}
+                    <span class="calendar-outfit-badge">${scheduleEntry.occasion}</span>
+                    <span class="calendar-outfit-badge" style="background: rgba(212,175,55,0.15); border-color: var(--accent-gold); color: var(--accent-gold); font-size: 0.65rem; margin-top: 4px;">📍 ${cityName}</span>
+                </div>
+                <div style="display: flex; gap: 6px; justify-content: center; margin-top: 8px;">
+                    <button class="gold-btn-outline" style="padding: 4px 8px; font-size: 0.65rem;" onclick="window.openSchedulerModal('${dateStr}')">Cambiar</button>
+                    <button class="gold-btn-outline" style="padding: 4px 8px; font-size: 0.65rem; color: #ff5555; border-color: rgba(255,85,85,0.3);" onclick="window.deleteSchedule('${dateStr}')">&times;</button>
+                </div>
+            `;
+        } else {
+            cardContent = `
+                <div class="calendar-day-header">
+                    <h4 class="calendar-day-name" style="color: var(--text-muted);">${weekdayName}</h4>
+                    <p class="calendar-day-date">${dateLabel}</p>
+                </div>
+                <div class="calendar-empty-slot" onclick="window.openSchedulerModal('${dateStr}')">
+                    <span style="font-size: 1.2rem; color: var(--accent-gold);">+</span>
+                    <span>Programar</span>
+                </div>
+            `;
+        }
+        
+        dayCard.innerHTML = cardContent;
+        grid.appendChild(dayCard);
+    }
+}
+
+window.openSchedulerModal = function(dateStr) {
+    const select = document.getElementById('scheduler-outfit-select');
+    if (!select) return;
+    select.innerHTML = '';
+    
+    if (STATE.savedCombinations.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = "No tienes outfits guardados. Diseña uno primero.";
+        select.appendChild(opt);
+    } else {
+        STATE.savedCombinations.forEach(combo => {
+            const opt = document.createElement('option');
+            opt.value = combo.id;
+            opt.textContent = combo.name;
+            select.appendChild(opt);
+        });
+    }
+    
+    document.getElementById('scheduler-date-input').value = dateStr;
+    document.getElementById('scheduler-modal').style.display = 'block';
+    document.getElementById('scheduler-modal-backdrop').style.display = 'block';
+};
+
+window.closeSchedulerModal = function() {
+    document.getElementById('scheduler-modal').style.display = 'none';
+    document.getElementById('scheduler-modal-backdrop').style.display = 'none';
+};
+
+window.handleScheduleFormSubmit = async function(event) {
+    event.preventDefault();
+    const dateStr = document.getElementById('scheduler-date-input').value;
+    const outfitId = document.getElementById('scheduler-outfit-select').value;
+    const cityIndex = document.getElementById('scheduler-city-select').value;
+    const occasion = document.getElementById('scheduler-occasion-select').value;
+    
+    if (!outfitId) {
+        showToast("Por favor selecciona un outfit para programar.", "error");
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/schedule', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                date_str: dateStr,
+                outfit_id: parseInt(outfitId),
+                city_index: parseInt(cityIndex),
+                occasion: occasion
+            })
+        });
+        
+        if (response.ok) {
+            showToast("Outfit programado correctamente.");
+            window.closeSchedulerModal();
+            initCalendar();
+        } else {
+            const errData = await response.json();
+            showToast(errData.error || "Error al programar outfit.", "error");
+        }
+    } catch (e) {
+        showToast("Error de red al programar.", "error");
+    }
+};
+
+window.deleteSchedule = async function(dateStr) {
+    try {
+        const response = await fetch(`/api/schedule/${dateStr}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            showToast("Programación eliminada.");
+            initCalendar();
+        } else {
+            showToast("Error al eliminar la programación.", "error");
+        }
+    } catch(e) {
+        showToast("Error de red.", "error");
+    }
+};
+
+// --- Capsule Wardrobe Manager ---
+async function initCapsule() {
+    const essentialsGrid = document.getElementById('capsule-essentials-grid');
+    const combinationsGrid = document.getElementById('capsule-combinations-grid');
+    if (essentialsGrid) {
+        essentialsGrid.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 40px;">
+                <div class="spinner" style="margin: 0 auto 15px auto;"></div>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">Calculando los 10 esenciales de tu ropero...</p>
+            </div>
+        `;
+    }
+    
+    try {
+        const response = await fetch('/api/capsule');
+        if (response.ok) {
+            const data = await response.json();
+            STATE.capsuleEssentials = data.capsule_items || [];
+            STATE.capsuleOutfits = data.outfits || [];
+        }
+    } catch(e) {
+        console.error("Error loading capsule:", e);
+        STATE.capsuleEssentials = [];
+        STATE.capsuleOutfits = [];
+    }
+    renderCapsule();
+}
+
+function renderCapsule() {
+    const essentialsGrid = document.getElementById('capsule-essentials-grid');
+    const combinationsGrid = document.getElementById('capsule-combinations-grid');
+    
+    if (essentialsGrid) {
+        essentialsGrid.innerHTML = '';
+        if (STATE.capsuleEssentials.length === 0) {
+            essentialsGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px;">No hay suficientes prendas en tu closet para formar un armario cápsula (se requieren mínimo 5 prendas).</p>';
+        } else {
+            STATE.capsuleEssentials.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'capsule-item-card animate-fade-in';
+                card.innerHTML = `
+                    <img src="${item.image_url}" alt="${item.name}" class="capsule-item-img" onerror="this.onerror=null; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><rect fill=%22%23171717%22 width=%22200%22 height=%22200%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23646464%22 font-size=%2212%22 text-anchor=%22middle%22 dy=%22.3em%22>Esencial</text></svg>';">
+                    <div class="capsule-item-cat">${mapCategory(item.category)}</div>
+                    <h4 class="capsule-item-name" title="${item.name}">${item.name}</h4>
+                `;
+                essentialsGrid.appendChild(card);
+            });
+        }
+    }
+    
+    if (combinationsGrid) {
+        combinationsGrid.innerHTML = '';
+        if (STATE.capsuleOutfits.length === 0) {
+            combinationsGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px;">No hay combinaciones disponibles.</p>';
+        } else {
+            const topOutfits = STATE.capsuleOutfits.slice(0, 12);
+            topOutfits.forEach(outfit => {
+                const card = document.createElement('div');
+                card.className = 'capsule-outfit-card animate-fade-in';
+                
+                const outfitItems = [outfit.top, outfit.bottom, outfit.footwear, outfit.outerwear, outfit.accessory].filter(x => x !== null);
+                let itemsThumbs = '';
+                outfitItems.forEach(itm => {
+                    itemsThumbs += `
+                        <div class="combo-item-thumb" title="${itm.name} (${mapCategory(itm.category)})" style="width: 35px; height: 35px; border-radius: 50%; overflow: hidden; border: 1.5px solid var(--accent-gold);">
+                            <img src="${itm.image_url}" alt="${itm.name}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                    `;
+                });
+                
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                        <div>
+                            <h4 style="margin: 0; font-size: 0.9rem; color: #fff; font-family: var(--font-editorial);">Outfit Cápsula #${outfit.id.split('-')[1]}</h4>
+                            <span style="font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 2px;">Combinación de ${outfitItems.length} piezas</span>
+                        </div>
+                        <span class="capsule-outfit-score-badge">${outfit.total_score}% Score</span>
+                    </div>
+                    
+                    <div style="display: flex; gap: 6px; margin-bottom: 12px; justify-content: center;">
+                        ${itemsThumbs}
+                    </div>
+                    
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; margin-bottom: 12px; flex-grow: 1; min-height: 40px;">
+                        ${outfit.advice}
+                    </div>
+                    
+                    <button class="gold-btn-outline" style="width: 100%; justify-content: center; font-size: 0.75rem; padding: 6px 12px;" onclick="window.loadCapsuleOutfitToFittingRoom('${outfit.id}')">
+                        Probar Outfit en Vestidor
+                    </button>
+                `;
+                combinationsGrid.appendChild(card);
+            });
+        }
+    }
+}
+
+window.loadCapsuleOutfitToFittingRoom = function(outfitId) {
+    const outfit = STATE.capsuleOutfits.find(o => o.id === outfitId);
+    if (!outfit) return;
+    
+    const topItem = outfit.top;
+    if (topItem) {
+        selectForFitting('closet', {
+            id: topItem.id,
+            cat: mapCategory(topItem.category),
+            name: topItem.name,
+            style: topItem.pattern || 'Classic',
+            image: topItem.image_url
+        });
+    }
+    
+    if (STATE.boutiqueItems && STATE.boutiqueItems.length) {
+        selectForFitting('boutique', STATE.boutiqueItems[Math.floor(Math.random() * STATE.boutiqueItems.length)]);
+    }
+    
+    switchTab('probador');
+    showToast("Prenda principal del outfit cápsula cargada en el Probador.");
+};
+
+// --- Daily Quests Manager ---
+function initQuestsPanel() {
+    if (!STATE.dailyQuests) {
+        STATE.dailyQuests = [
+            {
+                id: 'q1',
+                theme: 'Cyberpunk Friday',
+                description: 'Diseña un look audaz combinando una prenda de tu Closet oscura con una pieza de Boutique estilo Streetwear/Cyberpunk.',
+                reward: '+5.0% Styling Index',
+                completed: false,
+                checkFn: (closet, boutique) => {
+                    const hasStreetwear = (closet && (closet.style.toLowerCase().includes('streetwear') || closet.style.toLowerCase().includes('cyberpunk') || closet.name.toLowerCase().includes('denim') || closet.name.toLowerCase().includes('gafas'))) || 
+                                          (boutique && (boutique.style.toLowerCase().includes('streetwear') || boutique.style.toLowerCase().includes('cyberpunk') || boutique.name.toLowerCase().includes('puffer') || boutique.name.toLowerCase().includes('gafas')));
+                    const hasDark = (closet && (closet.name.toLowerCase().includes('negro') || closet.name.toLowerCase().includes('azul') || closet.name.toLowerCase().includes('carbón') || closet.name.toLowerCase().includes('índigo'))) || 
+                                    (boutique && (boutique.name.toLowerCase().includes('negro') || boutique.name.toLowerCase().includes('azul') || boutique.name.toLowerCase().includes('carbón') || boutique.name.toLowerCase().includes('índigo')));
+                    return hasStreetwear && hasDark;
+                }
+            },
+            {
+                id: 'q2',
+                theme: 'Parisian Chic',
+                description: 'Combina un Abrigo Trench elegante con unos Mocasines o Botas de cuero para capturar el confort de París.',
+                reward: '+4.0% Styling Index',
+                completed: false,
+                checkFn: (closet, boutique) => {
+                    const hasTrench = (closet && (closet.name.toLowerCase().includes('trench') || closet.name.toLowerCase().includes('abrigo'))) || 
+                                      (boutique && (boutique.name.toLowerCase().includes('trench') || boutique.name.toLowerCase().includes('abrigo')));
+                    const hasLoafers = (closet && (closet.name.toLowerCase().includes('mocasines') || closet.name.toLowerCase().includes('botas') || closet.name.toLowerCase().includes('cuero'))) || 
+                                       (boutique && (boutique.name.toLowerCase().includes('mocasines') || boutique.name.toLowerCase().includes('botas') || boutique.name.toLowerCase().includes('cuero')));
+                    return hasTrench && hasLoafers;
+                }
+            },
+            {
+                id: 'q3',
+                theme: 'Quiet Luxury Neutrals',
+                description: 'Crea una composición minimalista utilizando únicamente tonos neutros refinados (Blanco Puro o Beige Arena) sin estampados.',
+                reward: '+3.0% Styling Index',
+                completed: false,
+                checkFn: (closet, boutique) => {
+                    const isNeutral = (closet && (closet.name.toLowerCase().includes('blanco') || closet.name.toLowerCase().includes('beige') || closet.name.toLowerCase().includes('crema') || closet.name.toLowerCase().includes('seda') || closet.name.toLowerCase().includes('algodón'))) &&
+                                      (boutique && (boutique.name.toLowerCase().includes('blanco') || boutique.name.toLowerCase().includes('beige') || boutique.name.toLowerCase().includes('crema') || boutique.name.toLowerCase().includes('satin') || boutique.name.toLowerCase().includes('lurex') || boutique.name.toLowerCase().includes('tweed')));
+                    return isNeutral;
+                }
+            }
+        ];
+        
+        const savedStreak = localStorage.getItem('dy_quest_streak');
+        if (savedStreak) {
+            const streakCountEl = document.getElementById('quest-streak-count');
+            if (streakCountEl) streakCountEl.textContent = savedStreak;
+        }
+        
+        STATE.dailyQuests.forEach(q => {
+            const isCompleted = localStorage.getItem(`dy_quest_completed_${q.id}`) === 'true';
+            q.completed = isCompleted;
+        });
+    }
+    renderQuests();
+}
+
+function renderQuests() {
+    const list = document.getElementById('quests-list');
+    if (!list) return;
+    list.innerHTML = '';
+    
+    STATE.dailyQuests.forEach(q => {
+        const card = document.createElement('div');
+        card.className = `quest-card ${q.completed ? 'completed' : ''} animate-fade-in`;
+        
+        card.innerHTML = `
+            <div style="flex-grow: 1;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                    <strong style="color: #fff; font-size: 0.85rem; font-family: var(--font-editorial); letter-spacing: 0.5px;">${q.theme}</strong>
+                    <span class="quest-badge ${q.completed ? 'completed' : 'active'}">${q.completed ? 'Completado' : 'Activo'}</span>
+                </div>
+                <p style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; margin: 0 0 4px 0;">${q.description}</p>
+                <span style="font-size: 0.7rem; color: var(--accent-gold); font-weight: 600;">Recompensa: ${q.reward}</span>
+            </div>
+            <div>
+                ${q.completed ? 
+                  `<span style="font-size: 1.5rem; color: #4caf50;">✓</span>` : 
+                  `<button class="gold-btn-outline" style="padding: 6px 12px; font-size: 0.7rem;" onclick="window.tryQuest('${q.id}')">Ir al Probador</button>`
+                }
+            </div>
+        `;
+        list.appendChild(card);
+    });
+}
+
+window.tryQuest = function(questId) {
+    const q = STATE.dailyQuests.find(quest => quest.id === questId);
+    if (!q) return;
+    
+    switchTab('probador');
+    showToast(`Desafío: ${q.theme}. Selecciona prendas en el Vestidor para completarlo.`);
+};
+
+function checkDailyQuestsCompletion(closetItem, boutiqueItem) {
+    if (!STATE.dailyQuests) return;
+    
+    STATE.dailyQuests.forEach(q => {
+        if (!q.completed && q.checkFn(closetItem, boutiqueItem)) {
+            q.completed = true;
+            localStorage.setItem(`dy_quest_completed_${q.id}`, 'true');
+            
+            let streak = parseInt(localStorage.getItem('dy_quest_streak') || '0');
+            streak += 1;
+            localStorage.setItem('dy_quest_streak', streak);
+            
+            const streakCountEl = document.getElementById('quest-streak-count');
+            if (streakCountEl) streakCountEl.textContent = streak;
+            
+            renderQuests();
+            showQuestCompletionEffect(q);
+        }
+    });
+}
+
+function showQuestCompletionEffect(quest) {
+    showToast(`✨ ¡DESAFÍO COMPLETADO! ✨\n${quest.theme}: ${quest.reward}`);
+    
+    const probadorBtn = document.querySelector('[data-tab="probador"]');
+    if (probadorBtn) {
+        createGoldParticleBurst(probadorBtn);
+    }
+    
+    const indexScoreEl = document.getElementById('styling-index-score');
+    if (indexScoreEl) {
+        let currentVal = parseFloat(indexScoreEl.textContent.replace('%', ''));
+        let bonus = quest.id === 'q1' ? 5.0 : (quest.id === 'q2' ? 4.0 : 3.0);
+        let newVal = Math.min(100.0, currentVal + bonus).toFixed(1);
+        indexScoreEl.textContent = `${newVal}%`;
+        indexScoreEl.style.color = "var(--accent-gold)";
+        indexScoreEl.style.textShadow = "0 0 10px var(--accent-gold)";
+    }
+}
+

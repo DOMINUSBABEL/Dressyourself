@@ -415,6 +415,23 @@ def save_schedule():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/schedule/<string:date_str>', methods=['DELETE'])
+def delete_schedule(date_str):
+    try:
+        conn = database.get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM schedule WHERE date_str = ?", (date_str,))
+        conn.commit()
+        changes = cursor.rowcount
+        conn.close()
+        if changes > 0:
+            return jsonify({"message": f"Programación para {date_str} eliminada."}), 200
+        else:
+            return jsonify({"error": "No hay programación para esta fecha."}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 # --- Virtual Shopping Cart Endpoints ---
 @app.route('/api/cart', methods=['GET'])
 def get_shopping_cart():

@@ -462,6 +462,14 @@
                     <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 8h-3V4H3v12h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 16.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm11.5 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM18 11.5V9h2.25L22 11.5H18z" fill="currentColor"/></svg>
                     <span>Pedidos</span>
                 </button>
+                <button class="nav-btn" data-tab="calendario">
+                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h2v2H7zm0 4h2v2H7zm4-4h2v2h-2zm0 4h2v2h-2zm4-4h2v2h-2zm0 4h2v2h-2z" fill="currentColor"/></svg>
+                    <span>Calendario</span>
+                </button>
+                <button class="nav-btn" data-tab="capsula">
+                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zM9 4h6v2H9V4zm11 15H4v-8h16v8z" fill="currentColor"/></svg>
+                    <span>Cápsula</span>
+                </button>
             </nav>
         </aside>
 
@@ -546,6 +554,14 @@
                             <svg class="btn-icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/></svg>
                             Escanear Prenda
                         </button>
+                        <button class="gold-btn-outline" onclick="switchTab('calendario')">
+                            <svg viewBox="0 0 24 24" class="btn-icon"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z" fill="currentColor"/></svg>
+                            <span>Calendario</span>
+                        </button>
+                        <button class="gold-btn-outline" onclick="switchTab('capsula')">
+                            <svg viewBox="0 0 24 24" class="btn-icon"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zM9 4h6v2H9V4zm11 15H4v-8h16v8z" fill="currentColor"/></svg>
+                            <span>Cápsula</span>
+                        </button>
                     </div>
                 </div>
 
@@ -587,6 +603,25 @@
                         <div style="width: 100%; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden; border: 1px solid rgba(212,175,55,0.2);">
                             <div id="styling-index-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #b8952b, var(--accent-gold)); transition: width 0.5s ease;"></div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Panel de Desafíos Diarios (Daily Fashion Quests) -->
+                <div class="daily-quests-panel glass-card" style="margin: 20px 0; padding: 20px; border: 1px solid rgba(212,175,55,0.25); border-radius: 12px; background: rgba(10, 10, 10, 0.85); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.5rem; color: var(--accent-gold);">⚡</span>
+                            <div>
+                                <h4 class="gold-text editorial-title" style="margin: 0; font-size: 0.95rem; font-weight: 700; letter-spacing: 2px;">DESAFÍOS DIARIOS DE MODA</h4>
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">Completa misiones y gana bonificaciones al Babylon Styling Index</span>
+                            </div>
+                        </div>
+                        <div class="quest-streak" style="font-size: 0.85rem; color: var(--accent-gold); font-weight: 600; background: rgba(212,175,55,0.1); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(212,175,55,0.2);">
+                            🔥 Racha: <span id="quest-streak-count">1</span> día
+                        </div>
+                    </div>
+                    <div class="quests-list" id="quests-list" style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Quests loaded dynamically via JS -->
                     </div>
                 </div>
 
@@ -1006,6 +1041,87 @@
                     <div class="tracking-actions">
                         <button class="gold-btn-outline" id="btn-refresh-tracking">Actualizar Estado</button>
                     </div>
+                </div>
+            </section>
+
+            <!-- SECTION 9: CALENDARIO SEMANAL -->
+            <section id="calendario" class="tab-content">
+                <div class="section-header">
+                    <h2 class="editorial-title">Calendario Semanal</h2>
+                    <p class="section-desc">Programa tus outfits para los próximos días y planifica tu estilo de la semana.</p>
+                </div>
+
+                <div class="calendar-container glass-card" style="padding: 20px; border-radius: 12px; background: rgba(10, 10, 10, 0.85); border: 1px solid var(--border-gold); margin-bottom: 25px;">
+                    <!-- Weekly Grid -->
+                    <div class="weekly-grid" id="weekly-calendar-grid">
+                        <!-- Loaded dynamically via JS -->
+                    </div>
+                </div>
+
+                <!-- Scheduler Dialog (embedded modal) -->
+                <div id="scheduler-modal" class="modal glass-card" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; padding: 25px; border-radius: 12px; background: rgba(15, 15, 15, 0.95); border: 1px solid var(--accent-gold); width: 90%; max-width: 500px; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(212,175,55,0.2); padding-bottom: 10px;">
+                        <h3 class="gold-text" id="scheduler-modal-title" style="margin: 0; font-family: var(--font-editorial);">Programar Outfit</h3>
+                        <button type="button" onclick="closeSchedulerModal()" style="background: none; border: none; color: #fff; font-size: 1.8rem; cursor: pointer; line-height: 1;">&times;</button>
+                    </div>
+                    <form id="scheduler-form" onsubmit="handleScheduleFormSubmit(event)">
+                        <input type="hidden" id="scheduler-date-input">
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Seleccionar Outfit de tu Ropero</label>
+                            <select id="scheduler-outfit-select" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; outline: none;"></select>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Ciudad de Destino (Confort Térmico CLO)</label>
+                            <select id="scheduler-city-select" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; outline: none;">
+                                <option value="0">Bogotá (Frío, Lluvia)</option>
+                                <option value="1">Medellín (Primavera)</option>
+                                <option value="2">Cali (Cálido)</option>
+                                <option value="3">Cartagena (Tropical)</option>
+                                <option value="4">Bucaramanga (Templado)</option>
+                                <option value="5">Pereira (Templado)</option>
+                                <option value="6">Santa Marta (Tropical)</option>
+                                <option value="7">Manizales (Templado-Frío)</option>
+                                <option value="8">Ibagué (Templado)</option>
+                                <option value="9">Londres (Templado-Frío)</option>
+                                <option value="10">Nueva York (Variado)</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Ocasión / Regla de Formalidad</label>
+                            <select id="scheduler-occasion-select" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; outline: none;">
+                                <option value="Casual">Casual</option>
+                                <option value="Quiet Luxury">Quiet Luxury</option>
+                                <option value="Business Casual">Business Casual</option>
+                                <option value="Sporty">Sporty</option>
+                                <option value="Cocktail">Cocktail</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="gold-btn" style="width: 100%; padding: 12px; font-weight: bold; border-radius: 6px; justify-content: center;">Confirmar Programación</button>
+                    </form>
+                </div>
+                <!-- Scheduler Modal Backdrop -->
+                <div id="scheduler-modal-backdrop" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 999;" onclick="closeSchedulerModal()"></div>
+            </section>
+
+            <!-- SECTION 10: ARMARIO CÁPSULA -->
+            <section id="capsula" class="tab-content">
+                <div class="section-header">
+                    <h2 class="editorial-title">Armario Cápsula Inteligente</h2>
+                    <p class="section-desc">El algoritmo matemático de optimización selecciona tus 10 esenciales para multiplicar tus opciones de outfit.</p>
+                </div>
+
+                <div class="capsule-section-title" style="margin-top: 25px; margin-bottom: 15px;">
+                    <h3 class="gold-text" style="font-family: var(--font-editorial); font-size: 1.1rem; letter-spacing: 1px;">LOS 10 ESENCIALES OPTIMIZADOS</h3>
+                </div>
+                <div class="capsule-grid" id="capsule-essentials-grid">
+                    <!-- Essentials loaded dynamically -->
+                </div>
+
+                <div class="capsule-section-title" style="margin-top: 35px; margin-bottom: 15px;">
+                    <h3 class="gold-text" style="font-family: var(--font-editorial); font-size: 1.1rem; letter-spacing: 1px;">COMBINACIONES DE ALTA COSTURA GENERADAS</h3>
+                </div>
+                <div class="capsule-outfits-grid" id="capsule-combinations-grid">
+                    <!-- Outfits loaded dynamically -->
                 </div>
             </section>
         </main>

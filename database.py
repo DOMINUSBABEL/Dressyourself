@@ -190,6 +190,43 @@ def init_db():
         ))
         conn.commit()
 
+    # Expand Boutique with real partner brand collections (Zara, Dior, Chanel) if not already populated
+    cursor.execute("SELECT COUNT(*) FROM clothes WHERE store_name IN ('Zara', 'Dior', 'Chanel')")
+    brand_count = cursor.fetchone()[0]
+    if brand_count < 10:
+        brand_clothes = [
+            # ZARA Collection
+            ("Chaqueta Blazer Crepe", "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600", "Outerwear", "Blazer", "Negro Carbón", None, "Liso", 10.0, 25.0, 1, 79.90, "Zara", 0, 1.0),
+            ("Pantalón Sastre de Pinzas", "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=600", "Bottom", "Pantalón de Vestir", "Beige Arena", None, "Liso", 12.0, 26.0, 1, 49.90, "Zara", 0, 1.0),
+            ("Suéter de Punto Fino", "https://images.unsplash.com/photo-1578587018452-892bacefd3f2?w=600", "Top", "Suéter", "Blanco Puro", None, "Liso", 8.0, 20.0, 0, 39.90, "Zara", 0, 1.0),
+            ("Camisa Oxford Classic", "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600", "Top", "Camisa", "Azul Celeste", "Blanco Puro", "Rayas", 12.0, 28.0, 1, 45.00, "Zara", 0, 1.0),
+            ("Tenis Plataforma Urban", "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=600", "Footwear", "Tenis", "Blanco Puro", None, "Liso", 10.0, 30.0, 0, 59.90, "Zara", 0, 1.0),
+            ("Mocasines de Cuero Track", "https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=600", "Footwear", "Mocasines", "Negro Carbón", None, "Liso", 8.0, 24.0, 1, 69.90, "Zara", 0, 1.0),
+
+            # DIOR Collection
+            ("Chaqueta Bar Clásica Dior", "https://images.unsplash.com/photo-1548624313-0396c75e4b1a?w=600", "Outerwear", "Chaqueta", "Negro Carbón", None, "Liso", 5.0, 18.0, 1, 3900.00, "Dior", 0, 1.0),
+            ("Falda Corola Plisada Dior", "https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=600", "Bottom", "Falda", "Negro Carbón", None, "Liso", 10.0, 25.0, 0, 2100.00, "Dior", 0, 1.0),
+            ("Zapatos de Tacón J'Adior Slings", "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600", "Footwear", "Zapatos de Tacón", "Negro Carbón", "Beige Arena", "Liso", 10.0, 30.0, 0, 990.00, "Dior", 0, 1.0),
+            ("Bolso de Mano Lady Dior", "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600", "Accessory", "Bolso", "Rojo Carmín", None, "Liso", -5.0, 35.0, 1, 5500.00, "Dior", 0, 1.0),
+            ("Gafas de Sol Dior Club", "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=600", "Accessory", "Gafas de Sol", "Negro Carbón", "Amarillo Mostaza", "Liso", 15.0, 35.0, 1, 450.00, "Dior", 0, 1.0),
+
+            # CHANEL Collection
+            ("Chaqueta de Tweed Classic Chanel", "https://images.unsplash.com/photo-1548624313-0396c75e4b1a?w=600", "Outerwear", "Chaqueta", "Blanco Puro", "Negro Carbón", "Cuadros", -5.0, 15.0, 1, 7500.00, "Chanel", 0, 1.0),
+            ("Vestido Corto de Tweed Chanel", "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600", "Top", "Vestido", "Negro Carbón", "Blanco Puro", "Liso", 10.0, 22.0, 0, 5800.00, "Chanel", 0, 1.0),
+            ("Zapatos Slingback Bicolores Chanel", "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=600", "Footwear", "Zapatos de Tacón", "Beige Arena", "Negro Carbón", "Liso", 10.0, 28.0, 0, 950.00, "Chanel", 0, 1.0),
+            ("Bolso Clásico Flap 11.12 Chanel", "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600", "Accessory", "Bolso", "Negro Carbón", None, "Liso", -10.0, 40.0, 1, 9800.00, "Chanel", 0, 1.0),
+            ("Gafas Rectangulares de Perlas Chanel", "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=600", "Accessory", "Gafas de Sol", "Marrón Otoño", None, "Liso", 12.0, 32.0, 1, 580.00, "Chanel", 0, 1.0),
+        ]
+        for item in brand_clothes:
+            cursor.execute("SELECT COUNT(*) FROM clothes WHERE name = ? AND store_name = ?", (item[0], item[11]))
+            if cursor.fetchone()[0] == 0:
+                cursor.execute('''
+                    INSERT INTO clothes (
+                        name, image_url, category, subcategory, color_primary, color_secondary, 
+                        pattern, min_temp, max_temp, rain_friendly, price, store_name, is_owned, confidence
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', item)
+        conn.commit()
     conn.close()
 
 def get_all_clothes(owned_filter=None):
