@@ -703,3 +703,5 @@ def analyze_image(image_path_or_bytes):
             "confidence": 50.0,
             "error": str(e)
         }
+
+# BabylonSwarm_Commit_15: feat(brands): add structured tags for premium fabrics (Silk, Wool, Tweed, Leather)
