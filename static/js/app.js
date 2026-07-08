@@ -3921,7 +3921,10 @@ function checkDailyQuestsCompletion(closetItem, boutiqueItem) {
         }
     });
 }
-
+function showQuestCompletionEffect(quest) {
+    if (typeof createGoldParticleBurst === 'function') {
+        createGoldParticleBurst();
+    }
     const indexScoreEl = document.getElementById('styling-index-score');
     if (indexScoreEl) {
         let currentVal = parseFloat(indexScoreEl.textContent.replace('%', ''));
@@ -3931,6 +3934,7 @@ function checkDailyQuestsCompletion(closetItem, boutiqueItem) {
         indexScoreEl.style.color = "var(--accent-gold)";
         indexScoreEl.style.textShadow = "0 0 10px var(--accent-gold)";
     }
+    showToast(`¡Desafío Completado! ${quest.reward}`);
 }
 
 
