@@ -3452,3 +3452,5 @@ window.buyRPGLook = async function(topId, bottomId, footwearId, outerwearId, acc
 // BabylonSwarm_Commit_30: feat(monetization): enforce robust error handling for failed cart billing checkouts
 
 // BabylonSwarm_Commit_37: feat(quests): add progress indicator for consecutive daily challenge streaks
+
+// BabylonSwarm_Commit_38: feat(quests): display motivational messages from Isa for challenge milestones
