@@ -214,6 +214,15 @@ def get_innovations():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/capsule', methods=['GET'])
+def get_capsule_closet_api():
+    try:
+        clothes_list = database.get_all_clothes()
+        capsule = styling_engine.generate_capsule_closet(clothes_list)
+        return jsonify(capsule), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # 4. Outfits Management
 @app.route('/api/outfits', methods=['GET'])
 def get_outfits():
@@ -378,6 +387,110 @@ def add_chat_message_endpoint():
             
         new_id = database.save_chat_message(sender, message, scraped_item_json)
         return jsonify({"id": new_id, "message": "Mensaje guardado correctamente."}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+# --- Outfit Scheduling Endpoints ---
+@app.route('/api/schedule', methods=['GET'])
+def get_schedule():
+    try:
+        sched = database.get_outfit_schedule()
+        return jsonify(sched), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/schedule', methods=['POST'])
+def save_schedule():
+    try:
+        data = request.json or {}
+        date_str = data.get('date_str')
+        outfit_id = data.get('outfit_id')
+        city_index = data.get('city_index', 0)
+        occasion = data.get('occasion', 'Casual')
+        
+        if not date_str or not outfit_id:
+            return jsonify({"error": "Faltan campos: date_str, outfit_id"}), 400
+            
+        sched_id = database.schedule_outfit(date_str, int(outfit_id), int(city_index), occasion)
+        return jsonify({"id": sched_id, "message": "Outfit programado correctamente."}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# --- Virtual Shopping Cart Endpoints ---
+@app.route('/api/cart', methods=['GET'])
+def get_shopping_cart():
+    try:
+        cart_items = database.get_cart()
+        total = sum((item["price"] or 0.0) * item["quantity"] for item in cart_items)
+        return jsonify({
+            "items": cart_items,
+            "total_price": round(total, 2)
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/cart', methods=['POST'])
+def add_item_to_cart():
+    try:
+        data = request.json or {}
+        clothing_id = data.get('clothing_id')
+        quantity = data.get('quantity', 1)
+        
+        if not clothing_id:
+            return jsonify({"error": "Falta clothing_id"}), 400
+            
+        cart_id = database.add_to_cart(int(clothing_id), int(quantity))
+        return jsonify({"id": cart_id, "message": "Prenda añadida a la cesta."}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/cart/<int:clothing_id>', methods=['DELETE'])
+def remove_item_from_cart(clothing_id):
+    try:
+        success = database.delete_from_cart(clothing_id)
+        if success:
+            return jsonify({"message": "Prenda eliminada de la cesta."}), 200
+        return jsonify({"error": "Prenda no encontrada en la cesta."}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/cart/checkout', methods=['POST'])
+def checkout_shopping_cart():
+    try:
+        cart_items = database.get_cart()
+        if not cart_items:
+            return jsonify({"error": "La cesta de compras está vacía."}), 400
+            
+        for item in cart_items:
+            # Create a real purchase order
+            database.create_order(item["clothing_id"], item["quantity"], item["price"] * item["quantity"])
+            
+        database.clear_cart()
+        return jsonify({"message": "Pedido de cesta procesado exitosamente."}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# --- Wear & Durability Endpoints ---
+@app.route('/api/clothes/<int:clothing_id>/wear', methods=['POST'])
+def record_clothing_wear(clothing_id):
+    try:
+        database.increment_wear_count(clothing_id)
+        item = database.get_clothing_by_id(clothing_id)
+        return jsonify({
+            "message": "Uso registrado con éxito.",
+            "wear_count": item["wear_count"],
+            "durability": item["durability"]
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# --- Capsule Wardrobe Generator Endpoint ---
+@app.route('/api/closet/capsule', methods=['GET'])
+def get_capsule_wardrobe():
+    try:
+        clothes = database.get_all_clothes()
+        # Call styling engine generator
+        res = styling_engine.get_capsule_wardrobe_recommendation(clothes)
+        return jsonify(res), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -656,11 +769,13 @@ def closet_scan_image():
 
         tipo = result.get("subcategory") or result.get("category") or "Prenda"
         estilo = result.get("pattern") or "Liso"
+        material = result.get("material") or "Algodón"
         confianza = result.get("confidence", 50.0)
         consejo = (
             f"Prenda detectada: {result.get('category', 'N/A')} / {tipo}. "
             f"Color principal: {result.get('color_primary', 'N/A')}. "
             f"Patrón: {estilo}. "
+            f"Material: {material}. "
             f"Combínala con prendas de colores complementarios para un look equilibrado."
         )
 
@@ -668,6 +783,7 @@ def closet_scan_image():
             "tipo": tipo,
             "estilo": estilo,
             "colores": colores,
+            "material": material,
             "confianza": confianza,
             "consejo": consejo,
         }), 200
