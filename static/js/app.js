@@ -3460,3 +3460,5 @@ window.buyRPGLook = async function(topId, bottomId, footwearId, outerwearId, acc
 // BabylonSwarm_Commit_46: style(ui): redesign closet category filter buttons with active states
 
 // BabylonSwarm_Commit_47: style(ui): add slide-in animation drawer for detailed garment properties
+
+// BabylonSwarm_Commit_49: style(ui): add loading-spinner skeletons to boutique image lazy loads
