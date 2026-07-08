@@ -254,6 +254,143 @@ def get_city_weather_conditions(city_name, temp, rain):
 def angular_distance(theta1, theta2):
     return min(abs(theta1 - theta2), 360 - abs(theta1 - theta2))
 
+def is_analog_monochrome_check(items):
+    colors = [it.get("color_primary") for it in items if it and it.get("color_primary")]
+    if not colors:
+        return True
+    parsed = [parse_color(c) for c in colors]
+    chromatic = [c for c in parsed if not c[3]]
+    if not chromatic:
+        return True
+    hues = [map_hue_to_center(c[0]) for c in chromatic]
+    for i in range(len(hues)):
+        for j in range(i + 1, len(hues)):
+            if angular_distance(hues[i], hues[j]) > 60:
+                return False
+    return True
+
+def evaluate_visual_proportions(upper, bottom):
+    if not upper or not bottom:
+        return 0.0, "Proporción Neutra", "Se necesitan prendas superior e inferior para evaluar la proporción áurea."
+    
+    upper_name = normalize_str(upper.get("name", ""))
+    upper_subcat = normalize_str(upper.get("subcategory", ""))
+    
+    bottom_name = normalize_str(bottom.get("name", ""))
+    bottom_subcat = normalize_str(bottom.get("subcategory", ""))
+    
+    def get_fit(name, subcat):
+        n_s = name + " " + subcat
+        if any(k in n_s for k in ["ajustad", "slim", "body", "fitted", "entallado", "seda", "skinny", "ceñido"]):
+            return "entallado"
+        if any(k in n_s for k in ["oversize", "holgado", "puffer", "buzo", "hoodie", "sueter", "cardigan", "plisada", "palazzo", "wide leg", "amplio"]):
+            return "amplio"
+        if any(k in n_s for k in ["blazer", "sastre", "vestir", "pantalon de vestir", "abrigo", "trench", "estructurado"]):
+            return "estructurado"
+        return "regular"
+
+    upper_fit = get_fit(upper_name, upper_subcat)
+    bottom_fit = get_fit(bottom_name, bottom_subcat)
+    
+    if any(k in upper_name or k in upper_subcat for k in ["cropped", "corto", "crop", "tucked", "body", "seda", "blusa", "fajado", "tuck"]):
+        upper_height = 1.0
+    elif any(k in upper_name or k in upper_subcat for k in ["sueter", "cardigan", "hoodie", "buzo", "oversize", "abrigo", "trench", "parka"]):
+        upper_height = 1.8
+    else:
+        upper_height = 1.2
+        
+    if any(k in bottom_name or k in bottom_subcat for k in ["short", "falda corta", "minifalda", "bermuda"]):
+        bottom_height = 1.0
+    elif any(k in bottom_name or k in bottom_subcat for k in ["sastre", "vestir", "plisada", "maxi", "alto", "tiro alto"]):
+        bottom_height = 2.0
+    else:
+        bottom_height = 1.5
+        
+    ratio = upper_height / (upper_height + bottom_height)
+    
+    proportion_bonus = 0.0
+    ratio_type = "Proporción Estándar"
+    details = ""
+    
+    if 0.30 <= ratio <= 0.42:
+        proportion_bonus += 10.0
+        ratio_type = "Silueta de la Regla de los Tercios (1/3 superior)"
+        details = "Presenta la Proporción de los Tercios ideal (1/3 superior y 2/3 inferior), alargando las piernas visualmente."
+    elif 0.58 <= ratio <= 0.70:
+        proportion_bonus += 10.0
+        ratio_type = "Silueta de la Regla de los Tercios (2/3 superior)"
+        details = "Presenta la Proporción de los Tercios inversa (2/3 superior y 1/3 inferior), una propuesta editorial de alto impacto."
+    else:
+        ratio_type = "Proporción 1:1 Simétrica"
+        details = "Muestra una proporción simétrica de 1:1 que divide la silueta a la mitad."
+        
+    fit_bonus = 0.0
+    if (upper_fit == "entallado" and bottom_fit == "amplio") or (upper_fit == "amplio" and bottom_fit == "entallado"):
+        fit_bonus += 5.0
+        details += " Equilibrio de volúmenes perfecto (entallado + amplio)."
+    elif upper_fit == "estructurado" and bottom_fit == "estructurado":
+        fit_bonus += 5.0
+        details += " Coherencia de sastrería estructurada y porte impecable."
+    elif upper_fit == "amplio" and bottom_fit == "amplio":
+        fit_bonus -= 5.0
+        details += " Silueta con exceso de volumen holgado en ambas partes (saturación de silueta)."
+    elif upper_fit == "entallado" and bottom_fit == "entallado":
+        fit_bonus -= 3.0
+        details += " Silueta totalmente ceñida, restando profundidad visual al conjunto."
+        
+    return proportion_bonus + fit_bonus, ratio_type, details
+
+def evaluate_textures_and_layering(items):
+    top_item = next((it for it in items if it.get("category") == "Top"), None)
+    outer_item = next((it for it in items if it.get("category") == "Outerwear"), None)
+    
+    def get_weight(item):
+        if not item: return 0
+        name = normalize_str(item.get("name", ""))
+        subcat = normalize_str(item.get("subcategory", ""))
+        category = normalize_str(item.get("category", ""))
+        
+        if any(k in name or k in subcat for k in ["lino", "silk", "seda", "camiseta", "t-shirt", "crop", "sandalia", "slide"]):
+            return 1
+        if any(k in name or k in subcat for k in ["camisa", "shirt", "blusa"]):
+            return 2
+        if any(k in name or k in subcat for k in ["sueter", "cardigan", "jersey", "buzo", "hoodie", "denim", "chaqueta denim"]):
+            return 3
+        if any(k in name or k in subcat for k in ["blazer", "chaqueta ligera"]):
+            return 4
+        if any(k in name or k in subcat for k in ["abrigo", "puffer", "wool", "lana", "trench", "gabardina", "plumon", "parka"]):
+            return 5
+        
+        if category == "top": return 2
+        if category == "outerwear": return 4
+        return 2
+
+    top_weight = get_weight(top_item)
+    outer_weight = get_weight(outer_item)
+    
+    layering_score = 100.0
+    layering_comment = "Estructura de capas minimalista."
+    
+    if top_item and outer_item:
+        if outer_weight < top_weight:
+            layering_score = 60.0
+            layering_comment = "Incoherencia en Cohesión de Capas: la capa exterior es más ligera que la prenda interior."
+        elif outer_weight == top_weight:
+            layering_score = 85.0
+            layering_comment = "Capa exterior e interior con el mismo peso visual."
+        else:
+            layering_score = 100.0
+            layering_comment = "Cohesión de Capas y Texturas ideal: degradación armónica de pesos visuales."
+            
+    has_lino = any("lino" in normalize_str(it.get("name", "")) or "lino" in normalize_str(it.get("subcategory", "")) for it in items)
+    has_invierno = any(any(k in normalize_str(it.get("name", "")) or k in normalize_str(it.get("subcategory", "")) for k in ["wool", "lana", "puffer", "plumon", "abrigo"]) for it in items)
+    
+    if has_lino and has_invierno:
+        layering_score = max(30.0, layering_score - 30.0)
+        layering_comment += " Conflicto Estacional de Texturas: se ha mezclado lino veraniego con abrigo de lana o plumón."
+        
+    return layering_score, layering_comment
+
 def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=None, rain=None):
     items = [item for item in items if item is not None]
     n = len(items)
@@ -368,6 +505,28 @@ def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=
     else:
         color_type = "Sobrecarga de Colores (Arcoíris)"
         color_score = max(30.0, 75.0 - 15.0 * (num_chromatic - 3))
+        
+    # --- The French Rule of Three Colors ---
+    unique_colors = set(normalize_str(item.get("color_primary")) for item in items if item.get("color_primary"))
+    num_unique_colors = len(unique_colors)
+    color_bonus = 0.0
+    color_penalty = 0.0
+    color_comment = ""
+    
+    if num_unique_colors in [2, 3]:
+        color_bonus = 15.0
+        color_comment = "Regla de los Tres Colores: paleta equilibrada de 2 o 3 colores que optimiza el impacto visual."
+        color_score = min(100.0, color_score + color_bonus)
+    elif num_unique_colors >= 4:
+        is_analog_mono = is_analog_monochrome_check(items)
+        if not is_analog_mono:
+            color_penalty = 20.0
+            color_comment = "Límite Tríada de los Tres Colores superado: conflicto cromático de 4 o más tonos clashing."
+            color_score = max(30.0, color_score - color_penalty)
+        else:
+            color_comment = "Monocromía Chic: a pesar de tener 4 o más colores, el ensamble se mantiene bajo una paleta análoga o de acento."
+
+    # --- Style Score calculation ---
     formalities = [get_formality(item) for item in items]
     mean_formality = sum(formalities) / len(formalities)
     if len(formalities) > 1:
@@ -389,6 +548,15 @@ def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=
         d_O = mean_formality - f_target_max
     score_adherence = max(0.0, 100.0 - 25.0 * (d_O ** 2))
     style_score = 0.40 * score_coherence + 0.60 * score_adherence
+    
+    # --- Rule of Thirds & Visual Proportions ---
+    top_item = next((it for it in items if it.get("category") == "Top"), None)
+    bottom_item = next((it for it in items if it.get("category") == "Bottom"), None)
+    upper_item = top_item if top_item else next((it for it in items if it.get("category") == "Outerwear"), None)
+    
+    prop_bonus, ratio_type, prop_details = evaluate_visual_proportions(upper_item, bottom_item)
+    style_score = max(0.0, min(100.0, style_score + prop_bonus))
+
     clashing_items = []
     if std_deviation > 2.0:
         for i in range(len(items)):
@@ -400,6 +568,8 @@ def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=
                         "item_b": items[j]["name"],
                         "formality_b": formalities[j]
                     })
+                    
+    # --- Pattern & Texture Score calculation ---
     pattern_indices = [get_pattern_index(item) for item in items]
     num_patterned = sum(1 for p in pattern_indices if p != 0)
     if len(items) < 2:
@@ -418,6 +588,17 @@ def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=
         pattern_score = pattern_base
     else:
         pattern_score = max(10.0, pattern_base - 15.0 * (num_patterned - 2))
+        
+    layering_score, layering_comment = evaluate_textures_and_layering(items)
+    
+    has_lino = any("lino" in normalize_str(it.get("name", "")) or "lino" in normalize_str(it.get("subcategory", "")) for it in items)
+    if any(it.get("category") == "Outerwear" for it in items) or has_lino:
+        pattern_score = 0.60 * pattern_score + 0.40 * layering_score
+    else:
+        pattern_score = 0.90 * pattern_score + 0.10 * layering_score
+    pattern_score = max(0.0, min(100.0, pattern_score))
+
+    # --- Weather Score calculation ---
     thermal_res = []
     layer_types = []
     for item in items:
@@ -499,11 +680,14 @@ def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=
             warnings.append({"type": "humidity_breathability_penalty", "message": "Tejido sintético poco transpirable en clima húmedo."})
         if breathable:
             B_breathable = 5
+            
     weather_score = max(0.0, temp_comfort_score - P_layering - P_rain_outer - P_rain_foot - P_uv_acc - P_uv_skin - P_humidity + B_breathable)
     total_score = 0.35 * color_score + 0.30 * style_score + 0.15 * pattern_score + 0.20 * weather_score
     scores_dict = {"Color": color_score, "Estilo": style_score, "Patrón": pattern_score, "Clima": weather_score}
     highest_sub = max(scores_dict, key=scores_dict.get)
     highest_val = scores_dict[highest_sub]
+    
+    # --- Critique List for advice ---
     critique_list = []
     if color_score < 80.0:
         critique_list.append(f"la armonía de color ({color_type.lower()}) necesita un ajuste cromático")
@@ -513,7 +697,7 @@ def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=
         else:
             critique_list.append("el nivel de formalidad no se alinea con la ocasión seleccionada")
     if pattern_score < 80.0:
-        critique_list.append("la mezcla de patrones resulta sobrecargada")
+        critique_list.append("la mezcla de patrones o texturas resulta sobrecargada o incoherente")
     if weather_score < 80.0:
         if temp < 8:
             critique_list.append("el ensamble es demasiado frío para la temperatura exterior")
@@ -521,17 +705,46 @@ def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=
             critique_list.append("el look tiene demasiadas capas para el calor")
         else:
             critique_list.append("las prendas no se adaptan perfectamente a las condiciones climáticas actuales")
+            
+    # --- Advanced Editorial Commentary in Spanish ---
+    editorial_comments = []
+    if num_unique_colors in [2, 3]:
+        editorial_comments.append(f"Aplica de forma brillante la Regla de los Tres Colores con una armonía de tipo {color_type.lower()}.")
+    elif num_unique_colors >= 4:
+        if is_analog_monochrome_check(items):
+            editorial_comments.append(f"Exhibe una refinada Monocromía Chic a través de una transición análoga sumamente suave.")
+        else:
+            editorial_comments.append(f"Alcanza el Límite Tríada de los Tres Colores con {num_unique_colors} tonos distintos, generando tensión visual.")
+            
+    if "Tercios" in ratio_type:
+        editorial_comments.append(f"Estructura la figura bajo la {ratio_type}, creando una silueta sumamente estilizada.")
+    else:
+        editorial_comments.append(f"Mantiene una {ratio_type} clásica.")
+        
+    if "Conflicto Estacional" in layering_comment:
+        editorial_comments.append("Se detecta un Conflicto Estacional de Texturas que compromete el equilibrio estético.")
+    elif "Incoherencia en Cohesión" in layering_comment:
+        editorial_comments.append("La cohesión de capas muestra una ligera incoherencia de peso visual.")
+    elif "Cohesión de Capas" in layering_comment or "degradación armónica" in layering_comment:
+        editorial_comments.append("Muestra una Cohesión de Capas y Texturas impecable con una transición fluida de pesos.")
+
+    # Shape fit comment
+    if "entallado + amplio" in prop_details:
+        editorial_comments.append("El balance de volúmenes entallado + amplio aporta una dimensión moderna y sofisticada.")
+    elif "sastrería estructurada" in prop_details:
+        editorial_comments.append("La uniformidad sastrera estructurada entrega una presencia de gala impecable.")
+        
     greeting = "Bonjour, chérie!"
     if total_score >= 90.0:
-        greeting = "¡Bonjour! Mon dieu, este ensamble es una obra de arte absoluta,"
-        critique = "La silueta es impecable y está lista para desfilar."
+        greeting = "¡Bonjour! Mon dieu, este ensamble es una obra de arte absoluta."
+        critique = "La propuesta arquitectónica es impecable."
         suggestion = "No le cambies absolutamente nada, es sencillamente sublime."
     elif total_score >= 75.0:
-        greeting = "¡Bonjour! Un look bastante interesante y chic,"
+        greeting = "¡Bonjour! Un look bastante interesante y chic."
         critique = "Aunque tiene un gran porte, " + (" y ".join(critique_list) if critique_list else "puntos mínimos podrían pulirse") + "."
         suggestion = "Te sugiero ajustar un poco las proporciones o los accesorios para llegar a la perfección."
     else:
-        greeting = "Bonjour... Tenemos trabajo por hacer, darling,"
+        greeting = "Bonjour... Tenemos trabajo por hacer, darling."
         critique = "El ensamble tiene discordancias importantes: " + (" y ".join(critique_list) if critique_list else "falta cohesión en las capas o estilos") + "."
         lowest_sub = min(scores_dict, key=scores_dict.get)
         if lowest_sub == "Color":
@@ -541,8 +754,10 @@ def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=
         elif lowest_sub == "Clima":
             suggestion = "Agrega una chaqueta o abrigo adecuado para regular tu confort térmico."
         else:
-            suggestion = "Prueba con prendas lisas para mitigar el conflicto de estampados."
-    advice = f"{greeting} califica un {total_score:.1f}% en la escala Haute Couture. Tu punto más fuerte es {highest_sub.lower()} ({highest_val:.1f}%). {critique} {suggestion}"
+            suggestion = "Prueba con prendas lisas para mitigar el conflicto de estampados o incoherencia de texturas."
+            
+    editorial_str = " ".join(editorial_comments)
+    advice = f"{greeting} {editorial_str} Califica un {total_score:.1f}% en la escala Haute Couture. Tu punto más fuerte es {highest_sub.lower()} ({highest_val:.1f}%). {critique} {suggestion}"
     return {
         "color_score": round(color_score, 1),
         "style_score": round(style_score, 1),
