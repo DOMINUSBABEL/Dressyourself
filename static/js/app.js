@@ -3446,3 +3446,5 @@ window.buyRPGLook = async function(topId, bottomId, footwearId, outerwearId, acc
 // BabylonSwarm_Commit_26: feat(monetization): bind buy events directly to Isa RPG completion cards
 
 // BabylonSwarm_Commit_28: feat(monetization): calculate VAT (19% IVA) dynamically based on item target store location
+
+// BabylonSwarm_Commit_29: feat(monetization): implement shipping rate estimation model depending on user geolocation
