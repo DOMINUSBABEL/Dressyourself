@@ -69,34 +69,121 @@ def get_color_name(rgb):
 
 def normalize_text(text):
     """
-    Normalizes string by converting to lowercase and stripping accents/diacritics.
+    Normalizes string by converting to lowercase, stripping accents/diacritics,
+    and replacing underscores/dashes with spaces.
     """
     if not text:
         return ""
     text = text.lower()
+    text = text.replace('_', ' ').replace('-', ' ')
     text = "".join(c for c in unicodedata.normalize('NFD', text) if unicodedata.category(c) != 'Mn')
     return text
 
 # Semantic mapping of filename keywords to categories and subcategories
 KEYWORD_MAPPING = {
-    "camisa": ("Top", "Camisa"),
-    "blusa": ("Top", "Blusa"),
-    "saco": ("Outerwear", "Chaqueta"),
-    "blazer": ("Outerwear", "Chaqueta"),
-    "pantalon": ("Bottom", "Pantalón de Vestir"),
-    "jeans": ("Bottom", "Jeans"),
-    "falda": ("Bottom", "Falda"),
-    "vestido": ("Top", "Vestido"),
-    "abrigo": ("Outerwear", "Abrigo"),
-    "trench": ("Outerwear", "Abrigo"),
-    "zapatos": ("Footwear", "Mocasines"),
+    # Compound / Priority keywords first to avoid sub-string partial matching issues
+    "chaqueta de mezclilla": ("Outerwear", "Chaqueta"),
+    "chaqueta de cuero": ("Outerwear", "Chaqueta"),
+    "chaqueta puffer": ("Outerwear", "Chaqueta Puffer"),
+    "chaquetapuffer": ("Outerwear", "Chaqueta Puffer"),
+    "chaqueta denim": ("Outerwear", "Chaqueta"),
+    "zapatos de vestir": ("Footwear", "Zapatos de Vestir"),
+    "zapato de vestir": ("Footwear", "Zapatos de Vestir"),
+    "top corto": ("Top", "Top Corto"),
+    "crop top": ("Top", "Top Corto"),
+    "croptop": ("Top", "Top Corto"),
+    "gafas de sol": ("Accessory", "Gafas de Sol"),
+    
+    # Footwear subcategories
     "tenis": ("Footwear", "Tenis"),
+    "sneaker": ("Footwear", "Tenis"),
     "mocasines": ("Footwear", "Mocasines"),
+    "mocasin": ("Footwear", "Mocasines"),
+    "loafer": ("Footwear", "Mocasines"),
     "botas": ("Footwear", "Botas"),
+    "bota": ("Footwear", "Botas"),
+    "boot": ("Footwear", "Botas"),
+    "sandalias": ("Footwear", "Sandalias"),
+    "sandalia": ("Footwear", "Sandalias"),
+    "slide": ("Footwear", "Sandalias"),
+    "chancla": ("Footwear", "Sandalias"),
+    "zapatos": ("Footwear", "Zapatos de Vestir"),
+    "zapato": ("Footwear", "Zapatos de Vestir"),
+    
+    # Bottom subcategories
+    "jeans": ("Bottom", "Jeans"),
+    "jean": ("Bottom", "Jeans"),
+    "denim": ("Bottom", "Jeans"),
+    "mezclilla": ("Bottom", "Jeans"),
+    "pantalon de vestir": ("Bottom", "Pantalón de Vestir"),
+    "pantalon sastre": ("Bottom", "Pantalón de Vestir"),
+    "pantalon": ("Bottom", "Pantalón de Vestir"),
+    "pantalones": ("Bottom", "Pantalón de Vestir"),
+    "sastre": ("Bottom", "Pantalón de Vestir"),
+    "falda": ("Bottom", "Falda"),
+    "faldas": ("Bottom", "Falda"),
+    "skirt": ("Bottom", "Falda"),
+    "shorts": ("Bottom", "Shorts"),
+    "short": ("Bottom", "Shorts"),
+    "bermuda": ("Bottom", "Shorts"),
+    "medias": ("Bottom", "Medias"),
+    "media": ("Bottom", "Medias"),
+    "socks": ("Bottom", "Medias"),
+    "sock": ("Bottom", "Medias"),
+    "calcetines": ("Bottom", "Medias"),
+    "calcetin": ("Bottom", "Medias"),
+    
+    # Top subcategories
+    "camiseta": ("Top", "Camiseta"),
+    "t-shirt": ("Top", "Camiseta"),
+    "playera": ("Top", "Camiseta"),
+    "polera": ("Top", "Camiseta"),
+    "camisa": ("Top", "Camisa"),
+    "shirt": ("Top", "Camisa"),
+    "blusa": ("Top", "Blusa"),
+    "blouse": ("Top", "Blusa"),
+    "crop": ("Top", "Top Corto"),
+    "sueter": ("Top", "Suéter"),
+    "sweater": ("Top", "Suéter"),
+    "jersey": ("Top", "Suéter"),
+    "cardigan": ("Top", "Suéter"),
+    "buzo": ("Top", "Suéter"),
+    "hoodie": ("Top", "Suéter"),
+    "saco": ("Top", "Saco"),
+    "pullover": ("Top", "Saco"),
+    "vestido": ("Top", "Vestido"),
+    "dress": ("Top", "Vestido"),
+    "gown": ("Top", "Vestido"),
+    
+    # Outerwear subcategories
+    "blazer": ("Outerwear", "Blazer"),
+    "abrigo": ("Outerwear", "Abrigo"),
+    "coat": ("Outerwear", "Abrigo"),
+    "trench": ("Outerwear", "Trench"),
+    "gabardina": ("Outerwear", "Trench"),
+    "chaqueta": ("Outerwear", "Chaqueta"),
+    "jacket": ("Outerwear", "Chaqueta"),
+    "casaca": ("Outerwear", "Chaqueta"),
+    "puffer": ("Outerwear", "Chaqueta Puffer"),
+    "plumon": ("Outerwear", "Chaqueta Puffer"),
+    
+    # Accessory subcategories
     "bolso": ("Accessory", "Bolso"),
+    "bag": ("Accessory", "Bolso"),
+    "cartera": ("Accessory", "Bolso"),
+    "backpack": ("Accessory", "Bolso"),
+    "correa": ("Accessory", "Correa"),
+    "cinturon": ("Accessory", "Correa"),
+    "belt": ("Accessory", "Correa"),
+    "bufanda": ("Accessory", "Bufanda"),
+    "scarf": ("Accessory", "Bufanda"),
+    "gorra": ("Accessory", "Gorra"),
+    "gorro": ("Accessory", "Gorra"),
+    "hat": ("Accessory", "Gorra"),
+    "cap": ("Accessory", "Gorra"),
     "gafas": ("Accessory", "Gafas de Sol"),
-    "collar": ("Accessory", "Collar"),
-    "correa": ("Accessory", "Correa")
+    "lentes": ("Accessory", "Gafas de Sol"),
+    "sunglasses": ("Accessory", "Gafas de Sol"),
 }
 
 # Mapeo semántico de palabras clave para patrones complejos
@@ -210,12 +297,19 @@ def analyze_image(image_path_or_bytes):
         category = "Top"
         subcategory = "Camiseta"
         confidence_base = 0.65
+        norm_filename = ""
+        norm_path = ""
+        is_denim_semantic = False
+        is_wool_semantic = False
         
         # Check filename/path for semantic fallback first
         if isinstance(image_path_or_bytes, str):
             filename = os.path.basename(image_path_or_bytes)
             norm_filename = normalize_text(filename)
             norm_path = normalize_text(image_path_or_bytes)
+            
+            is_denim_semantic = any(k in norm_path for k in ["denim", "mezclilla", "jeans"])
+            is_wool_semantic = any(k in norm_path for k in ["lana", "wool", "sueter", "sweater", "cardigan"])
             
             # Check filename first, then path
             for kw, (cat, subcat) in KEYWORD_MAPPING.items():
@@ -260,6 +354,28 @@ def analyze_image(image_path_or_bytes):
         vertical_start = float(y) / h_orig
         vertical_center = float(y + h/2) / h_orig
         
+        # Calculate global edge density and height profile
+        edges = cv2.Canny(gray, 50, 150)
+        edge_density = np.mean(edges)
+        
+        # Calculate local edge density in cropped bounding box
+        crop_gray = gray[y:y+h, x:x+w]
+        crop_edges = cv2.Canny(crop_gray, 50, 150) if crop_gray.size > 0 else np.array([])
+        crop_edge_density = np.mean(crop_edges) if crop_edges.size > 0 else 0.0
+        
+        height_ratio = float(h) / h_orig
+        
+        # Calculate height profile using density of vertical thirds
+        mask_crop = thresh[y:y+h, x:x+w]
+        h_third = max(1, h // 3)
+        top_third = mask_crop[0:h_third, :]
+        mid_third = mask_crop[h_third:2*h_third, :]
+        bot_third = mask_crop[2*h_third:, :]
+        
+        top_density = np.mean(top_third) / 255.0 if top_third.size > 0 else 0.0
+        mid_density = np.mean(mid_third) / 255.0 if mid_third.size > 0 else 0.0
+        bot_density = np.mean(bot_third) / 255.0 if bot_third.size > 0 else 0.0
+        
         if semantic_match:
             # Semantic filename keywords ensure high confidence and bypass geometric heuristic classification
             confidence = 0.99
@@ -267,7 +383,6 @@ def analyze_image(image_path_or_bytes):
             # Advanced Geometric Heuristics Fallback
             has_split = False
             if contours:
-                mask_crop = thresh[y:y+h, x:x+w]
                 # Split analysis for pants
                 bottom_half_y = int(y + h * 0.5)
                 bottom_half_img = thresh[bottom_half_y:y+h, x:x+w]
@@ -281,69 +396,103 @@ def analyze_image(image_path_or_bytes):
                         if center_val < 0.55 * max(left_mean, right_mean):
                             has_split = True
             
-            # Classification logic based on aspect ratio, coverage, vertical position and contour split
-            if vertical_center > 0.65 and coverage < 0.4:
-                category = "Footwear"
-                if aspect_ratio > 1.3:
-                    subcategory = "Tenis" if color_primary in ["Blanco Puro", "Azul Celeste"] else "Mocasines"
-                elif aspect_ratio < 0.8:
-                    subcategory = "Botas"
-                else:
-                    subcategory = "Mocasines"
-                confidence_base = 0.80
-                
-            elif aspect_ratio >= 1.25 and coverage < 0.15 and vertical_start < 0.4:
+            # 1. Correa (belts - extremely wide, minimal height)
+            if aspect_ratio > 1.8 and height_ratio < 0.18:
                 category = "Accessory"
-                subcategory = "Gafas de Sol"
+                subcategory = "Correa"
                 confidence_base = 0.88
                 
-            elif 0.7 <= aspect_ratio <= 1.4 and coverage < 0.25 and 0.2 <= vertical_center <= 0.8:
-                category = "Accessory"
-                subcategory = "Bolso"
-                confidence_base = 0.75
+            # 2. Vestidos (dresses - extremely tall, covering both top and bottom heights, no split)
+            elif height_ratio > 0.68 and vertical_start < 0.3 and ((y + h) / h_orig > 0.78) and not has_split:
+                category = "Top"
+                subcategory = "Vestido"
+                confidence_base = 0.88
                 
-            elif aspect_ratio < 0.4 and coverage < 0.15 and vertical_start < 0.3:
-                category = "Accessory"
-                subcategory = "Bufanda"
-                confidence_base = 0.72
-                
-            elif aspect_ratio < 0.7 and vertical_start < 0.25 and h / h_orig > 0.65 and not has_split:
-                category = "Outerwear"
-                subcategory = "Abrigo"
-                confidence_base = 0.82
-                
-            elif vertical_start > 0.35 and (has_split or aspect_ratio < 0.9):
+            # 3. Medias (socks - tall, narrow, bottom placement)
+            elif aspect_ratio < 0.5 and vertical_center > 0.55 and vertical_start > 0.35 and height_ratio < 0.65:
                 category = "Bottom"
-                if has_split:
-                    subcategory = "Jeans" if color_primary in ["Azul Índigo", "Azul Celeste", "Azul Marino"] else "Pantalón de Vestir"
-                else:
-                    subcategory = "Falda"
+                subcategory = "Medias"
                 confidence_base = 0.85
                 
-            else:
-                if vertical_start < 0.3:
-                    edges = cv2.Canny(gray, 50, 150)
-                    edge_density = np.mean(edges)
-                    if edge_density > 18:
-                        category = "Outerwear"
-                        if coverage > 0.45 and aspect_ratio > 0.8:
-                            subcategory = "Chaqueta Puffer"
-                        else:
-                            subcategory = "Chaqueta"
-                        confidence_base = 0.78
+            # 4. Footwear -> Tenis, Mocasines, Botas, Zapatos de Vestir, Sandalias
+            elif vertical_center > 0.65 and vertical_start > 0.45 and height_ratio < 0.35:
+                category = "Footwear"
+                if aspect_ratio < 0.85:
+                    subcategory = "Botas"
+                elif aspect_ratio > 1.3:
+                    if coverage < 0.15:
+                        subcategory = "Sandalias"
                     else:
-                        category = "Top"
-                        if color_primary in ["Rosa Pastel", "Verde Esmeralda", "Beige Arena"] and aspect_ratio < 0.9:
-                            subcategory = "Blusa"
-                        elif color_primary in ["Blanco Puro", "Azul Celeste"] and aspect_ratio > 0.8:
-                            subcategory = "Camisa"
-                        else:
-                            subcategory = "Camiseta"
-                        confidence_base = 0.75
+                        subcategory = "Tenis"
                 else:
-                    category = "Bottom"
-                    subcategory = "Falda" if aspect_ratio > 0.9 else "Pantalón de Vestir"
-                    confidence_base = 0.60
+                    if color_primary in ["Blanco Puro", "Azul Celeste"]:
+                        subcategory = "Tenis"
+                    elif color_primary in ["Negro Carbón", "Marrón Otoño"] and crop_edge_density < 15.0:
+                        subcategory = "Zapatos de Vestir"
+                    else:
+                        subcategory = "Mocasines"
+                confidence_base = 0.80
+                
+            # 5. Accessory (except Correa) -> Bolso, Bufanda, Gorra, Gafas de Sol
+            elif coverage < 0.25 and height_ratio < 0.35 and not has_split:
+                category = "Accessory"
+                if aspect_ratio >= 1.25 and vertical_start < 0.45:
+                    subcategory = "Gafas de Sol"
+                elif aspect_ratio < 0.4 and vertical_start < 0.3:
+                    subcategory = "Bufanda"
+                elif vertical_start < 0.25 and 0.7 <= aspect_ratio <= 1.4:
+                    subcategory = "Gorra"
+                else:
+                    subcategory = "Bolso"
+                confidence_base = 0.75
+                
+            # 6. Bottom -> Jeans, Pantalón de Vestir, Falda, Shorts
+            elif vertical_start > 0.35 or has_split:
+                category = "Bottom"
+                if has_split:
+                    if height_ratio < 0.38:
+                        subcategory = "Shorts"
+                    else:
+                        if color_primary in ["Azul Índigo", "Azul Celeste", "Azul Marino"] or is_denim_semantic:
+                            subcategory = "Jeans"
+                        else:
+                            subcategory = "Pantalón de Vestir"
+                else:
+                    subcategory = "Falda"
+                confidence_base = 0.82
+                
+            # 7. Top/Outerwear fallback -> Top: Camiseta, Camisa, Blusa, Top Corto, Suéter, Saco; Outerwear: Blazer, Abrigo, Trench, Chaqueta, Chaqueta Puffer
+            else:
+                is_outerwear = (edge_density > 18 or crop_edge_density > 16 or is_wool_semantic or height_ratio > 0.58)
+                if is_outerwear:
+                    category = "Outerwear"
+                    if height_ratio > 0.58:
+                        if color_primary == "Beige Arena" or "trench" in norm_filename or "trench" in norm_path:
+                            subcategory = "Trench"
+                        else:
+                            subcategory = "Abrigo"
+                    elif coverage > 0.45 and aspect_ratio > 0.8:
+                        subcategory = "Chaqueta Puffer"
+                    elif 0.7 <= aspect_ratio <= 1.1 and color_primary in ["Negro Carbón", "Gris Marengo", "Azul Marino"]:
+                        subcategory = "Blazer"
+                    else:
+                        subcategory = "Chaqueta"
+                    confidence_base = 0.78
+                else:
+                    category = "Top"
+                    if height_ratio < 0.3:
+                        subcategory = "Top Corto"
+                    elif is_wool_semantic or (color_primary in ["Marrón Otoño", "Gris Marengo"] and aspect_ratio < 0.85):
+                        subcategory = "Suéter"
+                    elif color_primary in ["Negro Carbón", "Azul Marino"] and aspect_ratio < 0.9:
+                        subcategory = "Saco"
+                    elif color_primary in ["Rosa Pastel", "Verde Esmeralda", "Beige Arena"] and aspect_ratio < 0.9:
+                        subcategory = "Blusa"
+                    elif color_primary in ["Blanco Puro", "Azul Celeste"] and aspect_ratio > 0.8:
+                        subcategory = "Camisa"
+                    else:
+                        subcategory = "Camiseta"
+                    confidence_base = 0.75
             
             # Compute confidence score based on features
             contour_score = 0.15 if contours else 0.05

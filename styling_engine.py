@@ -1576,3 +1576,351 @@ def generate_capsule_closet(clothes):
 def get_capsule_wardrobe_recommendation(clothes):
     return generate_capsule_closet(clothes)
 
+
+# ==========================================
+# INTERACTIVE STYLING RPG ENGINE
+# ==========================================
+
+# 3-step decision tree data structure: Ocasión -> Colorimetría -> Silueta
+RPG_NODES = {
+    "occasion_step": {
+        "node_id": "occasion_step",
+        "step": "Ocasión",
+        "question": "¿Para qué ocasión estás preparando tu atuendo el día de hoy?",
+        "options": [
+            {
+                "id": "opt_quiet_luxury",
+                "text": "Lujo Silencioso (Elegante, minimalista y sofisticado)",
+                "next_node_id": "color_step",
+                "weight_adjustments": {
+                    "occasion": "Quiet Luxury"
+                }
+            },
+            {
+                "id": "opt_casual",
+                "text": "Casual (Relajado, cómodo y cotidiano)",
+                "next_node_id": "color_step",
+                "weight_adjustments": {
+                    "occasion": "Casual"
+                }
+            },
+            {
+                "id": "opt_business_casual",
+                "text": "Business Casual (Profesional pero moderno)",
+                "next_node_id": "color_step",
+                "weight_adjustments": {
+                    "occasion": "Business Casual"
+                }
+            },
+            {
+                "id": "opt_sporty",
+                "text": "Deportivo Chic (Activo, dinámico y urbano)",
+                "next_node_id": "color_step",
+                "weight_adjustments": {
+                    "occasion": "Sporty"
+                }
+            },
+            {
+                "id": "opt_cocktail",
+                "text": "Coctel / Fiesta (Glamoroso, nocturno y festivo)",
+                "next_node_id": "color_step",
+                "weight_adjustments": {
+                    "occasion": "Cocktail"
+                }
+            }
+        ]
+    },
+    "color_step": {
+        "node_id": "color_step",
+        "step": "Colorimetría",
+        "question": "¿Cuál es tu paleta de color estacional predominante?",
+        "options": [
+            {
+                "id": "opt_spring",
+                "text": "Primavera (Tonos cálidos, vivos y luminosos)",
+                "next_node_id": "silhouette_step",
+                "weight_adjustments": {
+                    "season": "Spring Warm"
+                }
+            },
+            {
+                "id": "opt_summer",
+                "text": "Verano (Tonos fríos, suaves y empolvados)",
+                "next_node_id": "silhouette_step",
+                "weight_adjustments": {
+                    "season": "Summer Cool"
+                }
+            },
+            {
+                "id": "opt_autumn",
+                "text": "Otoño (Tonos cálidos, profundos y terrosos)",
+                "next_node_id": "silhouette_step",
+                "weight_adjustments": {
+                    "season": "Autumn Warm"
+                }
+            },
+            {
+                "id": "opt_winter",
+                "text": "Invierno (Tonos fríos, brillantes y contrastantes)",
+                "next_node_id": "silhouette_step",
+                "weight_adjustments": {
+                    "season": "Winter Cool"
+                }
+            }
+        ]
+    },
+    "silhouette_step": {
+        "node_id": "silhouette_step",
+        "step": "Silueta",
+        "question": "¿Qué silueta corporal describe mejor tu estructura física?",
+        "options": [
+            {
+                "id": "opt_hourglass",
+                "text": "Reloj de Arena (Hombros y caderas alineados con cintura definida)",
+                "next_node_id": "complete",
+                "weight_adjustments": {
+                    "silhouette": "Hourglass"
+                }
+            },
+            {
+                "id": "opt_triangle",
+                "text": "Triángulo (Hombros más angostos que las caderas)",
+                "next_node_id": "complete",
+                "weight_adjustments": {
+                    "silhouette": "Triangle"
+                }
+            },
+            {
+                "id": "opt_inverted_triangle",
+                "text": "Triángulo Invertido (Hombros más anchos que las caderas)",
+                "next_node_id": "complete",
+                "weight_adjustments": {
+                    "silhouette": "Inverted Triangle"
+                }
+            },
+            {
+                "id": "opt_rectangle",
+                "text": "Rectángulo (Hombros, cintura y caderas de ancho similar)",
+                "next_node_id": "complete",
+                "weight_adjustments": {
+                    "silhouette": "Rectangle"
+                }
+            },
+            {
+                "id": "opt_oval",
+                "text": "Óvalo / Manzana (Silueta redondeada con volumen en la zona media)",
+                "next_node_id": "complete",
+                "weight_adjustments": {
+                    "silhouette": "Oval"
+                }
+            }
+        ]
+    }
+}
+
+def get_rpg_node(node_id=None):
+    """
+    Returns the node schema for the decision tree. If node_id is None, returns the root node.
+    """
+    if not node_id:
+        node_id = "occasion_step"
+    return RPG_NODES.get(node_id)
+
+def calculate_garment_match_score(garment, occasion_rule, season_info):
+    """
+    Calculates a compatibility score for a garment given the occasion rules and season colors.
+    """
+    score = 100.0
+    
+    # 1. Formality Check
+    formality = get_formality(garment)
+    min_f = occasion_rule.get("min_formality", 3.0)
+    max_f = occasion_rule.get("max_formality", 7.0)
+    if formality < min_f:
+        score -= (min_f - formality) * 15.0
+    elif formality > max_f:
+        score -= (formality - max_f) * 15.0
+        
+    # 2. Category / Subcategory preference
+    name_sub = normalize_str(garment.get("name", "")) + " " + normalize_str(garment.get("subcategory", ""))
+    preferred_types = occasion_rule.get("preferred_types", [])
+    avoid_types = occasion_rule.get("avoid_types", [])
+    
+    if any(p in name_sub for p in preferred_types):
+        score += 20.0
+    if any(a in name_sub for a in avoid_types):
+        score -= 40.0
+        
+    # 3. Color Season Match
+    color_primary = garment.get("color_primary")
+    ideal_colors = season_info.get("ideal_colors", [])
+    if color_primary:
+        norm_color = normalize_str(color_primary)
+        color_matched = False
+        for ideal in ideal_colors:
+            norm_ideal = normalize_str(ideal)
+            if norm_ideal in norm_color or norm_color in norm_ideal:
+                color_matched = True
+                break
+        if color_matched:
+            score += 15.0
+        else:
+            if any(k in norm_color for k in ["gris", "blanco", "negro", "crema", "ivory", "beige"]):
+                score += 5.0
+            else:
+                score -= 15.0
+                
+    # 4. Pattern preference
+    pattern_pref = occasion_rule.get("pattern_pref")
+    if pattern_pref:
+        pat = normalize_str(garment.get("pattern", "liso"))
+        if pat in pattern_pref:
+            score += 10.0
+        else:
+            score -= 10.0
+            
+    return score
+
+def generate_fashion_title(occasion, season, silhouette):
+    """
+    Generates a personalized styling title based on occasion, color season and silhouette.
+    """
+    occasion_map = {
+        "Quiet Luxury": "del Quiet Luxury",
+        "Business Casual": "del Office Chic",
+        "Sporty": "del Athleisure Urbano",
+        "Cocktail": "de la Noche Festiva",
+        "Gala": "de la Alta Costura",
+        "Casual": "del Estilo Casual",
+        "Formal": "de la Elegancia Formal",
+        "Deportivo": "del Confort Activo",
+        "Fiesta": "de la Noche Dorada"
+    }
+    
+    nouns = ["El Alquimista", "El Pionero", "El Visionario", "El Arquitecto", "El Embajador", "El Susurro", "El Esteta", "El Poeta", "El Maestro"]
+    
+    silhouette_map = {
+        "Hourglass": ["El Escultor", "El Alquimista", "El Esteta"],
+        "Triangle": ["El Arquitecto", "El Diseñador", "El Maestro"],
+        "Inverted Triangle": ["El Vanguardista", "El Estratega", "El Pionero"],
+        "Rectangle": ["El Editor", "El Creador", "El Modelador"],
+        "Oval": ["El Compositor", "El Armonizador", "El Curador"]
+    }
+    
+    selected_nouns = silhouette_map.get(silhouette, nouns)
+    noun = random.choice(selected_nouns)
+    suffix = occasion_map.get(occasion, "del Estilo Contemporáneo")
+    
+    season_adjectives = {
+        "Spring Warm": "Cálido",
+        "Spring Light": "Luminoso",
+        "Spring Clear": "Brillante",
+        "Summer Cool": "Sereno",
+        "Summer Light": "Fresco",
+        "Summer Soft": "Suave",
+        "Autumn Warm": "Terrenal",
+        "Autumn Soft": "Místico",
+        "Autumn Deep": "Profundo",
+        "Winter Cool": "Helado",
+        "Winter Deep": "Intenso",
+        "Winter Clear": "Centelleante"
+    }
+    
+    adj = "Chic"
+    for key, val in season_adjectives.items():
+        if normalize_str(key) in normalize_str(season) or normalize_str(season) in normalize_str(key):
+            adj = val
+            break
+            
+    return f"{noun} {adj} {suffix}"
+
+def process_rpg_completion(answers, clothes):
+    """
+    Parses user answers, finds matching items in closet and boutique,
+    constructs the best outfit, and calculates the overall score and title.
+    """
+    occasion = "Casual"
+    season = "Winter Cool"
+    silhouette = "Hourglass"
+    
+    # Parse answers (either list of option objects or option IDs)
+    if isinstance(answers, list):
+        for ans in answers:
+            if isinstance(ans, dict):
+                node_id = ans.get("node_id")
+                option_id = ans.get("option_id")
+                if node_id and option_id:
+                    node = RPG_NODES.get(node_id)
+                    if node:
+                        for opt in node.get("options", []):
+                            if opt.get("id") == option_id:
+                                w = opt.get("weight_adjustments", {})
+                                if "occasion" in w: occasion = w["occasion"]
+                                if "season" in w: season = w["season"]
+                                if "silhouette" in w: silhouette = w["silhouette"]
+            elif isinstance(ans, str):
+                for node_id, node in RPG_NODES.items():
+                    for opt in node.get("options", []):
+                        if opt.get("id") == ans:
+                            w = opt.get("weight_adjustments", {})
+                            if "occasion" in w: occasion = w["occasion"]
+                            if "season" in w: season = w["season"]
+                            if "silhouette" in w: silhouette = w["silhouette"]
+
+    occasion_rule = OCCASIONS_RULES.get(occasion, OCCASIONS_RULES["Casual"])
+    season_info = SEASONS_INFO.get(season, SEASONS_INFO["Winter Cool"])
+    
+    # Score all garments
+    scored_clothes = []
+    for g in clothes:
+        score = calculate_garment_match_score(g, occasion_rule, season_info)
+        scored_clothes.append({
+            "garment": g,
+            "score": score
+        })
+        
+    scored_clothes.sort(key=lambda x: x["score"], reverse=True)
+    
+    # Separate into closet and boutique
+    closet_items = [sc for sc in scored_clothes if sc["garment"].get("is_owned") == 1]
+    boutique_items = [sc for sc in scored_clothes if sc["garment"].get("is_owned") == 0]
+    
+    # Curate best outfit (top, bottom, footwear, outerwear, accessory)
+    outfit = {}
+    categories = ["Top", "Bottom", "Footwear", "Outerwear", "Accessory"]
+    for cat in categories:
+        cat_items = [sc for sc in scored_clothes if sc["garment"]["category"].lower() == cat.lower()]
+        if cat_items:
+            outfit[cat.lower()] = cat_items[0]["garment"]
+        else:
+            outfit[cat.lower()] = None
+            
+    outfit_items = [outfit[cat.lower()] for cat in categories if outfit[cat.lower()] is not None]
+    
+    # Calculate score using the standard styling engine formula
+    fashion_score_res = calculate_fashion_score(outfit_items, occasion=occasion)
+    
+    title = generate_fashion_title(occasion, season, silhouette)
+    
+    return {
+        "title": title,
+        "justification": fashion_score_res.get("advice", ""),
+        "scores": {
+            "total_score": fashion_score_res.get("total_score", 100.0),
+            "color_score": fashion_score_res.get("color_score", 100.0),
+            "style_score": fashion_score_res.get("style_score", 100.0),
+            "pattern_score": fashion_score_res.get("pattern_score", 100.0),
+            "weather_score": fashion_score_res.get("weather_score", 100.0)
+        },
+        "outfit": {
+            "top": outfit["top"],
+            "bottom": outfit["bottom"],
+            "footwear": outfit["footwear"],
+            "outerwear": outfit["outerwear"],
+            "accessory": outfit["accessory"]
+        },
+        "closet": [sc["garment"] for sc in closet_items[:10]],
+        "boutique": [sc["garment"] for sc in boutique_items[:10]]
+    }
+
+

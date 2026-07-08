@@ -37,7 +37,12 @@ const STATE = {
         accesorio: null
     },
     activeBuilderSlot: null,
-    savedCombinations: []
+    savedCombinations: [],
+    
+    // RPG Styling State
+    chatMode: 'libre',
+    rpgCurrentNode: 'occasion_step',
+    rpgAnswers: []
 };
 
 // Look image map for Aria
@@ -921,6 +926,22 @@ function initAria() {
     chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') handleUserMessage();
     });
+
+    // RPG Mode Switch Toggle Listeners
+    const btnLibre = document.getElementById('btn-mode-libre');
+    const btnRPG = document.getElementById('btn-mode-rpg');
+    
+    if (btnLibre && btnRPG) {
+        btnLibre.addEventListener('click', () => {
+            if (STATE.chatMode === 'libre') return;
+            switchChatMode('libre');
+        });
+        
+        btnRPG.addEventListener('click', () => {
+            if (STATE.chatMode === 'rpg') return;
+            switchChatMode('rpg');
+        });
+    }
 }
 
 function getRandomQuote() {
@@ -982,7 +1003,7 @@ async function handleUserMessage() {
     }
 }
 
-function appendChatMessage(sender, text, scrapedItem = null) {
+function appendChatMessage(sender, text, scrapedItem = null, rpgRecommendation = null) {
     const history = document.getElementById('chat-history');
     
     // Remove empty state if present
@@ -993,7 +1014,19 @@ function appendChatMessage(sender, text, scrapedItem = null) {
 
     const msg = document.createElement('div');
     msg.className = `chat-msg ${sender}`;
-    msg.textContent = text;
+    
+    if (rpgRecommendation) {
+        const textSpan = document.createElement('span');
+        textSpan.textContent = text;
+        msg.appendChild(textSpan);
+        
+        const card = document.createElement('div');
+        card.style.marginTop = '10px';
+        card.innerHTML = renderRPGRecommendation(rpgRecommendation);
+        msg.appendChild(card);
+    } else {
+        msg.textContent = text;
+    }
     
     if (scrapedItem) {
         const card = document.createElement('div');
@@ -1026,6 +1059,294 @@ function appendChatMessage(sender, text, scrapedItem = null) {
     history.appendChild(msg);
     history.scrollTop = history.scrollHeight;
 }
+
+// RPG Interactive Game Modes and State Transitions
+function switchChatMode(mode) {
+    STATE.chatMode = mode;
+    
+    const btnLibre = document.getElementById('btn-mode-libre');
+    const btnRPG = document.getElementById('btn-mode-rpg');
+    const tracker = document.getElementById('rpg-progress-tracker');
+    const optionsContainer = document.getElementById('rpg-options-container');
+    const inputRow = document.querySelector('.chat-input-row');
+    const history = document.getElementById('chat-history');
+    
+    if (mode === 'rpg') {
+        if (btnLibre) btnLibre.classList.remove('active');
+        if (btnRPG) btnRPG.classList.add('active');
+        if (tracker) tracker.style.display = 'flex';
+        if (optionsContainer) optionsContainer.style.display = 'flex';
+        if (inputRow) inputRow.style.display = 'none';
+        
+        // Clear chat area for game immersion
+        if (history) {
+            history.innerHTML = `
+                <div class="chat-msg bot animate-fade-in">
+                    <span>¡Bienvenido al canal del Juego de Rol de Estilo con Isa! Aquí co-crearemos tu look ideal a través de caminos de diseño.</span>
+                </div>
+            `;
+        }
+        
+        startRPGStyling();
+    } else {
+        if (btnLibre) btnLibre.classList.add('active');
+        if (btnRPG) btnRPG.classList.remove('active');
+        if (tracker) tracker.style.display = 'none';
+        if (optionsContainer) optionsContainer.style.display = 'none';
+        if (inputRow) inputRow.style.display = 'flex';
+        
+        // Return to standard chat history
+        if (history) history.innerHTML = '';
+        updateChatHistoryState();
+        
+        // Reload persisted chat if available
+        fetch('/api/chat/history')
+            .then(res => res.ok ? res.json() : [])
+            .then(historyData => {
+                if (historyData && historyData.length > 0) {
+                    if (history) history.innerHTML = '';
+                    historyData.forEach(item => {
+                        let scraped = null;
+                        if (item.scraped_item_json) {
+                            try { scraped = JSON.parse(item.scraped_item_json); } catch(e) {}
+                        }
+                        appendChatMessage(item.sender, item.message, scraped);
+                    });
+                }
+            })
+            .catch(err => console.log("Persisted chat history not loaded:", err));
+    }
+}
+
+function startRPGStyling() {
+    STATE.rpgAnswers = [];
+    STATE.rpgCurrentNode = 'occasion_step';
+    loadRPGNode('occasion_step');
+}
+
+async function loadRPGNode(nodeId) {
+    try {
+        const response = await fetch(`/api/rpg/node?node_id=${nodeId}`);
+        if (!response.ok) throw new Error("Error cargando el nodo");
+        const node = await response.json();
+        
+        STATE.rpgCurrentNode = nodeId;
+        
+        // Update Step Progress indicator
+        const stepNum = nodeId === 'occasion_step' ? 1 : nodeId === 'color_step' ? 2 : 3;
+        const barPct = nodeId === 'occasion_step' ? 33 : nodeId === 'color_step' ? 66 : 100;
+        
+        const stepIndicator = document.getElementById('rpg-step-indicator');
+        const progressBar = document.getElementById('rpg-progress-bar');
+        
+        if (stepIndicator) stepIndicator.textContent = `Paso ${stepNum} de 3: ${node.step}`;
+        if (progressBar) progressBar.style.width = `${barPct}%`;
+        
+        // Show Isa's question in chat
+        appendChatMessage('bot', node.question);
+        
+        // Render option buttons
+        const optionsContainer = document.getElementById('rpg-options-container');
+        if (optionsContainer) {
+            optionsContainer.innerHTML = '';
+            node.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'rpg-option-btn';
+                btn.textContent = opt.text;
+                btn.addEventListener('click', () => {
+                    selectRPGOption(nodeId, opt.id, opt.text, opt.next_node_id);
+                });
+                optionsContainer.appendChild(btn);
+            });
+        }
+    } catch(err) {
+        console.error("RPG Node fetch error:", err);
+        appendChatMessage('bot', "¡Ay, disculpa! Tuvimos un pequeño tropiezo cargando las opciones. ¿Qué tal si volvemos a intentarlo?");
+    }
+}
+
+async function selectRPGOption(nodeId, optionId, optionText, nextNodeId) {
+    // 1. Show user choice in chat
+    appendChatMessage('user', optionText);
+    
+    // Save answer
+    STATE.rpgAnswers.push({
+        node_id: nodeId,
+        option_id: optionId
+    });
+    
+    // Clear current option buttons
+    const optionsContainer = document.getElementById('rpg-options-container');
+    if (optionsContainer) optionsContainer.innerHTML = '';
+    
+    if (nextNodeId === 'complete') {
+        // Hide tracker & options during results generation
+        const tracker = document.getElementById('rpg-progress-tracker');
+        if (tracker) tracker.style.display = 'none';
+        if (optionsContainer) optionsContainer.style.display = 'none';
+        
+        appendChatMessage('bot', "Procesando tus elecciones de estilo... Creando tu combinación de alta costura...");
+        
+        try {
+            const res = await fetch('/api/rpg/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ answers: STATE.rpgAnswers })
+            });
+            
+            if (!res.ok) throw new Error("RPG Complete Error");
+            const resultData = await res.json();
+            
+            setTimeout(() => {
+                appendChatMessage('bot', `Isa ha revelado tu perfil ideal: ¡Te ha asignado el título de "${resultData.title}"!`, null, resultData);
+                triggerAriaSpeech(`Bonjour chérie! He revelado tu perfil de estilo: eres ${resultData.title}. He puesto tu combinación ideal a continuación.`);
+                
+                // Show options container with a Restart button
+                if (optionsContainer) {
+                    optionsContainer.style.display = 'flex';
+                    optionsContainer.innerHTML = `
+                        <button class="gold-btn" style="width: 100%; text-transform: uppercase; padding: 12px;" onclick="startRPGStyling()">
+                            Reiniciar Juego de Rol
+                        </button>
+                    `;
+                }
+            }, 1200);
+        } catch(err) {
+            console.error("RPG Complete error:", err);
+            appendChatMessage('bot', "Tuvimos un fallo calculando tus puntuaciones. Vamos a reiniciar el juego.");
+            if (optionsContainer) {
+                optionsContainer.style.display = 'flex';
+                optionsContainer.innerHTML = `
+                    <button class="gold-btn" style="width: 100%;" onclick="startRPGStyling()">
+                        Volver a empezar
+                    </button>
+                `;
+            }
+        }
+    } else {
+        // Load next question
+        setTimeout(() => {
+            loadRPGNode(nextNodeId);
+        }, 600);
+    }
+}
+
+function renderRPGRecommendation(data) {
+    const o = data.outfit;
+    const s = data.scores;
+    
+    const items = [o.top, o.bottom, o.footwear, o.outerwear, o.accessory].filter(x => x !== null);
+    
+    // HTML to render Flat Lay items collage in chat
+    let itemsHTML = '';
+    items.forEach((item, index) => {
+        const rot = (index % 2 === 0) ? -2 : 2;
+        const brand = item.store_name || (item.is_owned ? "Closet" : "Boutique");
+        itemsHTML += `
+            <div style="background: #111; border: 1px solid rgba(212,175,55,0.15); border-radius: 6px; padding: 8px; transform: rotate(${rot}deg); display: flex; flex-direction: column; gap: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+                <img src="${item.image_url}" alt="${item.name}" style="width: 100%; height: 90px; object-fit: cover; border-radius: 4px;">
+                <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 500;">${brand}</span>
+                <span style="font-size: 0.7rem; font-weight: bold; color: var(--text-primary); max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;">${item.name}</span>
+            </div>
+        `;
+    });
+    
+    // Escape single quotes for function arg
+    const topId = o.top ? o.top.id : 'null';
+    const bottomId = o.bottom ? o.bottom.id : 'null';
+    const footwearId = o.footwear ? o.footwear.id : 'null';
+    const outerwearId = o.outerwear ? o.outerwear.id : 'null';
+    const accessoryId = o.accessory ? o.accessory.id : 'null';
+
+    return `
+        <div style="padding: 12px; background: rgba(10,10,10,0.85); border: 1px solid var(--border-gold); border-radius: 8px; width: 100%; display: flex; flex-direction: column; gap: 12px; font-family: 'Outfit', sans-serif;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(212,175,55,0.15); padding-bottom: 8px;">
+                <span style="color: var(--accent-gold); font-size: 0.9rem; font-weight: 700; letter-spacing: 0.5px;">${data.title}</span>
+                <span style="color: #00ff88; font-weight: bold; font-size: 1.0rem; text-shadow: 0 0 8px rgba(0,255,136,0.3);">${s.total_score.toFixed(1)}%</span>
+            </div>
+            
+            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; text-align: left; margin: 0;">${data.justification}</p>
+            
+            <!-- Grid list of items -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-top: 5px;">
+                ${itemsHTML}
+            </div>
+            
+            <div style="display: flex; gap: 8px; margin-top: 5px;">
+                <button class="gold-btn" style="flex: 1; padding: 10px; font-size: 0.75rem; text-transform: uppercase;" onclick="loadRPGLookToFitting(${topId}, ${bottomId}, ${footwearId}, ${outerwearId}, ${accessoryId})">
+                    Probar Look
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+window.loadRPGLookToFitting = async function(topId, bottomId, footwearId, outerwearId, accessoryId) {
+    try {
+        // Load items to fitting room slot
+        const fetchItem = async (id) => {
+            if (!id) return null;
+            const res = await fetch(`/api/clothes`);
+            if (res.ok) {
+                const clothes = await res.json();
+                return clothes.find(c => c.id === id) || null;
+            }
+            return null;
+        };
+        
+        showToast("Cargando combinación en el Probador...", "success");
+        
+        const top = await fetchItem(topId);
+        const bottom = await fetchItem(bottomId);
+        const footwear = await fetchItem(footwearId);
+        const outerwear = await fetchItem(outerwearId);
+        const accessory = await fetchItem(accessoryId);
+        
+        if (top) selectForFitting('closet', top);
+        if (bottom) selectForFitting('closet', bottom);
+        if (footwear) selectForFitting('closet', footwear);
+        
+        // For boutique / outerwear we map appropriately
+        if (outerwear) {
+            STATE.fittingSlots.outerwear = outerwear;
+            const slot = document.getElementById('slot-outerwear');
+            if (slot) {
+                slot.setAttribute('data-empty', 'false');
+                slot.querySelector('.slot-content').innerHTML = `<img src="${outerwear.image_url}" alt="${outerwear.name}">`;
+            }
+        }
+        
+        if (accessory) {
+            STATE.fittingSlots.accessory = accessory;
+            const slot = document.getElementById('slot-accessory');
+            if (slot) {
+                slot.setAttribute('data-empty', 'false');
+                slot.querySelector('.slot-content').innerHTML = `<img src="${accessory.image_url}" alt="${accessory.name}">`;
+            }
+        }
+        
+        // Load boutique if any recommended item is a boutique item (is_owned = 0)
+        const boutiqueItem = [top, bottom, footwear, outerwear, accessory].find(x => x && x.is_owned === 0);
+        if (boutiqueItem) {
+            // Map keys of boutiqueItem to expected keys in frontend
+            const itemMapped = {
+                id: boutiqueItem.id,
+                name: boutiqueItem.name,
+                cat: boutiqueItem.category.toLowerCase(),
+                price: `$${boutiqueItem.price}`,
+                image: boutiqueItem.image_url,
+                brand: boutiqueItem.store_name
+            };
+            selectForFitting('boutique', itemMapped);
+        }
+        
+        switchTab('probador');
+        showToast("¡Look del juego de rol cargado completo en el Probador!");
+    } catch(err) {
+        console.error("Load RPG look error:", err);
+        showToast("Error al cargar la combinación en el probador.", "error");
+    }
+};
 
 // 5. Vision Scanner & AI Cataloging (With mandatory 2-second scan delay)
 // Helper: Analiza la imagen localmente usando Canvas para extraer color predominante y estimar categoría

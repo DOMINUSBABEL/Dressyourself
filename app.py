@@ -990,6 +990,38 @@ def get_ganchito_quote():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+# --- RPG Styling Engine Endpoints ---
+
+@app.route('/api/rpg/node', methods=['GET'])
+def get_rpg_node_endpoint():
+    try:
+        node_id = request.args.get('node_id')
+        node = styling_engine.get_rpg_node(node_id)
+        if not node:
+            return jsonify({"error": f"Node with ID '{node_id}' not found"}), 404
+        return jsonify(node), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/rpg/complete', methods=['POST'])
+def complete_rpg_endpoint():
+    try:
+        data = request.json or {}
+        answers = data.get('answers') or data.get('option_ids')
+        if not answers:
+            return jsonify({"error": "Falta el campo 'answers' o 'option_ids' con las elecciones del usuario"}), 400
+        
+        # Retrieve all garments from database (both closet and boutique)
+        clothes = database.get_all_clothes()
+        
+        # Process completion in the styling engine
+        result = styling_engine.process_rpg_completion(answers, clothes)
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 # --- Static Web App Routing ---
 @app.route('/')
 def serve_index():
