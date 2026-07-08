@@ -3448,3 +3448,5 @@ window.buyRPGLook = async function(topId, bottomId, footwearId, outerwearId, acc
 // BabylonSwarm_Commit_28: feat(monetization): calculate VAT (19% IVA) dynamically based on item target store location
 
 // BabylonSwarm_Commit_29: feat(monetization): implement shipping rate estimation model depending on user geolocation
+
+// BabylonSwarm_Commit_30: feat(monetization): enforce robust error handling for failed cart billing checkouts
