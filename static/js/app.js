@@ -728,7 +728,51 @@ async function loadClosetItems() {
     renderCloset('all');
 }
 
+function updateStylingIndex() {
+    const scoreEl = document.getElementById('styling-index-score');
+    const scannedEl = document.getElementById('styling-index-scanned');
+    const progressPctEl = document.getElementById('styling-index-progress-pct');
+    const progressBarEl = document.getElementById('styling-index-progress-bar');
+    const rankLabelEl = document.getElementById('styling-index-rank-label');
+    
+    if (!scoreEl) return;
+    
+    const count = STATE.closetItems.length;
+    scannedEl.textContent = count;
+    
+    // Set average style score
+    // Let's make it a baseline of 88.5%, slightly varied by items
+    let score = 88.5;
+    if (count > 0) {
+        score = Math.min(99.4, 80 + (count * 1.5)).toFixed(1);
+    }
+    scoreEl.textContent = `${score}%`;
+    
+    // Let's define ranking progress towards "Haute Couture Master" (need 12 items)
+    const targetItems = 12;
+    const progressPct = Math.min(100, Math.round((count / targetItems) * 100));
+    if (progressPctEl) progressPctEl.textContent = `${progressPct}%`;
+    if (progressBarEl) progressBarEl.style.width = `${progressPct}%`;
+    
+    if (rankLabelEl) {
+        if (progressPct >= 100) {
+            rankLabelEl.textContent = "Haute Couture Master 👑";
+            rankLabelEl.style.color = "var(--accent-gold)";
+        } else if (progressPct >= 60) {
+            rankLabelEl.textContent = "Senior Stylist";
+            rankLabelEl.style.color = "#fff";
+        } else if (progressPct >= 30) {
+            rankLabelEl.textContent = "Fashion Coordinator";
+            rankLabelEl.style.color = "var(--text-secondary)";
+        } else {
+            rankLabelEl.textContent = "Haute Couture Apprentice";
+            rankLabelEl.style.color = "var(--text-muted)";
+        }
+    }
+}
+
 function renderCloset(category) {
+    updateStylingIndex();
     const closetGrid = document.getElementById('closet-grid');
     closetGrid.innerHTML = '';
 
@@ -1275,6 +1319,9 @@ function renderRPGRecommendation(data) {
             <div style="display: flex; gap: 8px; margin-top: 5px;">
                 <button class="gold-btn" style="flex: 1; padding: 10px; font-size: 0.75rem; text-transform: uppercase;" onclick="loadRPGLookToFitting(${topId}, ${bottomId}, ${footwearId}, ${outerwearId}, ${accessoryId})">
                     Probar Look
+                </button>
+                <button class="gold-btn" style="flex: 1; padding: 10px; font-size: 0.75rem; text-transform: uppercase; background: linear-gradient(135deg, #b8952b, var(--accent-gold)); color: #000; font-weight: bold; border: none; box-shadow: 0 0 10px rgba(212,175,55,0.4);" onclick="buyRPGLook(${topId}, ${bottomId}, ${footwearId}, ${outerwearId}, ${accessoryId})">
+                    Comprar Atuendo
                 </button>
             </div>
         </div>
@@ -1990,6 +2037,8 @@ window.clearFittingSlot = function(type) {
     }
     
     document.getElementById('fitting-verdict').style.display = 'none';
+    const checkoutCard = document.getElementById('boutique-checkout-card');
+    if (checkoutCard) checkoutCard.style.display = 'none';
 };
 
 window.loadScrapedToFitting = function(item) {
@@ -2051,28 +2100,158 @@ async function evaluateFittingMatch() {
         console.error("Error evaluating fitting match:", e);
     }
 
-    btnPurchase.style.display = 'block';
-    btnPurchase.onclick = () => {
-        triggerCheckout(boutiqueItem);
-    };
+    // Render detailed boutique checkout card
+    const checkoutCard = document.getElementById('boutique-checkout-card');
+    const checkoutPrice = document.getElementById('checkout-item-price');
+    const checkoutShipping = document.getElementById('checkout-item-shipping');
+    const checkoutTax = document.getElementById('checkout-item-tax');
+    const checkoutTotal = document.getElementById('checkout-item-total');
+    const btnPremiumCheckout = document.getElementById('btn-premium-checkout');
+
+    const priceStr = String(boutiqueItem.price || '$0.00').replace(/[^0-9.]/g, '');
+    const priceVal = parseFloat(priceStr) || 0;
+    const shippingVal = 15.00;
+    const taxVal = priceVal * 0.19; // 19% IVA
+    const totalVal = priceVal + shippingVal + taxVal;
+
+    if (checkoutPrice) checkoutPrice.textContent = `$${priceVal.toFixed(2)}`;
+    if (checkoutShipping) checkoutShipping.textContent = `$${shippingVal.toFixed(2)}`;
+    if (checkoutTax) checkoutTax.textContent = `$${taxVal.toFixed(2)}`;
+    if (checkoutTotal) checkoutTotal.textContent = `$${totalVal.toFixed(2)}`;
+
+    if (checkoutCard) checkoutCard.style.display = 'block';
+    if (btnPurchase) btnPurchase.style.display = 'none';
+
+    if (btnPremiumCheckout) {
+        btnPremiumCheckout.onclick = () => {
+            triggerCheckout(boutiqueItem);
+        };
+    }
+}
+
+function triggerBabylonPaySuccessAnimation(callback) {
+    const overlay = document.getElementById('babylon-pay-overlay');
+    const particlesContainer = document.getElementById('babylon-pay-particles');
+    const logo = document.getElementById('babylon-pay-logo');
+    const text = document.getElementById('babylon-pay-text');
+    const checkmark = document.getElementById('babylon-pay-checkmark');
+    
+    if (!overlay) {
+        if (callback) callback();
+        return;
+    }
+    
+    particlesContainer.innerHTML = '';
+    overlay.style.display = 'flex';
+    overlay.style.opacity = '0';
+    logo.style.opacity = '0';
+    logo.style.transform = 'scale(0.8)';
+    text.style.opacity = '0';
+    text.style.transform = 'translateY(20px)';
+    checkmark.style.opacity = '0';
+    checkmark.style.transform = 'scale(0.5)';
+    
+    setTimeout(() => {
+        overlay.style.opacity = '1';
+    }, 50);
+    
+    setTimeout(() => {
+        logo.style.opacity = '1';
+        logo.style.transform = 'scale(1)';
+    }, 400);
+    
+    setTimeout(() => {
+        text.style.opacity = '1';
+        text.style.transform = 'translateY(0)';
+    }, 700);
+    
+    setTimeout(() => {
+        checkmark.style.opacity = '1';
+        checkmark.style.transform = 'scale(1)';
+        
+        // Spawn particle stars burst
+        const particleCount = 120;
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        
+        for (let i = 0; i < particleCount; i++) {
+            setTimeout(() => {
+                const particle = document.createElement('div');
+                particle.className = 'gold-star-particle';
+                
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 3 + Math.random() * 9;
+                const size = 4 + Math.random() * 8;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${centerX}px`;
+                particle.style.top = `${centerY}px`;
+                particle.style.position = 'absolute';
+                particle.style.background = 'radial-gradient(circle, #fff 0%, var(--accent-gold) 60%, #b8952b 100%)';
+                particle.style.borderRadius = '50%';
+                particle.style.boxShadow = '0 0 8px var(--accent-gold)';
+                particle.style.zIndex = '100000';
+                
+                particlesContainer.appendChild(particle);
+                
+                let curX = centerX;
+                let curY = centerY;
+                let velX = Math.cos(angle) * speed;
+                let velY = Math.sin(angle) * speed;
+                let opacity = 1;
+                
+                const anim = () => {
+                    curX += velX;
+                    curY += velY + 0.05; // gravity
+                    opacity -= 0.015;
+                    particle.style.left = `${curX}px`;
+                    particle.style.top = `${curY}px`;
+                    particle.style.opacity = opacity;
+                    
+                    if (opacity > 0) {
+                        requestAnimationFrame(anim);
+                    } else {
+                        particle.remove();
+                    }
+                };
+                requestAnimationFrame(anim);
+            }, Math.random() * 800);
+        }
+    }, 1000);
+    
+    setTimeout(() => {
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            if (callback) callback();
+        }, 500);
+    }, 4200);
 }
 
 function triggerCheckout(boutiqueItem) {
-    const confirmBuy = confirm(`¿Deseas comprar "${boutiqueItem.name}" por ${boutiqueItem.price}?`);
+    const priceStr = String(boutiqueItem.price || '$0.00').replace(/[^0-9.]/g, '');
+    const priceVal = parseFloat(priceStr) || 0;
+    const shippingVal = 15.00;
+    const taxVal = priceVal * 0.19;
+    const totalVal = priceVal + shippingVal + taxVal;
+
+    const confirmBuy = confirm(`¿Proceder al pago de "${boutiqueItem.name}" por $${totalVal.toFixed(2)} (IVA y envío incluidos) con Babylon Pay?`);
     if (!confirmBuy) return;
 
-    STATE.currentOrder = {
-        id: 'DY-' + Math.floor(Math.random() * 90000 + 10000),
-        status: 'Procesado',
-        progress: 10,
-        logs: [
-            { time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), text: `Orden de compra creada para ${boutiqueItem.name}.` },
-            { time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), text: 'Validación de pago aprobada.' }
-        ]
-    };
-
-    alert("¡Compra exitosa! Sigue el camión de reparto en la sección de Rastreo de Pedidos.");
-    switchTab('pedidos');
+    triggerBabylonPaySuccessAnimation(() => {
+        STATE.currentOrder = {
+            id: 'DY-' + Math.floor(Math.random() * 90000 + 10000),
+            status: 'Procesado',
+            progress: 10,
+            logs: [
+                { time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), text: `Orden de compra creada para ${boutiqueItem.name}.` },
+                { time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), text: 'Validación de pago aprobada via Babylon Pay.' }
+            ]
+        };
+        switchTab('pedidos');
+        showToast("¡Transacción exitosa a través de Babylon Pay!");
+    });
 }
 
 // 8. Editorial Social Community Feed (Style Valuations Tags)
@@ -2837,3 +3016,413 @@ function showToast(message, type = 'success') {
         }, 350);
     }, 3000);
 }
+
+// RPG ENGINE (Isa)
+const MOCK_RPG_NODES = {
+    occasion_step: {
+        node_id: "occasion_step", step: "Ocasión",
+        question: "¿Para qué ocasión estás preparando tu atuendo el día de hoy?",
+        options: [
+            { id: "opt_quiet_luxury", text: "Lujo Silencioso", next_node_id: "color_step" },
+            { id: "opt_casual", text: "Casual", next_node_id: "color_step" },
+            { id: "opt_business_casual", text: "Business Casual", next_node_id: "color_step" },
+            { id: "opt_sporty", text: "Deportivo Chic", next_node_id: "color_step" },
+            { id: "opt_cocktail", text: "Coctel / Fiesta", next_node_id: "color_step" }
+        ]
+    },
+    color_step: {
+        node_id: "color_step", step: "Colorimetría",
+        question: "¿Cuál es tu paleta de color estacional predominante?",
+        options: [
+            { id: "opt_spring", text: "Primavera (Tonos cálidos y luminosos)", next_node_id: "silhouette_step" },
+            { id: "opt_summer", text: "Verano (Tonos fríos y suaves)", next_node_id: "silhouette_step" },
+            { id: "opt_autumn", text: "Otoño (Tonos cálidos y terrosos)", next_node_id: "silhouette_step" },
+            { id: "opt_winter", text: "Invierno (Tonos fríos y contrastantes)", next_node_id: "silhouette_step" }
+        ]
+    },
+    silhouette_step: {
+        node_id: "silhouette_step", step: "Silueta",
+        question: "¿Qué silueta corporal describe mejor tu estructura física?",
+        options: [
+            { id: "opt_hourglass", text: "Reloj de Arena", next_node_id: "complete" },
+            { id: "opt_triangle", text: "Triángulo", next_node_id: "complete" },
+            { id: "opt_inverted_triangle", text: "Triángulo Invertido", next_node_id: "complete" },
+            { id: "opt_rectangle", text: "Rectángulo", next_node_id: "complete" },
+            { id: "opt_oval", text: "Óvalo / Manzana", next_node_id: "complete" }
+        ]
+    }
+};
+
+function generateLocalRPGComplete(answers) {
+    let occasion = "Casual";
+    if (answers.includes("opt_quiet_luxury")) occasion = "Quiet Luxury";
+    else if (answers.includes("opt_business_casual")) occasion = "Business Casual";
+    else if (answers.includes("opt_sporty")) occasion = "Sporty";
+    else if (answers.includes("opt_cocktail")) occasion = "Cocktail";
+
+    const top = STATE.closetItems.find(i => i.cat === 'superior') || { id: 1, name: "Camiseta Básica", cat: "superior", image: "" };
+    const bottom = STATE.closetItems.find(i => i.cat === 'inferior') || { id: 3, name: "Jeans Denim", cat: "inferior", image: "" };
+    const foot = STATE.closetItems.find(i => i.cat === 'calzado') || { id: 5, name: "Tenis Urbanos", cat: "calzado", image: "" };
+    const bItem = STATE.boutiqueItems[0] || { id: 11, name: "Camisa a Rayas Marina", cat: "superior", brand: "Zara", price: "$45.00", image: "" };
+
+    return {
+        title: `El Susurro del Estilo ${occasion}`,
+        justification: `Combinación curada de forma inteligente. Balance perfecto de colores y estructura.`,
+        scores: { total_score: 95, color_score: 95, style_score: 95, pattern_score: 90, weather_score: 90 },
+        outfit: {
+            top: { id: top.id, name: top.name, category: 'Top', image_url: top.image, is_owned: 1 },
+            bottom: { id: bottom.id, name: bottom.name, category: 'Bottom', image_url: bottom.image, is_owned: 1 },
+            footwear: { id: foot.id, name: foot.name, category: 'Footwear', image_url: foot.image, is_owned: 1 },
+            outerwear: { id: bItem.id, name: bItem.name, category: bItem.cat === 'superior' ? 'Top' : 'Bottom', brand: bItem.brand || 'Boutique', price: bItem.price, image_url: bItem.image, is_owned: 0 }
+        }
+    };
+}
+
+function switchChatMode(mode) {
+    STATE.chatMode = mode;
+    const btnLibre = document.getElementById('btn-mode-libre');
+    const btnRPG = document.getElementById('btn-mode-rpg');
+    const ariaControls = document.querySelector('.aria-controls');
+    const chatInputRow = document.querySelector('.chat-input-row');
+    const rpgProgress = document.getElementById('rpg-progress-tracker');
+    const rpgOptions = document.getElementById('rpg-options-container');
+    const portraitImg = document.getElementById('aria-portrait');
+    const chatHistory = document.getElementById('chat-history');
+    
+    if (mode === 'rpg') {
+        if (btnLibre) btnLibre.classList.remove('active');
+        if (btnRPG) btnRPG.classList.add('active');
+        if (ariaControls) ariaControls.style.display = 'none';
+        if (chatInputRow) chatInputRow.style.display = 'none';
+        if (rpgProgress) rpgProgress.style.display = 'flex';
+        if (rpgOptions) rpgOptions.style.display = 'flex';
+        if (portraitImg) {
+            portraitImg.style.opacity = '0';
+            setTimeout(() => {
+                portraitImg.src = 'static/proposals/Propuestas%20de%20Asistente%20Personal/Propuesta%20(Animada%20CW)/Propuesta%20CW.png';
+                portraitImg.style.opacity = '1';
+            }, 300);
+        }
+        triggerAriaSpeech("¡Hola! Soy Isa. Comencemos tu aventura de estilo de alta costura interactiva. Elige una opción abajo para empezar.");
+        if (chatHistory) chatHistory.innerHTML = '';
+        STATE.rpgAnswers = [];
+        STATE.rpgCurrentNode = 'occasion_step';
+        loadRPGNode('occasion_step');
+    } else {
+        if (btnLibre) btnLibre.classList.add('active');
+        if (btnRPG) btnRPG.classList.remove('active');
+        if (ariaControls) ariaControls.style.display = 'flex';
+        if (chatInputRow) chatInputRow.style.display = 'flex';
+        if (rpgProgress) rpgProgress.style.display = 'none';
+        if (rpgOptions) rpgOptions.style.display = 'none';
+        if (portraitImg) {
+            portraitImg.style.opacity = '0';
+            setTimeout(() => {
+                portraitImg.src = ARIA_LOOK_IMAGES[STATE.ariaLook] || ARIA_LOOK_IMAGES.base;
+                portraitImg.style.opacity = '1';
+            }, 300);
+        }
+        triggerAriaSpeech(getRandomQuote());
+        if (chatHistory) {
+            chatHistory.innerHTML = '';
+            fetch('/api/chat/history')
+                .then(res => res.ok ? res.json() : [])
+                .then(historyData => {
+                    historyData.forEach(item => {
+                        let scraped = null;
+                        if (item.scraped_item_json) {
+                            try { scraped = JSON.parse(item.scraped_item_json); } catch(e) {}
+                        }
+                        appendChatMessage(item.sender, item.message, scraped);
+                    });
+                    updateChatHistoryState();
+                }).catch(err => {
+                    console.log("Error reloading history:", err);
+                    updateChatHistoryState();
+                });
+        }
+    }
+}
+
+async function loadRPGNode(nodeId) {
+    STATE.rpgCurrentNode = nodeId;
+    const rpgOptions = document.getElementById('rpg-options-container');
+    if (rpgOptions) {
+        rpgOptions.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; font-style: italic; padding: 10px;">Isa está pensando...</div>`;
+    }
+    let nodeData = null;
+    try {
+        const response = await fetch(`/api/rpg/node?node_id=${nodeId}`);
+        if (response.ok) nodeData = await response.json();
+    } catch (e) {
+        console.warn("Could not fetch RPG node, using local fallback", e);
+    }
+    if (!nodeData) nodeData = MOCK_RPG_NODES[nodeId];
+    if (!nodeData) {
+        showToast("Error al cargar el nodo del juego de rol.", "error");
+        return;
+    }
+    renderRPGNode(nodeData);
+}
+
+function renderRPGNode(nodeData) {
+    const rpgOptions = document.getElementById('rpg-options-container');
+    const stepIndicator = document.getElementById('rpg-step-indicator');
+    const progressBar = document.getElementById('rpg-progress-bar');
+    
+    if (stepIndicator) {
+        const stepNum = nodeData.node_id === 'occasion_step' ? 1 : (nodeData.node_id === 'color_step' ? 2 : 3);
+        stepIndicator.textContent = `Paso ${stepNum} de 3`;
+        const pct = (stepNum / 3) * 100;
+        if (progressBar) progressBar.style.width = `${pct}%`;
+    }
+    
+    const textToDisplay = nodeData.question || nodeData.text || "Selecciona una opción:";
+    appendChatMessage('bot', textToDisplay);
+    triggerAriaSpeech(textToDisplay);
+    
+    if (rpgOptions) {
+        rpgOptions.innerHTML = '';
+        nodeData.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'rpg-option-btn';
+            btn.textContent = opt.text;
+            btn.addEventListener('click', () => {
+                appendChatMessage('user', opt.text);
+                STATE.rpgAnswers.push(opt.id);
+                if (opt.next_node_id === 'complete') {
+                    completeRPGGame();
+                } else {
+                    loadRPGNode(opt.next_node_id);
+                }
+            });
+            rpgOptions.appendChild(btn);
+        });
+    }
+}
+
+async function completeRPGGame() {
+    const rpgOptions = document.getElementById('rpg-options-container');
+    const stepIndicator = document.getElementById('rpg-step-indicator');
+    const progressBar = document.getElementById('rpg-progress-bar');
+    
+    if (stepIndicator) stepIndicator.textContent = "Completado";
+    if (progressBar) progressBar.style.width = "100%";
+    if (rpgOptions) {
+        rpgOptions.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; font-style: italic; padding: 10px;">Generando tu outfit Haute Couture...</div>`;
+    }
+    
+    let result = null;
+    try {
+        const response = await fetch('/api/rpg/complete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ answers: STATE.rpgAnswers })
+        });
+        if (response.ok) result = await response.json();
+    } catch (e) {
+        console.warn("Could not complete RPG game on server, using local fallback:", e);
+    }
+    
+    if (!result) result = generateLocalRPGComplete(STATE.rpgAnswers);
+    
+    if (rpgOptions) {
+        rpgOptions.innerHTML = '';
+        const restartBtn = document.createElement('button');
+        restartBtn.className = 'rpg-option-btn';
+        restartBtn.style.textAlign = 'center';
+        restartBtn.innerHTML = '🔄 Reiniciar Juego de Rol';
+        restartBtn.addEventListener('click', () => {
+            const chatHistory = document.getElementById('chat-history');
+            if (chatHistory) chatHistory.innerHTML = '';
+            STATE.rpgAnswers = [];
+            loadRPGNode('occasion_step');
+        });
+        rpgOptions.appendChild(restartBtn);
+    }
+    
+    appendChatMessage('bot', "¡Espléndido! He diseñado el look ideal para ti:", null, result);
+    triggerAriaSpeech("¡Look completado! Pruébatelo en el probador.");
+}
+
+function renderRPGRecommendation(recommendation) {
+    const title = recommendation.title || "Look Recomendado";
+    const justification = recommendation.justification || "";
+    const outfit = recommendation.outfit || {};
+    
+    let itemsHTML = '';
+    const keys = ['top', 'bottom', 'footwear', 'outerwear', 'accessory'];
+    const outfitItems = [];
+    
+    keys.forEach(key => {
+        const itm = outfit[key];
+        if (itm) {
+            const normalizedItem = {
+                id: itm.id,
+                name: itm.name,
+                category: itm.category || key,
+                brand: itm.store_name || itm.brand || 'Atelier',
+                price: itm.price !== undefined ? (typeof itm.price === 'number' ? `$${itm.price.toFixed(2)}` : String(itm.price)) : '',
+                image_url: itm.image_url || itm.image,
+                is_owned: itm.is_owned === 1 || itm.is_owned === true
+            };
+            outfitItems.push(normalizedItem);
+        }
+    });
+
+    outfitItems.forEach(itm => {
+        const ownedBadge = itm.is_owned 
+            ? `<span style="background: rgba(0, 255, 136, 0.12); color: #00ff88; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(0, 255, 136, 0.25); font-family: 'Outfit', sans-serif;">Mi Closet</span>`
+            : `<span style="background: rgba(212, 175, 55, 0.12); color: var(--accent-gold); font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(212, 175, 55, 0.25); font-family: 'Outfit', sans-serif;">${itm.brand}</span>`;
+        
+        let buyButton = '';
+        if (!itm.is_owned && itm.price) {
+            const itmJSON = JSON.stringify(itm).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+            buyButton = `
+                <button class="gold-btn" style="padding: 4px 8px; font-size: 0.65rem; border-radius: 4px; text-transform: none; letter-spacing: 0.5px; width: 100%; margin-top: 5px; cursor: pointer;" onclick='buyRPGItem(${itmJSON})'>
+                    Comprar (${itm.price})
+                </button>
+            `;
+        }
+
+        itemsHTML += `
+            <div style="flex: 1; min-width: 100px; max-width: 150px; border: 1px solid var(--border-gold); padding: 8px; border-radius: 6px; background: rgba(10,10,10,0.8); display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 10px rgba(0,0,0,0.4);">
+                <div style="width: 100%; height: 90px; overflow: hidden; border-radius: 4px; border: 1px solid rgba(212,175,55,0.15); margin-bottom: 6px; position: relative;">
+                    <img src="${itm.image_url}" alt="${itm.name}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27100%27 height=%27100%27 fill=%27%23333%27%3E%3Crect width=%27100%27 height=%27100%27 fill=%27%23111%27/%3E%3C/svg%3E';">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px; text-align: left; flex-grow: 1;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 4px;">
+                        <span style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase;">${itm.category}</span>
+                        ${ownedBadge}
+                    </div>
+                    <h5 style="font-size: 0.75rem; font-weight: 500; color: var(--text-primary); margin: 2px 0; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.2; min-height: 28px; font-family: 'Inter', sans-serif;">${itm.name}</h5>
+                </div>
+                ${buyButton}
+            </div>
+        `;
+    });
+
+    const outfitItemsJSON = JSON.stringify(outfitItems).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+
+    return `
+        <div style="margin-top: 12px; border: 1px solid var(--border-gold); border-radius: 8px; background: rgba(212, 175, 55, 0.03); padding: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); text-align: left;">
+            <div style="font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 600; color: var(--accent-gold); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid rgba(212,175,55,0.15); padding-bottom: 6px;">
+                🏰 ${title}
+            </div>
+            <p style="font-size: 0.78rem; color: var(--text-secondary); line-height: 1.4; margin: 0 0 12px 0; font-family: 'Inter', sans-serif; font-style: italic;">
+                "${justification}"
+            </p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; justify-content: center;">
+                ${itemsHTML}
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 10px; width: 100%;">
+                <button class="gold-btn" style="flex: 1; padding: 10px; font-size: 0.75rem; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-family: 'Outfit', sans-serif; letter-spacing: 1px;" onclick='loadRPGOutfitToFitting(${outfitItemsJSON})'>
+                    👗 Probar Look
+                </button>
+                <button class="gold-btn" style="flex: 1; padding: 10px; font-size: 0.75rem; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-family: 'Outfit', sans-serif; letter-spacing: 1px; background: linear-gradient(135deg, #b8952b, var(--accent-gold)); color: #000; font-weight: bold; border: none; box-shadow: 0 0 10px rgba(212,175,55,0.4);" onclick='buyRPGOutfit(${outfitItemsJSON})'>
+                    💰 Comprar Atuendo
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+window.buyRPGItem = function(item) {
+    let bItem = STATE.boutiqueItems.find(b => String(b.id) === String(item.id) || b.name.toLowerCase().includes(item.name.toLowerCase()));
+    if (!bItem) {
+        bItem = { id: item.id, name: item.name, price: item.price || '$0.00', image: item.image_url || item.image, brand: item.brand || 'Boutique' };
+    }
+    triggerCheckout(bItem);
+};
+
+window.loadRPGOutfitToFitting = function(items) {
+    let closetItem = null;
+    let boutiqueItem = null;
+    items.forEach(itm => {
+        const isOwned = itm.is_owned === true;
+        const mappedCat = mapCategory(itm.category);
+        if (isOwned) {
+            closetItem = STATE.closetItems.find(c => String(c.id) === String(itm.id) || c.name.toLowerCase().includes(itm.name.toLowerCase()));
+            if (!closetItem) {
+                closetItem = { id: itm.id || 'c_temp_' + Date.now(), cat: mappedCat, name: itm.name, style: 'Quiet Luxury', image: itm.image_url || itm.image };
+            }
+        } else {
+            boutiqueItem = STATE.boutiqueItems.find(b => String(b.id) === String(itm.id) || b.name.toLowerCase().includes(itm.name.toLowerCase()));
+            if (!boutiqueItem) {
+                boutiqueItem = { id: itm.id || 'b_temp_' + Date.now(), cat: mappedCat, brand: itm.brand || 'Boutique', name: itm.name, price: itm.price || '$0.00', image: itm.image_url || itm.image };
+            }
+        }
+    });
+    if (closetItem) selectForFitting('closet', closetItem);
+    if (boutiqueItem) selectForFitting('boutique', boutiqueItem);
+    switchTab('probador');
+    showToast("Look cargado en el probador interactivo.");
+};
+
+window.buyRPGOutfit = function(items) {
+    const boutiqueItems = items.filter(itm => !itm.is_owned);
+    if (boutiqueItems.length === 0) {
+        showToast("Ya posees todas las prendas de este atuendo en tu closet.", "error");
+        return;
+    }
+    
+    const totalBoutiquePrice = boutiqueItems.reduce((acc, itm) => {
+        const val = parseFloat(String(itm.price || '0').replace(/[^0-9.]/g, '')) || 0;
+        return acc + val;
+    }, 0);
+    
+    const primaryItem = boutiqueItems[0];
+    const checkoutItem = {
+        id: primaryItem.id,
+        name: boutiqueItems.length > 1 ? `Atuendo (${boutiqueItems.length} prendas)` : primaryItem.name,
+        price: `$${totalBoutiquePrice.toFixed(2)}`,
+        image: primaryItem.image_url || primaryItem.image,
+        brand: primaryItem.brand || 'Boutique'
+    };
+    
+    triggerCheckout(checkoutItem);
+};
+
+window.buyRPGLook = async function(topId, bottomId, footwearId, outerwearId, accessoryId) {
+    try {
+        const fetchItem = async (id) => {
+            if (!id) return null;
+            const res = await fetch(`/api/clothes`);
+            if (res.ok) {
+                const clothes = await res.json();
+                return clothes.find(c => c.id === id) || null;
+            }
+            return null;
+        };
+        
+        const top = await fetchItem(topId);
+        const bottom = await fetchItem(bottomId);
+        const footwear = await fetchItem(footwearId);
+        const outerwear = await fetchItem(outerwearId);
+        const accessory = await fetchItem(accessoryId);
+        
+        const items = [top, bottom, footwear, outerwear, accessory].filter(x => x !== null);
+        const boutiqueItems = items.filter(itm => itm.is_owned === 0 || itm.is_owned === false);
+        
+        if (boutiqueItems.length === 0) {
+            showToast("Ya posees todas las prendas de este atuendo en tu closet.", "error");
+            return;
+        }
+        
+        const totalBoutiquePrice = boutiqueItems.reduce((acc, itm) => acc + (parseFloat(itm.price) || 0), 0);
+        const primaryItem = boutiqueItems[0];
+        const checkoutItem = {
+            id: primaryItem.id,
+            name: boutiqueItems.length > 1 ? `Atuendo (${boutiqueItems.length} prendas)` : primaryItem.name,
+            price: `$${totalBoutiquePrice.toFixed(2)}`,
+            image: primaryItem.image_url,
+            brand: primaryItem.store_name || 'Boutique'
+        };
+        
+        triggerCheckout(checkoutItem);
+    } catch(err) {
+        console.error("Buy RPG look error:", err);
+    }
+};
+
+// BabylonSwarm_Commit_5: feat(rpg): render asymmetrical polaroid collage for final outfit recommendation
