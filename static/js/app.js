@@ -285,6 +285,20 @@ const MOCK_DATA = {
     ]
 };
 
+// Offline Mock Weather Database for Colombian Cities
+const MOCK_CITIES_WEATHER = [
+    { name: "Bogotá", temp: "14°C", desc: "Llovizna y niebla matutina", condition: "Lluvia", humidity: "85%", wind: "12 km/h" },
+    { name: "Medellín", temp: "22°C", desc: "Clima primaveral y despejado", condition: "Despejado", humidity: "65%", wind: "8 km/h" },
+    { name: "Cali", temp: "28°C", desc: "Cálido y parcialmente nublado", condition: "Nublado", humidity: "60%", wind: "10 km/h" },
+    { name: "Barranquilla", temp: "32°C", desc: "Calor tropical intenso y brisa", condition: "Soleado", humidity: "75%", wind: "22 km/h" },
+    { name: "Cartagena", temp: "31°C", desc: "Soleado con brisa costera", condition: "Soleado", humidity: "70%", wind: "18 km/h" },
+    { name: "Bucaramanga", temp: "24°C", desc: "Templado y agradable", condition: "Despejado", humidity: "68%", wind: "9 km/h" },
+    { name: "Pereira", temp: "21°C", desc: "Cielo nublado y templado", condition: "Nublado", humidity: "72%", wind: "7 km/h" },
+    { name: "Santa Marta", temp: "30°C", desc: "Cálido y soleado", condition: "Soleado", humidity: "74%", wind: "15 km/h" },
+    { name: "Manizales", temp: "16°C", desc: "Fresco con neblina", condition: "Neblina", humidity: "88%", wind: "11 km/h" },
+    { name: "Ibagué", temp: "23°C", desc: "Templado y parcialmente nublado", condition: "Nublado", humidity: "70%", wind: "10 km/h" }
+];
+
 // Document Lifecycle Init
 document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
@@ -495,8 +509,17 @@ async function loadWeatherByCityIndex(cityIndex) {
         await loadRecommendations();
     } catch (e) {
         // Mock fallback matching the index
-        const cities = ["Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Bucaramanga", "Pereira", "Santa Marta", "Manizales", "Ibagué"];
-        const mock = { ...MOCK_DATA.weather, city: cities[cityIndex] || "Bogotá" };
+        const cityWeather = MOCK_CITIES_WEATHER[cityIndex] || MOCK_CITIES_WEATHER[0];
+        const mock = {
+            city: cityWeather.name,
+            temp: cityWeather.temp,
+            desc: cityWeather.desc,
+            details: [
+                { label: "Condición", value: cityWeather.condition },
+                { label: "Humedad", value: cityWeather.humidity },
+                { label: "Viento", value: cityWeather.wind }
+            ]
+        };
         renderWeather(mock);
         renderRecommendations(MOCK_DATA.climaRecommendation);
     }
@@ -516,14 +539,15 @@ async function loadWeatherByGPS(lat, lon) {
         await loadRecommendations();
     } catch (e) {
         // Offline / Fallback
+        const cityWeather = MOCK_CITIES_WEATHER[nearestCity.index] || MOCK_CITIES_WEATHER[0];
         const mock = {
-            city: resolvedName || `📍 ${nearestCity.name} (Aprox.)`,
-            temp: "17°C",
-            desc: "Nublado con ráfagas suaves (GPS activo, sin servidor)",
+            city: resolvedName || `📍 ${cityWeather.name} (Aprox.)`,
+            temp: cityWeather.temp,
+            desc: `${cityWeather.desc} (GPS activo, sin servidor)`,
             details: [
-                { label: "Condición", value: "Nublado" },
+                { label: "Condición", value: cityWeather.condition },
                 { label: "GPS", value: `${lat.toFixed(2)}°, ${lon.toFixed(2)}°` },
-                { label: "Ciudad Cercana", value: nearestCity.name }
+                { label: "Ciudad Cercana", value: cityWeather.name }
             ]
         };
         renderWeather(mock);

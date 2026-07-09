@@ -147,6 +147,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     flex-grow: 1;
     height: 100%;
     overflow-y: auto;
+    overflow-x: hidden; /* Prevent horizontal page scroll/black bars */
     padding: 40px;
     position: relative;
     scrollbar-width: thin;
@@ -836,7 +837,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
 
 .aria-portrait-wrapper {
     width: 200px;
-    height: 250px;
+    height: 300px; /* Taller viewport to display full head and torso */
     position: relative;
     border-radius: 12px;
     border: 2px solid var(--border-gold);
@@ -850,6 +851,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center top; /* Center horizontally, align top edge to keep the face/head visible */
     transition: opacity 0.4s ease;
 }
 
@@ -2381,6 +2383,8 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
         padding: 20px;
         padding-bottom: 90px; /* Space for bottom navigation bar */
         height: calc(100vh - 65px); /* Window minus mobile header */
+        overflow-x: hidden; /* Force prevent horizontal drag */
+        width: 100%;
     }
     
     .editorial-title {
