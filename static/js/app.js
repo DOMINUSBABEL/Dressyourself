@@ -1193,106 +1193,130 @@ function startRPGStyling() {
 }
 
 async function loadRPGNode(nodeId) {
+    const lang = localStorage.getItem('dy_language') || 'es';
+    const stepNum = nodeId === 'occasion_step' ? 1 : nodeId === 'color_step' ? 2 : 3;
+    const barPct = nodeId === 'occasion_step' ? 33 : nodeId === 'color_step' ? 66 : 100;
+    
+    const stepIndicator = document.getElementById('rpg-step-indicator');
+    const progressBar = document.getElementById('rpg-progress-bar');
+    
+    let node = null;
     try {
         const response = await fetch(`/api/rpg/node?node_id=${nodeId}`);
-        if (!response.ok) throw new Error("Error cargando el nodo");
-        const node = await response.json();
-        
-        STATE.rpgCurrentNode = nodeId;
-        
-        // Update Step Progress indicator
-        const stepNum = nodeId === 'occasion_step' ? 1 : nodeId === 'color_step' ? 2 : 3;
-        const barPct = nodeId === 'occasion_step' ? 33 : nodeId === 'color_step' ? 66 : 100;
-        
-        const stepIndicator = document.getElementById('rpg-step-indicator');
-        const progressBar = document.getElementById('rpg-progress-bar');
-        
-        if (stepIndicator) stepIndicator.textContent = `Paso ${stepNum} de 3: ${node.step}`;
-        if (progressBar) progressBar.style.width = `${barPct}%`;
-        
-        // Show Isa's question in chat
-        appendChatMessage('bot', node.question);
-        
-        // Render option buttons
-        const optionsContainer = document.getElementById('rpg-options-container');
-        if (optionsContainer) {
-            optionsContainer.innerHTML = '';
-            node.options.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = 'rpg-option-btn';
-                btn.textContent = opt.text;
-                btn.addEventListener('click', () => {
-                    selectRPGOption(nodeId, opt.id, opt.text, opt.next_node_id);
-                });
-                optionsContainer.appendChild(btn);
-            });
+        if (response.ok) {
+            node = await response.json();
         }
     } catch(err) {
-        console.error("RPG Node fetch error:", err);
-        appendChatMessage('bot', "¡Ay, disculpa! Tuvimos un pequeño tropiezo cargando las opciones. ¿Qué tal si volvemos a intentarlo?");
+        console.warn("RPG Node fetch failed, using local fallback:", err);
+    }
+    
+    // Offline local fallback
+    if (!node) {
+        const localNode = LOCAL_RPG_NODES[nodeId];
+        if (localNode) {
+            node = {
+                node_id: localNode.node_id,
+                step: localNode.step[lang] || localNode.step['es'],
+                question: localNode.question[lang] || localNode.question['es'],
+                options: localNode.options.map(opt => ({
+                    id: opt.id,
+                    text: opt.text[lang] || opt.text['es'],
+                    next_node_id: opt.next_node_id
+                }))
+            };
+        }
+    }
+    
+    if (!node) {
+        const errMsg = lang === 'es' ? "¡Ay, disculpa! Tuvimos un pequeño tropiezo. ¿Reiniciamos?" : "Sorry! We had a little hiccup. Restart?";
+        appendChatMessage('bot', errMsg);
+        return;
+    }
+    
+    STATE.rpgCurrentNode = nodeId;
+    
+    if (stepIndicator) stepIndicator.textContent = lang === 'es' ? `Paso ${stepNum} de 3: ${node.step}` : `Step ${stepNum} of 3: ${node.step}`;
+    if (progressBar) progressBar.style.width = `${barPct}%`;
+    
+    appendChatMessage('bot', node.question);
+    
+    const optionsContainer = document.getElementById('rpg-options-container');
+    if (optionsContainer) {
+        optionsContainer.innerHTML = '';
+        node.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'rpg-option-btn';
+            btn.textContent = opt.text;
+            btn.addEventListener('click', () => {
+                selectRPGOption(nodeId, opt.id, opt.text, opt.next_node_id);
+            });
+            optionsContainer.appendChild(btn);
+        });
     }
 }
 
 async function selectRPGOption(nodeId, optionId, optionText, nextNodeId) {
-    // 1. Show user choice in chat
+    const lang = localStorage.getItem('dy_language') || 'es';
     appendChatMessage('user', optionText);
     
-    // Save answer
     STATE.rpgAnswers.push({
         node_id: nodeId,
         option_id: optionId
     });
     
-    // Clear current option buttons
     const optionsContainer = document.getElementById('rpg-options-container');
     if (optionsContainer) optionsContainer.innerHTML = '';
     
     if (nextNodeId === 'complete') {
-        // Hide tracker & options during results generation
         const tracker = document.getElementById('rpg-progress-tracker');
         if (tracker) tracker.style.display = 'none';
         if (optionsContainer) optionsContainer.style.display = 'none';
         
-        appendChatMessage('bot', "Procesando tus elecciones de estilo... Creando tu combinación de alta costura...");
+        appendChatMessage('bot', lang === 'es' ? "Procesando tus elecciones de estilo... Creando tu combinación de alta costura..." : "Processing your style choices... Creating your haute couture outfit...");
         
+        let resultData = null;
         try {
             const res = await fetch('/api/rpg/complete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ answers: STATE.rpgAnswers })
             });
-            
-            if (!res.ok) throw new Error("RPG Complete Error");
-            const resultData = await res.json();
-            
-            setTimeout(() => {
-                appendChatMessage('bot', `Isa ha revelado tu perfil ideal: ¡Te ha asignado el título de "${resultData.title}"!`, null, resultData);
-                triggerAriaSpeech(`Bonjour chérie! He revelado tu perfil de estilo: eres ${resultData.title}. He puesto tu combinación ideal a continuación.`);
-                
-                // Show options container with a Restart button
-                if (optionsContainer) {
-                    optionsContainer.style.display = 'flex';
-                    optionsContainer.innerHTML = `
-                        <button class="gold-btn" style="width: 100%; text-transform: uppercase; padding: 12px;" onclick="startRPGStyling()">
-                            Reiniciar Juego de Rol
-                        </button>
-                    `;
-                }
-            }, 1200);
+            if (res.ok) {
+                resultData = await res.json();
+            }
         } catch(err) {
-            console.error("RPG Complete error:", err);
-            appendChatMessage('bot', "Tuvimos un fallo calculando tus puntuaciones. Vamos a reiniciar el juego.");
+            console.warn("RPG complete fetch failed, using local completion:", err);
+        }
+        
+        if (!resultData) {
+            resultData = processRPGCompletionLocally(STATE.rpgAnswers, lang);
+        }
+        
+        setTimeout(() => {
+            const congratMsg = lang === 'es' 
+                ? `Aria ha revelado tu perfil ideal: ¡Te ha asignado el título de "${resultData.title}"!` 
+                : `Aria has revealed your ideal profile: You have been awarded the title of "${resultData.title}"!`;
+            
+            appendChatMessage('bot', congratMsg, null, resultData);
+            
+            const ariaSpeech = lang === 'es' 
+                ? `¡Bonjour chérie! He revelado tu perfil de estilo: eres ${resultData.title}. He puesto tu combinación ideal a continuación.` 
+                : `Bonjour chérie! I have revealed your style profile: you are ${resultData.title}. I have placed your ideal combination below.`;
+            triggerAriaSpeech(ariaSpeech);
+            
+            // Otorga 10 puntos al Babylon Styling Index por completar el juego de rol!
+            grantStylingIndexBonus(10.0, lang);
+            
             if (optionsContainer) {
                 optionsContainer.style.display = 'flex';
                 optionsContainer.innerHTML = `
-                    <button class="gold-btn" style="width: 100%;" onclick="startRPGStyling()">
-                        Volver a empezar
+                    <button class="gold-btn" style="width: 100%; text-transform: uppercase; padding: 12px;" onclick="startRPGStyling()">
+                        ${lang === 'es' ? 'Reiniciar Juego de Rol' : 'Restart Roleplay'}
                     </button>
                 `;
             }
-        }
+        }, 1200);
     } else {
-        // Load next question
         setTimeout(() => {
             loadRPGNode(nextNodeId);
         }, 600);
@@ -1354,15 +1378,21 @@ function renderRPGRecommendation(data) {
 
 window.loadRPGLookToFitting = async function(topId, bottomId, footwearId, outerwearId, accessoryId) {
     try {
-        // Load items to fitting room slot
+        // Load items to fitting room slot (resilient to offline mode)
         const fetchItem = async (id) => {
             if (!id) return null;
-            const res = await fetch(`/api/clothes`);
-            if (res.ok) {
-                const clothes = await res.json();
-                return clothes.find(c => c.id === id) || null;
+            try {
+                const res = await fetch(`/api/clothes`);
+                if (res.ok) {
+                    const clothes = await res.json();
+                    const item = clothes.find(c => c.id === id);
+                    if (item) return item;
+                }
+            } catch(e) {
+                console.warn("Fetch clothes failed, using local fallback:", e);
             }
-            return null;
+            const allLocal = [...(STATE.closetItems || []), ...(MOCK_DATA.boutique || [])];
+            return allLocal.find(c => c.id === id) || null;
         };
         
         showToast("Cargando combinación en el Probador...", "success");
@@ -4664,6 +4694,11 @@ window.changeSystemLanguage = function(lang) {
         'fr': "Langue changée en Français."
     };
     showToast(translations[lang] || "Idioma actualizado.");
+    
+    // Apply translations across DOM elements
+    if (typeof applySystemTranslations === 'function') {
+        applySystemTranslations(lang);
+    }
 };
 
 window.changeSystemLocation = function(cityIdx) {
@@ -4699,4 +4734,820 @@ window.buyPremiumPro = function() {
     }
 };
 
+// ==========================================
+// HAUTE COUTURE SYSTEM - SOTA NEW EXTENSIONS
+// ==========================================
 
+// 1. LOCAL RPG NODES & OFFLINE COMPLETION
+const LOCAL_RPG_NODES = {
+    "occasion_step": {
+        "node_id": "occasion_step",
+        "step": { "es": "Ocasión", "en": "Occasion" },
+        "question": {
+            "es": "¿Para qué ocasión estás preparando tu atuendo el día de hoy?",
+            "en": "For what occasion are you preparing your outfit today?"
+        },
+        "options": [
+            {
+                "id": "opt_quiet_luxury",
+                "text": { "es": "Lujo Silencioso (Elegante, minimalista y sofisticado)", "en": "Quiet Luxury (Elegant, minimalist and sophisticated)" },
+                "next_node_id": "color_step",
+                "weight_adjustments": { "occasion": "Quiet Luxury" }
+            },
+            {
+                "id": "opt_casual",
+                "text": { "es": "Casual (Relajado, cómodo y cotidiano)", "en": "Casual (Relaxed, comfortable and everyday)" },
+                "next_node_id": "color_step",
+                "weight_adjustments": { "occasion": "Casual" }
+            },
+            {
+                "id": "opt_business_casual",
+                "text": { "es": "Business Casual (Profesional pero moderno)", "en": "Business Casual (Professional but modern)" },
+                "next_node_id": "color_step",
+                "weight_adjustments": { "occasion": "Business Casual" }
+            },
+            {
+                "id": "opt_sporty",
+                "text": { "es": "Deportivo Chic (Activo, dinámico y urbano)", "en": "Sporty Chic (Active, dynamic and urban)" },
+                "next_node_id": "color_step",
+                "weight_adjustments": { "occasion": "Sporty" }
+            },
+            {
+                "id": "opt_cocktail",
+                "text": { "es": "Coctel / Fiesta (Glamoroso, nocturno y festivo)", "en": "Cocktail / Party (Glamorous, nightly and festive)" },
+                "next_node_id": "color_step",
+                "weight_adjustments": { "occasion": "Cocktail" }
+            }
+        ]
+    },
+    "color_step": {
+        "node_id": "color_step",
+        "step": { "es": "Colorimetría", "en": "Color Analysis" },
+        "question": {
+            "es": "¿Cuál es tu paleta de color estacional predominante?",
+            "en": "What is your predominant seasonal color palette?"
+        },
+        "options": [
+            {
+                "id": "opt_spring",
+                "text": { "es": "Primavera (Tonos cálidos, vivos y luminosos)", "en": "Spring (Warm, bright and luminous tones)" },
+                "next_node_id": "silhouette_step",
+                "weight_adjustments": { "season": "Spring Warm" }
+            },
+            {
+                "id": "opt_summer",
+                "text": { "es": "Verano (Tonos fríos, suaves y empolvados)", "en": "Summer (Cool, soft and powdery tones)" },
+                "next_node_id": "silhouette_step",
+                "weight_adjustments": { "season": "Summer Cool" }
+            },
+            {
+                "id": "opt_autumn",
+                "text": { "es": "Otoño (Tonos cálidos, profundos y terrosos)", "en": "Autumn (Warm, deep and earthy tones)" },
+                "next_node_id": "silhouette_step",
+                "weight_adjustments": { "season": "Autumn Warm" }
+            },
+            {
+                "id": "opt_winter",
+                "text": { "es": "Invierno (Tonos fríos, brillantes y contrastantes)", "en": "Winter (Cool, bright and contrasting tones)" },
+                "next_node_id": "silhouette_step",
+                "weight_adjustments": { "season": "Winter Cool" }
+            }
+        ]
+    },
+    "silhouette_step": {
+        "node_id": "silhouette_step",
+        "step": { "es": "Silueta", "en": "Silhouette" },
+        "question": {
+            "es": "¿Qué tipo de silueta o estructura corporal deseas potenciar hoy?",
+            "en": "What type of silhouette or body structure do you wish to enhance today?"
+        },
+        "options": [
+            {
+                "id": "opt_hourglass",
+                "text": { "es": "Reloj de Arena (Proporciones balanceadas con cintura definida)", "en": "Hourglass (Balanced proportions with a defined waist)" },
+                "next_node_id": "complete",
+                "weight_adjustments": { "silhouette": "Hourglass" }
+            },
+            {
+                "id": "opt_triangle",
+                "text": { "es": "Triángulo / Pera (Caderas más anchas que los hombros)", "en": "Triangle / Pear (Hips wider than shoulders)" },
+                "next_node_id": "complete",
+                "weight_adjustments": { "silhouette": "Triangle" }
+            },
+            {
+                "id": "opt_inverted_triangle",
+                "text": { "es": "Triángulo Invertido (Hombros o busto más anchos que las caderas)", "en": "Inverted Triangle (Shoulders or bust wider than hips)" },
+                "next_node_id": "complete",
+                "weight_adjustments": { "silhouette": "Inverted Triangle" }
+            },
+            {
+                "id": "opt_rectangle",
+                "text": { "es": "Rectángulo (Silueta atlética con curvas poco pronunciadas)", "en": "Rectangle (Athletic silhouette with slight curves)" },
+                "next_node_id": "complete",
+                "weight_adjustments": { "silhouette": "Rectangle" }
+            },
+            {
+                "id": "opt_oval",
+                "text": { "es": "Ovalada (Silueta redondeada con foco de atención en el torso)", "en": "Oval (Rounded silhouette focusing attention on the torso)" },
+                "next_node_id": "complete",
+                "weight_adjustments": { "silhouette": "Oval" }
+            }
+        ]
+    }
+};
+
+function processRPGCompletionLocally(answers, lang) {
+    let occasion = "Casual";
+    let season = "Winter Cool";
+    let silhouette = "Hourglass";
+    
+    answers.forEach(ans => {
+        const node = LOCAL_RPG_NODES[ans.node_id];
+        if (node) {
+            const opt = node.options.find(o => o.id === ans.option_id);
+            if (opt && opt.weight_adjustments) {
+                const w = opt.weight_adjustments;
+                if (w.occasion) occasion = w.occasion;
+                if (w.season) season = w.season;
+                if (w.silhouette) silhouette = w.silhouette;
+            }
+        }
+    });
+    
+    const occasionMap = {
+        'es': {
+            "Quiet Luxury": "del Quiet Luxury",
+            "Business Casual": "del Office Chic",
+            "Sporty": "del Athleisure Urbano",
+            "Cocktail": "de la Noche Festiva",
+            "Casual": "del Estilo Casual"
+        },
+        'en': {
+            "Quiet Luxury": "of Quiet Luxury",
+            "Business Casual": "of Office Chic",
+            "Sporty": "of Urban Athleisure",
+            "Cocktail": "of Festive Night",
+            "Casual": "of Casual Style"
+        }
+    };
+    
+    const nounsMap = {
+        'es': {
+            "Hourglass": ["El Escultor", "El Alquimista", "El Esteta"],
+            "Triangle": ["El Arquitecto", "El Diseñador", "El Maestro"],
+            "Inverted Triangle": ["El Vanguardista", "El Estratega", "El Pionero"],
+            "Rectangle": ["El Editor", "El Creador", "El Modelador"],
+            "Oval": ["El Compositor", "El Armonizador", "El Curador"]
+        },
+        'en': {
+            "Hourglass": ["The Sculptor", "The Alchemist", "The Esthete"],
+            "Triangle": ["The Architect", "The Designer", "The Master"],
+            "Inverted Triangle": ["The Avant-Garde", "The Strategist", "The Pioneer"],
+            "Rectangle": ["The Editor", "The Creator", "The Modeler"],
+            "Oval": ["The Composer", "The Harmonizer", "The Curator"]
+        }
+    };
+    
+    const adjectivesMap = {
+        'es': {
+            "Spring Warm": "Cálido",
+            "Summer Cool": "Sereno",
+            "Autumn Warm": "Terrenal",
+            "Winter Cool": "Helado"
+        },
+        'en': {
+            "Spring Warm": "Warm",
+            "Summer Cool": "Serene",
+            "Autumn Warm": "Earthy",
+            "Winter Cool": "Icy"
+        }
+    };
+    
+    const nouns = nounsMap[lang][silhouette] || (lang === 'es' ? ["El Diseñador"] : ["The Designer"]);
+    const noun = nouns[Math.floor(Math.random() * nouns.length)];
+    const adj = adjectivesMap[lang][season] || "Chic";
+    const suffix = occasionMap[lang][occasion] || (lang === 'es' ? "del Estilo Contemporáneo" : "of Contemporary Style");
+    
+    const title = `${noun} ${adj} ${suffix}`;
+    
+    // Fallback clothes list
+    const allItems = [...(STATE.closetItems || []), ...(MOCK_DATA.boutique || [])];
+    
+    const outfit = {
+        top: allItems.find(i => i.cat === 'superior' || i.category?.toLowerCase() === 'top') || null,
+        bottom: allItems.find(i => i.cat === 'inferior' || i.category?.toLowerCase() === 'bottom') || null,
+        footwear: allItems.find(i => i.cat === 'calzado' || i.category?.toLowerCase() === 'footwear') || null,
+        outerwear: allItems.find(i => i.cat === 'abrigo' || i.category?.toLowerCase() === 'outerwear') || null,
+        accessory: allItems.find(i => i.cat === 'accesorio' || i.category?.toLowerCase() === 'accessory') || null
+    };
+    
+    const formatItem = (item) => {
+        if (!item) return null;
+        return {
+            id: item.id,
+            name: item.name,
+            category: item.category || (item.cat === 'superior' ? 'Top' : item.cat === 'inferior' ? 'Bottom' : item.cat === 'calzado' ? 'Footwear' : item.cat === 'abrigo' ? 'Outerwear' : 'Accessory'),
+            image_url: item.image_url || item.image,
+            is_owned: item.is_owned !== undefined ? item.is_owned : (item.brand ? 0 : 1),
+            price: item.price ? parseFloat(item.price.replace('$', '')) : 120,
+            store_name: item.store_name || item.brand || 'Boutique'
+        };
+    };
+    
+    const formattedOutfit = {
+        top: formatItem(outfit.top),
+        bottom: formatItem(outfit.bottom),
+        footwear: formatItem(outfit.footwear),
+        outerwear: formatItem(outfit.outerwear),
+        accessory: formatItem(outfit.accessory)
+    };
+    
+    const score = 92.5;
+    const justification = lang === 'es' 
+        ? `Este look ha sido seleccionado meticulosamente para la ocasión ${occasion} potenciando una silueta tipo ${silhouette} mediante contrastes y paletas estacionales de ${season}. La combinación entre piezas clave del armario y boutique otorga una armonía estilística impecable.`
+        : `This look has been meticulously selected for the ${occasion} occasion, enhancing an ${silhouette} type silhouette through contrasts and seasonal palettes of ${season}. The combination of wardrobe and boutique key pieces provides impeccable stylistic harmony.`;
+    
+    return {
+        title: title,
+        justification: justification,
+        scores: {
+            total_score: score,
+            color_score: 95.0,
+            style_score: 90.0,
+            pattern_score: 93.0,
+            weather_score: 92.0
+        },
+        outfit: formattedOutfit
+    };
+}
+
+function grantStylingIndexBonus(points, lang) {
+    const scoreEl = document.getElementById('styling-index-score');
+    if (scoreEl) {
+        let currentVal = parseFloat(scoreEl.textContent.replace('%', ''));
+        let newVal = Math.min(100.0, currentVal + points).toFixed(1);
+        scoreEl.textContent = `${newVal}%`;
+        scoreEl.style.color = "var(--accent-gold)";
+        scoreEl.style.textShadow = "0 0 10px var(--accent-gold)";
+        
+        if (typeof createGoldParticleBurst === 'function') {
+            createGoldParticleBurst();
+        }
+        showToast(lang === 'es' ? `¡+${points}% Babylon Styling Index Otorgado!` : `+${points}% Babylon Styling Index Awarded!`, "success");
+    }
+}
+
+// 2. DYNAMIC TRANSLATION DICTIONARY
+const TRANSLATIONS = {
+    'es': {
+        // Navigation menu
+        'nav_clima': 'Clima',
+        'nav_closet': 'Closet',
+        'nav_asistente': 'Asistente',
+        'nav_innovaciones': 'Escáner',
+        'nav_boutique': 'Boutique',
+        'nav_probador': 'Probador',
+        'nav_comunidad': 'Comunidad',
+        'nav_pedidos': 'Pedidos',
+        'nav_calendario': 'Calendario',
+        'nav_capsula': 'Cápsula',
+        'nav_analiticas': 'Analíticas',
+        'nav_mezclador': 'Mezclador',
+        'nav_viajes': 'Viajes',
+        'nav_configuracion': 'Ajustes',
+        // Clima (Weather) Section
+        'clima_header': 'Clima & Silhouette',
+        'clima_desc': 'Estilo inteligente adaptado a la temperatura exterior, proyectado sobre tu avatar de alta costura.',
+        'clima_flatlay': 'Lienzo de Estilo (Flat Lay)',
+        'clima_recommended_title': 'Outfit Recomendado para Hoy',
+        // Closet Section
+        'closet_header': 'Mi Closet Virtual',
+        'closet_desc': 'Tu colección privada, digitalizada y clasificada por inteligencia artificial.',
+        'closet_design_btn': 'Diseñar Outfit',
+        'closet_create_btn': 'Crear Prenda',
+        'closet_scan_btn': 'Escanear Prenda',
+        'closet_scanned_count': 'Prendas Catalogadas',
+        'closet_next_rank': 'Próximo Rango',
+        'closet_progress': 'Progreso de Rango',
+        'closet_combinations': 'Mis Combinaciones Diseñadas',
+        // Daily Quests (Gamification)
+        'quests_title': 'DESAFÍOS DIARIOS DE MODA',
+        'quests_desc': 'Completa misiones y gana bonificaciones al Babylon Styling Index',
+        'quests_streak': '🔥 Racha: ',
+        'quests_days': ' día(s)',
+        'quests_days_streak': 'día',
+        // Aria Assistant Section
+        'aria_title': 'Aria | Asesora de Estilo Personal',
+        'aria_desc': 'Asesoría de moda de alta costura interactiva a través de preguntas de estilo guiadas.',
+        'aria_hair_label': 'Estilo de Aria (Look):',
+        'aria_personality_label': 'Personalidad de Aria:',
+        'aria_rpg_header': 'Sesión de Asesoría Interactiva',
+        'aria_rpg_progress': 'ASISTENCIA DE ALTA COSTURA',
+        'aria_speech_default': '¡Hola! Soy Aria, tu asesora de estilo personal. Comencemos una sesión de asesoría guiada para crear tu próximo gran outfit.',
+        // Settings Section
+        'settings_title': 'Ajustes del Sistema',
+        'settings_desc': 'Personaliza tu cuenta, idioma, ubicación y suscripción Premium de Alta Costura.',
+        'settings_lang_label': 'Idioma del Sistema:',
+        'settings_location_label': 'Ubicación Principal (Clima):',
+        // OOTD Widget
+        'ootd_widget_title': 'Outfit del Día (OOTD)',
+        'ootd_widget_desc': 'Registra tu outfit de hoy y suma +5.0% al Styling Index',
+        'btn_register_ootd': 'Registrar OOTD',
+        'ootd_registered_toast': '¡Outfit del Día registrado! +5.0% Babylon Styling Index.',
+        'ootd_already_registered': '¡Ya has registrado tu Outfit del Día hoy!',
+        'ootd_btn_done': 'OOTD Registrado ✓',
+        // Notifications Panel
+        'notif_panel_title': 'Notificaciones de Estilo',
+        'notif_panel_clear': 'Limpiar',
+        'notif_no_pending': 'No hay notificaciones pendientes',
+        'notif_ootd_title': 'OOTD Pendiente',
+        'notif_ootd_desc': 'No olvides registrar tu Outfit del Día hoy para ganar puntos.',
+        'notif_quest_title': 'Desafío Diario',
+        'notif_quest_desc': 'Misión Cyberpunk Friday disponible. Combina prendas y sube de rango.'
+    },
+    'en': {
+        // Navigation menu
+        'nav_clima': 'Weather',
+        'nav_closet': 'Wardrobe',
+        'nav_asistente': 'Advisor',
+        'nav_innovaciones': 'Scanner',
+        'nav_boutique': 'Boutique',
+        'nav_probador': 'Fitting Room',
+        'nav_comunidad': 'Community',
+        'nav_pedidos': 'Orders',
+        'nav_calendario': 'Calendar',
+        'nav_capsula': 'Capsule',
+        'nav_analiticas': 'Analytics',
+        'nav_mezclador': 'Shuffler',
+        'nav_viajes': 'Travel',
+        'nav_configuracion': 'Settings',
+        // Clima (Weather) Section
+        'clima_header': 'Weather & Silhouette',
+        'clima_desc': 'Smart style adapted to outdoor temperature, projected on your haute couture avatar.',
+        'clima_flatlay': 'Style Canvas (Flat Lay)',
+        'clima_recommended_title': 'Recommended Outfit for Today',
+        // Closet Section
+        'closet_header': 'My Virtual Wardrobe',
+        'closet_desc': 'Your private collection, digitized and classified by artificial intelligence.',
+        'closet_design_btn': 'Design Outfit',
+        'closet_create_btn': 'Create Garment',
+        'closet_scan_btn': 'Scan Garment',
+        'closet_scanned_count': 'Cataloged Items',
+        'closet_next_rank': 'Next Rank',
+        'closet_progress': 'Rank Progress',
+        'closet_combinations': 'My Curated Outfits',
+        // Daily Quests (Gamification)
+        'quests_title': 'DAILY FASHION QUESTS',
+        'quests_desc': 'Complete quests and win bonuses for the Babylon Styling Index',
+        'quests_streak': '🔥 Streak: ',
+        'quests_days': ' day(s)',
+        'quests_days_streak': 'day',
+        // Aria Assistant Section
+        'aria_title': 'Aria | Personal Stylist Advisor',
+        'aria_desc': 'Interactive high fashion consulting through guided style questions.',
+        'aria_hair_label': 'Aria's Style (Look):',
+        'aria_personality_label': 'Aria's Personality:',
+        'aria_rpg_header': 'Interactive Styling Session',
+        'aria_rpg_progress': 'HAUTE COUTURE ASSISTANCE',
+        'aria_speech_default': 'Hello! I am Aria, your personal style advisor. Let's begin a guided styling session to design your next great outfit.',
+        // Settings Section
+        'settings_title': 'System Settings',
+        'settings_desc': 'Customize your account, language, location and Premium subscription.',
+        'settings_lang_label': 'System Language:',
+        'settings_location_label': 'Primary Location (Weather):',
+        // OOTD Widget
+        'ootd_widget_title': 'Outfit of the Day (OOTD)',
+        'ootd_widget_desc': 'Register your outfit today and add +5.0% to Styling Index',
+        'btn_register_ootd': 'Register OOTD',
+        'ootd_registered_toast': 'Outfit of the Day registered! +5.0% Babylon Styling Index.',
+        'ootd_already_registered': 'You have already registered your Outfit of the Day today!',
+        'ootd_btn_done': 'OOTD Registered ✓',
+        // Notifications Panel
+        'notif_panel_title': 'Style Notifications',
+        'notif_panel_clear': 'Clear',
+        'notif_no_pending': 'No pending notifications',
+        'notif_ootd_title': 'OOTD Pending',
+        'notif_ootd_desc': 'Don't forget to register your Outfit of the Day today to earn points.',
+        'notif_quest_title': 'Daily Quest',
+        'notif_quest_desc': 'Cyberpunk Friday quest available. Match clothes and rank up.'
+    }
+};
+
+const QUEST_TRANSLATIONS = {
+    'es': {
+        'q1_theme': 'Cyberpunk Friday',
+        'q1_desc': 'Diseña un look audaz combinando una prenda de tu Closet oscura con una pieza de Boutique estilo Streetwear/Cyberpunk.',
+        'q2_theme': 'Parisian Chic',
+        'q2_desc': 'Combina un Abrigo Trench elegante con unos Mocasines o Botas de cuero para capturar el confort de París.',
+        'q3_theme': 'Quiet Luxury Neutrals',
+        'q3_desc': 'Crea una composición minimalista utilizando únicamente tonos neutros refinados (Blanco Puro o Beige Arena) sin estampados.'
+    },
+    'en': {
+        'q1_theme': 'Cyberpunk Friday',
+        'q1_desc': 'Design a bold look combining a dark garment from your Closet with a Streetwear/Cyberpunk Boutique piece.',
+        'q2_theme': 'Parisian Chic',
+        'q2_desc': 'Combine an elegant Trench Coat with Loafers or leather Boots to capture Parisian comfort.',
+        'q3_theme': 'Quiet Luxury Neutrals',
+        'q3_desc': 'Create a minimalist composition using only refined neutral tones (Pure White or Sand Beige) without patterns.'
+    }
+};
+
+const ARIA_QUOTES_LANG = {
+    'es': {
+        classy: [
+            "La sencillez es la clave de la verdadera elegancia, querido.",
+            "Una silueta limpia nunca pasa de moda. Agrega textura antes que logos.",
+            "Vístete como si fueras a encontrarte con tu peor enemigo hoy.",
+            "La moda se compra, el estilo se posee. Busca armonía estructural."
+        ],
+        diva: [
+            "¡Cariño! Ese look grita ordinario. ¡Necesitamos DRAMA! ¡Más volumen!",
+            "¿Sin accesorios dorados? ¿Estamos de luto o simplemente no tenemos presupuesto?",
+            "Si no se voltean a mirarte al entrar, el outfit fue un fracaso absoluto.",
+            "Brillar no es una opción, es tu obligación moral. ¡Añade esa pieza de boutique ahora!"
+        ],
+        sarcastic: [
+            "Veo que elegiste vestirte a oscuras hoy. Interesante declaración artística.",
+            "Esa combinación es sumamente... 'valiente'. Ojalá nadie te pida fotos hoy.",
+            "Oh, un blazer negro con jeans. Qué innovador. Estremecedor.",
+            "¿Tu closet es un museo del aburrimiento o solo compraste todo en oferta?"
+        ],
+        nervous: [
+            "¡Dios mío! ¿Crees que combina? Siento que la policía de la moda nos va a arrestar...",
+            "Espera, ¿no crees que ese color choca demasiado? Por favor, miremos el espejo de nuevo.",
+            "Espero que no llueva, esa gamuza se va a arruinar en un segundo... ¡Qué estrés!",
+            "¿Estará bien? Quizás deberíamos ir 100% de negro y pasar desapercibidos..."
+        ]
+    },
+    'en': {
+        classy: [
+            "Simplicity is the key to true elegance, darling.",
+            "A clean silhouette never goes out of style. Add texture rather than logos.",
+            "Dress like you are going to meet your worst enemy today.",
+            "Fashion is bought, style is owned. Seek structural harmony."
+        ],
+        diva: [
+            "Darling! That look screams ordinary. We need DRAMA! More volume!",
+            "No gold accessories? Are we in mourning or just out of budget?",
+            "If they don't turn to look at you when you enter, the outfit was a total failure.",
+            "Shining is not an option, it is your moral obligation. Add that boutique piece now!"
+        ],
+        sarcastic: [
+            "I see you chose to dress in the dark today. Interesting artistic statement.",
+            "That combination is highly... 'brave'. Hopefully nobody asks you for photos today.",
+            "Oh, a black blazer with jeans. How innovative. Earth-shattering.",
+            "Is your closet a museum of boredom or did you just buy everything on sale?"
+        ],
+        nervous: [
+            "Oh my god! Do you think it matches? I feel like the fashion police will arrest us...",
+            "Wait, don't you think that color clashes too much? Please, let's look in the mirror again.",
+            "I hope it doesn't rain, that suede will be ruined in a second... So stressful!",
+            "Will it be okay? Maybe we should go 100% black and pass unnoticed..."
+        ]
+    }
+};
+
+function applySystemTranslations(lang) {
+    if (lang !== 'en' && lang !== 'es') lang = 'es';
+    const dict = TRANSLATIONS[lang];
+    
+    // Navigation translate
+    const tabs = ['clima', 'closet', 'asistente', 'innovaciones', 'boutique', 'probador', 'comunidad', 'pedidos', 'calendario', 'capsula', 'analiticas', 'mezclador', 'viajes', 'configuracion'];
+    tabs.forEach(t => {
+        const btnText = dict[`nav_${t}`];
+        if (btnText) {
+            // Desktop aside navigation
+            const desktopBtn = document.querySelector(`.sidebar .nav-btn[data-tab="${t}"] span`);
+            if (desktopBtn) desktopBtn.textContent = btnText;
+            
+            // Mobile navigation
+            const mobileBtn = document.querySelector(`.bottom-nav .bottom-nav-btn[data-tab="${t}"] span`);
+            if (mobileBtn) mobileBtn.textContent = btnText;
+        }
+    });
+
+    // Translate Sections headers
+    const mappings = [
+        { sel: '#clima .editorial-title', key: 'clima_header' },
+        { sel: '#clima .section-desc', key: 'clima_desc' },
+        { sel: '.mannequin-title', key: 'clima_flatlay' },
+        { sel: '#title-ootd-recommendation', key: 'clima_recommended_title' },
+        { sel: '#closet .editorial-title', key: 'closet_header' },
+        { sel: '#closet .section-desc', key: 'closet_desc' },
+        { sel: '#btn-open-outfit-builder span', key: 'closet_design_btn' },
+        { sel: '#btn-open-custom-garment span', key: 'closet_create_btn' },
+        { sel: '.trigger-scan', key: 'closet_scan_btn', isTextContent: true },
+        { sel: '#closet h3.subsection-title', key: 'closet_combinations', isTextContent: true },
+        
+        { sel: '.daily-quests-panel h4.gold-text', key: 'quests_title' },
+        { sel: '.daily-quests-panel .section-desc', key: 'quests_desc', isTextContent: true },
+        { sel: '#asistente .editorial-title', key: 'aria_title' },
+        { sel: '#asistente .section-desc', key: 'aria_desc' },
+        { sel: '#asistente label[for="aria-look"]', key: 'aria_hair_label' },
+        { sel: '#asistente label[for="personality"]', key: 'aria_personality_label' },
+        { sel: '#asistente .chat-mode-header h4', key: 'aria_rpg_header' },
+        { sel: '#asistente .rpg-progress-tracker span:first-child', key: 'aria_rpg_progress' },
+        
+        { sel: '#configuracion .editorial-title', key: 'settings_title', isTextContent: true },
+        { sel: '#configuracion .section-desc', key: 'settings_desc' },
+        { sel: '#configuracion label[for="settings-language"]', key: 'settings_lang_label' },
+        { sel: '#configuracion label[for="settings-location"]', key: 'settings_location_label' },
+        
+        { sel: '#ootd-widget-title', key: 'ootd_widget_title' },
+        { sel: '#ootd-widget-desc', key: 'ootd_widget_desc' },
+        { sel: '#btn-register-ootd span', key: 'btn_register_ootd' },
+        
+        { sel: '#notif-panel-title', key: 'notif_panel_title' },
+        { sel: '#notif-panel-clear', key: 'notif_panel_clear' },
+        { sel: '#notif-panel-title-desktop', key: 'notif_panel_title' },
+        { sel: '#notif-panel-clear-desktop', key: 'notif_panel_clear' }
+    ];
+
+    mappings.forEach(m => {
+        const el = document.querySelector(m.sel);
+        if (el) {
+            const val = dict[m.key];
+            if (val) {
+                if (m.isTextContent) {
+                    el.textContent = val;
+                } else {
+                    el.innerHTML = val;
+                }
+            }
+        }
+    });
+
+    // Update Aria default speech if chat is at step 1
+    const ariaSpeechEl = document.getElementById('aria-speech');
+    if (ariaSpeechEl && (ariaSpeechEl.textContent.includes('Soy Aria') || ariaSpeechEl.textContent.includes('I am Aria'))) {
+        ariaSpeechEl.textContent = dict['aria_speech_default'];
+    }
+
+    // Translate Daily Quests structure dynamically
+    if (STATE.dailyQuests) {
+        STATE.dailyQuests.forEach(q => {
+            const questTrans = QUEST_TRANSLATIONS[lang];
+            if (questTrans) {
+                q.theme = questTrans[`${q.id}_theme`] || q.theme;
+                q.description = questTrans[`${q.id}_desc`] || q.description;
+            }
+        });
+        renderQuests();
+    }
+
+    // Refresh streak language
+    const savedStreak = localStorage.getItem('dy_quest_streak') || '0';
+    const streakCountEl = document.getElementById('quest-streak-count');
+    if (streakCountEl && streakCountEl.parentElement) {
+        const streakText = dict['quests_streak'];
+        const daysText = dict['quests_days_streak'];
+        streakCountEl.parentElement.innerHTML = `${streakText}<span id="quest-streak-count" style="font-weight:bold;">${savedStreak}</span> ${daysText}`;
+    }
+
+    // Update Aria Quotes Language Map
+    MOCK_DATA.ariaQuotes = ARIA_QUOTES_LANG[lang] || ARIA_QUOTES_LANG.es;
+
+    // Refresh OOTD Button state
+    checkOOTDState();
+    
+    // Refresh notifications panel contents
+    renderNotifications();
+}
+
+// 3. OOTD REGISTRATION LOGIC
+window.registerOOTD = function() {
+    const lang = localStorage.getItem('dy_language') || 'es';
+    const lastOOTD = localStorage.getItem('dy_last_ootd_date');
+    const today = new Date().toDateString();
+    
+    if (lastOOTD === today) {
+        showToast(TRANSLATIONS[lang]['ootd_already_registered'], "warning");
+        return;
+    }
+    
+    localStorage.setItem('dy_last_ootd_date', today);
+    grantStylingIndexBonus(5.0, lang);
+    
+    // Update button visual state
+    const btn = document.getElementById('btn-register-ootd');
+    if (btn) {
+        btn.disabled = true;
+        btn.style.background = 'rgba(212, 175, 55, 0.15)';
+        btn.style.borderColor = 'rgba(212, 175, 55, 0.3)';
+        btn.style.color = 'var(--accent-gold)';
+        btn.querySelector('span').textContent = TRANSLATIONS[lang]['ootd_btn_done'];
+    }
+    
+    // Mark OOTD notification as complete and remove from list
+    notifications = notifications.filter(n => n.id !== 'n_ootd');
+    renderNotifications();
+};
+
+function checkOOTDState() {
+    const lang = localStorage.getItem('dy_language') || 'es';
+    const lastOOTD = localStorage.getItem('dy_last_ootd_date');
+    const today = new Date().toDateString();
+    
+    const btn = document.getElementById('btn-register-ootd');
+    if (btn) {
+        if (lastOOTD === today) {
+            btn.disabled = true;
+            btn.style.background = 'rgba(212, 175, 55, 0.15)';
+            btn.style.borderColor = 'rgba(212, 175, 55, 0.3)';
+            btn.style.color = 'var(--accent-gold)';
+            btn.querySelector('span').textContent = TRANSLATIONS[lang]['ootd_btn_done'];
+            
+            // Remove OOTD notification if already done
+            notifications = notifications.filter(n => n.id !== 'n_ootd');
+        } else {
+            btn.disabled = false;
+            btn.style.background = '';
+            btn.style.borderColor = '';
+            btn.style.color = '';
+            btn.querySelector('span').textContent = TRANSLATIONS[lang]['btn_register_ootd'];
+            
+            // Add OOTD notification if not in list
+            if (!notifications.find(n => n.id === 'n_ootd')) {
+                notifications.unshift({
+                    id: 'n_ootd',
+                    title: { es: 'OOTD Pendiente', en: 'OOTD Pending' },
+                    message: { es: 'No olvides registrar tu Outfit del Día hoy para ganar puntos.', en: 'Don't forget to register your Outfit of the Day today to earn points.' },
+                    type: 'warning'
+                });
+            }
+        }
+    }
+}
+
+// 4. NOTIFICATIONS LOGIC
+let notifications = [
+    {
+        id: 'n_ootd',
+        title: { es: 'OOTD Pendiente', en: 'OOTD Pending' },
+        message: { es: 'No olvides registrar tu Outfit del Día hoy para ganar puntos.', en: 'Don't forget to register your Outfit of the Day today to earn points.' },
+        type: 'warning'
+    },
+    {
+        id: 'n_quest',
+        title: { es: 'Desafío Diario', en: 'Daily Quest' },
+        message: { es: 'Misión Cyberpunk Friday disponible. Combina prendas y sube de rango.', en: 'Cyberpunk Friday quest available. Match clothes and rank up.' },
+        type: 'info'
+    }
+];
+
+window.toggleNotificationsPanel = function() {
+    const panel = document.getElementById('notifications-panel');
+    if (panel) {
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+};
+
+window.toggleNotificationsPanelDesktop = function(event) {
+    if (event) event.stopPropagation();
+    const panel = document.getElementById('notifications-panel-desktop');
+    if (panel) {
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+};
+
+window.clearNotifications = function() {
+    notifications = [];
+    renderNotifications();
+    showToast(localStorage.getItem('dy_language') === 'en' ? "Notifications cleared" : "Notificaciones limpiadas");
+};
+
+function initNotifications() {
+    renderNotifications();
+    
+    // In-app float notification reminder after 3.5 seconds
+    setTimeout(() => {
+        showInAppOOTDReminder();
+    }, 3500);
+}
+
+function renderNotifications() {
+    const lang = localStorage.getItem('dy_language') || 'es';
+    const badgeMobile = document.getElementById('notif-badge');
+    const badgeDesktop = document.getElementById('notif-badge-desktop');
+    
+    const listMobile = document.getElementById('notifications-list');
+    const listDesktop = document.getElementById('notifications-list-desktop');
+    
+    const count = notifications.length;
+    
+    // Update badge values
+    if (badgeMobile) {
+        badgeMobile.textContent = count;
+        badgeMobile.style.display = count > 0 ? 'flex' : 'none';
+    }
+    if (badgeDesktop) {
+        badgeDesktop.textContent = count;
+        badgeDesktop.style.display = count > 0 ? 'flex' : 'none';
+    }
+    
+    const buildListHTML = () => {
+        if (count === 0) {
+            return `<div style="text-align: center; color: var(--text-muted); font-size: 0.75rem; padding: 15px 0;">${TRANSLATIONS[lang]['notif_no_pending']}</div>`;
+        }
+        
+        let html = '';
+        notifications.forEach(n => {
+            const title = n.title[lang] || n.title['es'];
+            const message = n.message[lang] || n.message['es'];
+            const icon = n.type === 'warning' ? '⚠️' : '✨';
+            const borderCol = n.type === 'warning' ? 'rgba(230,73,73,0.3)' : 'rgba(212,175,55,0.3)';
+            
+            html += `
+                <div style="padding: 8px 10px; border-radius: 6px; border: 1px solid ${borderCol}; background: rgba(255,255,255,0.02); display: flex; gap: 8px; align-items: flex-start; font-size: 0.72rem; line-height: 1.3;">
+                    <span>${icon}</span>
+                    <div style="flex-grow: 1;">
+                        <strong style="color: #fff; display: block; font-family: var(--font-editorial);">${title}</strong>
+                        <span style="color: var(--text-secondary);">${message}</span>
+                    </div>
+                </div>
+            `;
+        });
+        return html;
+    };
+    
+    const listHTML = buildListHTML();
+    if (listMobile) listMobile.innerHTML = listHTML;
+    if (listDesktop) listDesktop.innerHTML = listHTML;
+}
+
+function showInAppOOTDReminder() {
+    const lastOOTD = localStorage.getItem('dy_last_ootd_date');
+    if (lastOOTD === new Date().toDateString()) return; // Already registered
+    
+    const lang = localStorage.getItem('dy_language') || 'es';
+    const container = document.createElement('div');
+    container.className = 'glass-card in-app-notification-toast';
+    container.style.position = 'fixed';
+    container.style.bottom = '90px'; // Above mobile tab bar
+    container.style.right = '20px';
+    container.style.width = '300px';
+    container.style.padding = '12px 15px';
+    container.style.border = '1px solid var(--border-gold)';
+    container.style.borderRadius = '10px';
+    container.style.background = 'rgba(10, 10, 10, 0.95)';
+    container.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
+    container.style.zIndex = '9999';
+    container.style.display = 'flex';
+    container.style.gap = '10px';
+    container.style.alignItems = 'center';
+    container.style.animation = 'slideInRight 0.5s ease-out';
+    
+    const titleText = TRANSLATIONS[lang]['notif_ootd_title'];
+    const descText = TRANSLATIONS[lang]['notif_ootd_desc'];
+    
+    container.innerHTML = `
+        <span style="font-size: 1.4rem; color: var(--accent-gold);">✨</span>
+        <div style="flex-grow: 1; text-align: left; font-family: 'Outfit', sans-serif;">
+            <strong style="color: var(--accent-gold); font-size: 0.8rem; font-family: var(--font-editorial); display: block;">${titleText}</strong>
+            <span style="font-size: 0.72rem; color: var(--text-secondary);">${descText}</span>
+        </div>
+        <button onclick="this.parentElement.remove()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 0 4px;">&times;</button>
+    `;
+    
+    document.body.appendChild(container);
+    
+    // Auto remove after 7 seconds
+    setTimeout(() => {
+        if (container.parentElement) {
+            container.style.animation = 'fadeOut 0.5s ease-in';
+            setTimeout(() => container.remove(), 500);
+        }
+    }, 7000);
+}
+
+// Close panels on desktop click outside
+document.addEventListener('click', function(event) {
+    const desktopPanel = document.getElementById('notifications-panel-desktop');
+    if (desktopPanel && desktopPanel.style.display === 'block') {
+        const sidebarBrand = document.querySelector('.sidebar-brand');
+        if (sidebarBrand && !sidebarBrand.contains(event.target)) {
+            desktopPanel.style.display = 'none';
+        }
+    }
+    
+    const mobilePanel = document.getElementById('notifications-panel');
+    if (mobilePanel && mobilePanel.style.display === 'block') {
+        const header = document.querySelector('.mobile-header');
+        if (header && !header.contains(event.target)) {
+            mobilePanel.style.display = 'none';
+        }
+    }
+});
+
+// Hook translations initialization on load
+document.addEventListener('DOMContentLoaded', () => {
+    const savedLanguage = localStorage.getItem('dy_language') || 'es';
+    applySystemTranslations(savedLanguage);
+    
+    // Set selected value in select forms
+    const langSelect = document.getElementById('settings-language');
+    if (langSelect) langSelect.value = savedLanguage;
+    
+    // Initialize notifications
+    initNotifications();
+});

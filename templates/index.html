@@ -650,9 +650,26 @@
         
         <!-- Sidebar Navigation (Desktop) -->
         <aside class="sidebar">
-            <div class="sidebar-brand">
-                <h1>DRESS YOURSELF</h1>
-                <span>HAUTE COUTURE AI</span>
+            <div class="sidebar-brand" style="display: flex; justify-content: space-between; align-items: center; width: 100%; position: relative;">
+                <div style="text-align: left;">
+                    <h1>DRESS YOURSELF</h1>
+                    <span style="font-size: 0.65rem; color: var(--accent-gold); letter-spacing: 2px;">HAUTE COUTURE AI</span>
+                </div>
+                <div style="position: relative; cursor: pointer; padding: 5px;" onclick="window.toggleNotificationsPanelDesktop(event)">
+                    <span style="font-size: 1.3rem; color: var(--accent-gold);">🔔</span>
+                    <span id="notif-badge-desktop" style="position: absolute; top: 0; right: 0; background: #e03131; color: #fff; font-size: 0.55rem; font-weight: bold; width: 13px; height: 13px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 5px rgba(224,49,49,0.5);">2</span>
+                </div>
+                
+                <!-- Desktop Notifications Dropdown -->
+                <div id="notifications-panel-desktop" class="glass-card" style="display: none; position: absolute; top: 60px; left: 0; width: 260px; padding: 15px; z-index: 999; border: 1px solid var(--border-gold); border-radius: 10px; background: rgba(10,10,10,0.95); box-shadow: 0 10px 30px rgba(0,0,0,0.6); text-align: left; animation: fadeIn 0.3s ease;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(212,175,55,0.2); padding-bottom: 8px; margin-bottom: 10px;">
+                        <strong style="color: var(--accent-gold); font-family: var(--font-editorial); font-size: 0.82rem;" id="notif-panel-title-desktop">Notificaciones de Estilo</strong>
+                        <span style="font-size: 0.7rem; color: var(--text-muted); cursor: pointer;" onclick="window.clearNotifications()" id="notif-panel-clear-desktop">Limpiar</span>
+                    </div>
+                    <div id="notifications-list-desktop" style="display: flex; flex-direction: column; gap: 10px; max-height: 200px; overflow-y: auto;">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
             </div>
             
             <nav class="nav-menu">
@@ -718,9 +735,26 @@
         <!-- Main Content Area -->
         <main class="main-content">
             <!-- Mobile Header -->
-            <header class="mobile-header">
-                <h2>DRESS YOURSELF</h2>
-                <span class="mobile-subtitle">HAUTE COUTURE AI</span>
+            <header class="mobile-header" style="position: relative; display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid rgba(212,175,55,0.1); background: rgba(10,10,10,0.5); backdrop-filter: blur(10px);">
+                <div style="text-align: left;">
+                    <h2 style="margin: 0; font-family: var(--font-editorial); letter-spacing: 2px;">DRESS YOURSELF</h2>
+                    <span class="mobile-subtitle" style="font-size: 0.65rem; color: var(--accent-gold); letter-spacing: 3px; display: block;">HAUTE COUTURE AI</span>
+                </div>
+                <div style="position: relative; cursor: pointer; padding: 5px;" onclick="window.toggleNotificationsPanel()">
+                    <span style="font-size: 1.4rem; color: var(--accent-gold);">🔔</span>
+                    <span id="notif-badge" style="position: absolute; top: 0; right: 0; background: #e03131; color: #fff; font-size: 0.6rem; font-weight: bold; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 5px rgba(224,49,49,0.5);">2</span>
+                </div>
+                
+                <!-- Notifications Panel (Glassmorphism dropdown) -->
+                <div id="notifications-panel" class="glass-card" style="display: none; position: absolute; top: 65px; right: 20px; width: 280px; padding: 15px; z-index: 999; border: 1px solid var(--border-gold); border-radius: 10px; background: rgba(10,10,10,0.95); box-shadow: 0 10px 30px rgba(0,0,0,0.6); text-align: left; animation: fadeIn 0.3s ease;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(212,175,55,0.2); padding-bottom: 8px; margin-bottom: 10px;">
+                        <strong style="color: var(--accent-gold); font-family: var(--font-editorial); font-size: 0.85rem;" id="notif-panel-title">Notificaciones de Estilo</strong>
+                        <span style="font-size: 0.7rem; color: var(--text-muted); cursor: pointer;" onclick="window.clearNotifications()" id="notif-panel-clear">Limpiar</span>
+                    </div>
+                    <div id="notifications-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 200px; overflow-y: auto;">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
             </header>
 
             <!-- TABS -->
@@ -768,13 +802,27 @@
 
                     <!-- Recommended Cards Column -->
                     <div class="cards-column">
-                        <h3 class="subsection-title" style="margin-top: 0;">Outfit Recomendado para Hoy</h3>
+                        <h3 class="subsection-title" style="margin-top: 0;" id="title-ootd-recommendation">Outfit Recomendado para Hoy</h3>
                         <div class="recommendation-showcase" id="clima-recommendation">
                             <!-- Recommended outfits will go here -->
                             <div class="loading-spinner-container">
                                 <div class="spinner"></div>
                                 <p>Diseñando combinaciones perfectas...</p>
                             </div>
+                        </div>
+                        
+                        <!-- NEW OOTD REGISTRATION CONTAINER -->
+                        <div class="glass-card ootd-card" style="margin-top: 15px; padding: 15px; border: 1px solid var(--border-gold); border-radius: 10px; display: flex; align-items: center; justify-content: space-between; background: rgba(15,15,15,0.85); box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 10;">
+                            <div style="display: flex; align-items: center; gap: 10px; text-align: left;">
+                                <span style="font-size: 1.5rem; color: var(--accent-gold);">📅</span>
+                                <div style="display: flex; flex-direction: column;">
+                                    <strong style="color: #fff; font-size: 0.85rem; font-family: var(--font-editorial); letter-spacing: 0.5px;" id="ootd-widget-title">Outfit del Día (OOTD)</strong>
+                                    <span style="font-size: 0.7rem; color: var(--text-muted);" id="ootd-widget-desc">Registra tu outfit de hoy y suma +5.0% al Styling Index</span>
+                                </div>
+                            </div>
+                            <button class="gold-btn" id="btn-register-ootd" onclick="window.registerOOTD()" style="padding: 8px 16px; font-size: 0.72rem; font-weight: bold; text-transform: uppercase; white-space: nowrap; transition: all 0.3s ease;">
+                                <span>Registrar OOTD</span>
+                            </button>
                         </div>
                     </div>
                 </div>
