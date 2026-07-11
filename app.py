@@ -16,6 +16,7 @@ import database
 import vision_engine
 import styling_engine
 import store_scraper
+import json
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -1310,6 +1311,37 @@ def get_wear_history_endpoint():
     try:
         history = database.get_wear_logs()
         return jsonify(history), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# --- SOTA Neural Style Search API (Retail Scraper & Search) ---
+@app.route('/api/retail/search', methods=['GET', 'POST'])
+def search_retail_inventory():
+    """
+    Search endpoint that looks up items across top Medellin retail stores
+    based on a style category or product query term.
+    """
+    try:
+        query_term = request.args.get('query', 'camisa').strip()
+        
+        # Look up in the pre-compiled Medellín inventory JSON database
+        inventory_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'medellin_retail_inventory.json')
+        if not os.path.exists(inventory_path):
+            # Run the scraper on the fly to build it if missing
+            import subprocess
+            subprocess.run([sys.executable, 'scrape_retail_vtex.py', query_term], capture_output=True)
+            
+        if os.path.exists(inventory_path):
+            with open(inventory_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            return jsonify({
+                "query": query_term,
+                "timestamp": time.time(),
+                "results": data
+            }), 200
+        else:
+            return jsonify({"error": "No se pudo compilar la base de datos de inventario retail."}), 500
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

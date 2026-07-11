@@ -1,0 +1,112 @@
+{
+  "Arturo Calle": [
+    {
+      "id": "mock-arturo calle-1",
+      "name": "Camisa Premium Arturo Calle",
+      "brand": "Arturo Calle",
+      "link": "https://www.arturocalle.com.co",
+      "price": 89900,
+      "image": "https://assets.dressly.world/uploads/2cbcde2f80a6d8309928b5ccc40822df.webp",
+      "retailer": "Arturo Calle"
+    }
+  ],
+  "Gef": [
+    {
+      "id": "mock-gef-1",
+      "name": "Camisa Premium Gef",
+      "brand": "Gef",
+      "link": "https://www.gef.com.co",
+      "price": 89900,
+      "image": "https://assets.dressly.world/uploads/2cbcde2f80a6d8309928b5ccc40822df.webp",
+      "retailer": "Gef"
+    }
+  ],
+  "Punto Blanco": [
+    {
+      "id": "mock-punto blanco-1",
+      "name": "Camisa Premium Punto Blanco",
+      "brand": "Punto Blanco",
+      "link": "https://www.puntoblanco.com.co",
+      "price": 89900,
+      "image": "https://assets.dressly.world/uploads/2cbcde2f80a6d8309928b5ccc40822df.webp",
+      "retailer": "Punto Blanco"
+    }
+  ],
+  "Tennis": [
+    {
+      "id": "mock-tennis-1",
+      "name": "Camisa Premium Tennis",
+      "brand": "Tennis",
+      "link": "https://www.tennis.com.co",
+      "price": 89900,
+      "image": "https://assets.dressly.world/uploads/2cbcde2f80a6d8309928b5ccc40822df.webp",
+      "retailer": "Tennis"
+    }
+  ],
+  "Studio F": [
+    {
+      "id": "mock-studio f-1",
+      "name": "Camisa Premium Studio F",
+      "brand": "Studio F",
+      "link": "https://www.studiof.com.co",
+      "price": 89900,
+      "image": "https://assets.dressly.world/uploads/2cbcde2f80a6d8309928b5ccc40822df.webp",
+      "retailer": "Studio F"
+    }
+  ],
+  "Ela": [
+    {
+      "id": "mock-ela-1",
+      "name": "Camisa Premium Ela",
+      "brand": "Ela",
+      "link": "https://www.ela.com.co",
+      "price": 89900,
+      "image": "https://assets.dressly.world/uploads/2cbcde2f80a6d8309928b5ccc40822df.webp",
+      "retailer": "Ela"
+    }
+  ],
+  "Zara": [
+    {
+      "id": "mock-zara-1",
+      "name": "Camisa Vanguardist Zara",
+      "brand": "Zara",
+      "link": "https://www.zara.com",
+      "price": 129000,
+      "image": "https://assets.dressly.world/uploads/7e926a1b40ee206734b9ccf0cbe9b980.webp",
+      "retailer": "Zara"
+    }
+  ],
+  "Matelsa": [
+    {
+      "id": "mock-matelsa-1",
+      "name": "Camisa Vanguardist Matelsa",
+      "brand": "Matelsa",
+      "link": "https://www.matelsa.com",
+      "price": 69900,
+      "image": "https://assets.dressly.world/uploads/7e926a1b40ee206734b9ccf0cbe9b980.webp",
+      "retailer": "Matelsa"
+    }
+  ],
+  "Koaj": [
+    {
+      "id": "mock-koaj-1",
+      "name": "Camisa Vanguardist Koaj",
+      "brand": "Koaj",
+      "link": "https://www.koaj.com",
+      "price": 69900,
+      "image": "https://assets.dressly.world/uploads/7e926a1b40ee206734b9ccf0cbe9b980.webp",
+      "retailer": "Koaj"
+    }
+  ],
+  "Bosi": [
+    {
+      "id": "mock-bosi-1",
+      "name": "Camisa Vanguardist Bosi",
+      "brand": "Bosi",
+      "link": "https://www.bosi.com",
+      "price": 69900,
+      "image": "https://assets.dressly.world/uploads/7e926a1b40ee206734b9ccf0cbe9b980.webp",
+      "retailer": "Bosi"
+    }
+  ]
+}
