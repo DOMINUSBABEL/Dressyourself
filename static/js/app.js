@@ -4236,18 +4236,26 @@ window.saveShuffleOutfit = async function() {
         return;
     }
     
+    if (!currentShuffleOutfit.top || !currentShuffleOutfit.bottom || !currentShuffleOutfit.footwear) {
+        showToast("El outfit debe tener al menos una prenda superior, inferior y calzado.", "error");
+        return;
+    }
+    
     try {
-        const itemsList = [currentShuffleOutfit.top, currentShuffleOutfit.bottom, currentShuffleOutfit.footwear, currentShuffleOutfit.outerwear, currentShuffleOutfit.accessory].filter(x => x !== null);
-        const ids = itemsList.map(i => i.id);
+        const payload = {
+            name: `Mezcla DressMe #${Math.floor(Math.random() * 900) + 100}`,
+            occasion: 'Casual',
+            top_id: currentShuffleOutfit.top.id,
+            bottom_id: currentShuffleOutfit.bottom.id,
+            footwear_id: currentShuffleOutfit.footwear.id,
+            outerwear_id: currentShuffleOutfit.outerwear ? currentShuffleOutfit.outerwear.id : null,
+            accessory_id: currentShuffleOutfit.accessory ? currentShuffleOutfit.accessory.id : null
+        };
         
-        const response = await fetch('/api/combinations', {
+        const response = await fetch('/api/outfits', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: `Mezcla DressMe #${Math.floor(Math.random() * 900) + 100}`,
-                occasion: 'Casual',
-                items: ids
-            })
+            body: JSON.stringify(payload)
         });
         
         if (response.ok) {
@@ -5105,11 +5113,11 @@ const TRANSLATIONS = {
         // Aria Assistant Section
         'aria_title': 'Aria | Personal Stylist Advisor',
         'aria_desc': 'Interactive high fashion consulting through guided style questions.',
-        'aria_hair_label': 'Aria's Style (Look):',
-        'aria_personality_label': 'Aria's Personality:',
+        'aria_hair_label': "Aria's Style (Look):",
+        'aria_personality_label': "Aria's Personality:",
         'aria_rpg_header': 'Interactive Styling Session',
         'aria_rpg_progress': 'HAUTE COUTURE ASSISTANCE',
-        'aria_speech_default': 'Hello! I am Aria, your personal style advisor. Let's begin a guided styling session to design your next great outfit.',
+        'aria_speech_default': "Hello! I am Aria, your personal style advisor. Let's begin a guided styling session to design your next great outfit.",
         // Settings Section
         'settings_title': 'System Settings',
         'settings_desc': 'Customize your account, language, location and Premium subscription.',
@@ -5127,7 +5135,7 @@ const TRANSLATIONS = {
         'notif_panel_clear': 'Clear',
         'notif_no_pending': 'No pending notifications',
         'notif_ootd_title': 'OOTD Pending',
-        'notif_ootd_desc': 'Don't forget to register your Outfit of the Day today to earn points.',
+        'notif_ootd_desc': "Don't forget to register your Outfit of the Day today to earn points.",
         'notif_quest_title': 'Daily Quest',
         'notif_quest_desc': 'Cyberpunk Friday quest available. Match clothes and rank up.'
     }
@@ -5371,7 +5379,7 @@ function checkOOTDState() {
                 notifications.unshift({
                     id: 'n_ootd',
                     title: { es: 'OOTD Pendiente', en: 'OOTD Pending' },
-                    message: { es: 'No olvides registrar tu Outfit del Día hoy para ganar puntos.', en: 'Don't forget to register your Outfit of the Day today to earn points.' },
+                    message: { es: 'No olvides registrar tu Outfit del Día hoy para ganar puntos.', en: "Don't forget to register your Outfit of the Day today to earn points." },
                     type: 'warning'
                 });
             }
@@ -5384,7 +5392,7 @@ let notifications = [
     {
         id: 'n_ootd',
         title: { es: 'OOTD Pendiente', en: 'OOTD Pending' },
-        message: { es: 'No olvides registrar tu Outfit del Día hoy para ganar puntos.', en: 'Don't forget to register your Outfit of the Day today to earn points.' },
+        message: { es: 'No olvides registrar tu Outfit del Día hoy para ganar puntos.', en: "Don't forget to register your Outfit of the Day today to earn points." },
         type: 'warning'
     },
     {
