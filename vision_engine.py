@@ -233,7 +233,7 @@ MATERIAL_KEYWORD_MAPPING = {
 def remove_background(image_path_or_bytes):
     """
     Removes background using OpenCV grabCut to isolate the garment as a transparent PNG.
-    Saves or returns transparent PNG bytes in a centered 1024x1024 canvas.
+    Uses a hybrid border-color and bounding box mask initialization for near-perfect segmentation.
     """
     try:
         if isinstance(image_path_or_bytes, str):
@@ -250,13 +250,45 @@ def remove_background(image_path_or_bytes):
         bgdModel = np.zeros((1, 65), np.float64)
         fgdModel = np.zeros((1, 65), np.float64)
 
-        # Inset rectangle slightly to extract the central item
-        rect = (int(w * 0.05), int(h * 0.05), int(w * 0.9), int(h * 0.9))
-        cv2.grabCut(img, mask, rect, bgdModel, fgdModel, 3, cv2.GC_INIT_WITH_RECT)
+        # 1. Estimate background color from outer borders
+        border_pixels = []
+        border_pixels.extend(img[0, :, :])
+        border_pixels.extend(img[-1, :, :])
+        border_pixels.extend(img[:, 0, :])
+        border_pixels.extend(img[:, -1, :])
+        border_pixels = np.array(border_pixels)
+        bg_color = np.median(border_pixels, axis=0)
+
+        # Identify pixels matching border background color
+        diff = np.abs(img.astype(np.int32) - bg_color)
+        is_bg = np.all(diff < 22, axis=2)
+
+        # 2. Initialize mask: GC_BGD (sure bg) for border-matching colors, GC_PR_FGD inside the inner rect
+        mask[is_bg] = cv2.GC_BGD
+        
+        # Rect: 5% inset
+        rx, ry, rw, rh = int(w * 0.05), int(h * 0.05), int(w * 0.9), int(h * 0.9)
+        rect_mask = np.zeros((h, w), dtype=bool)
+        rect_mask[ry:ry+rh, rx:rx+rw] = True
+        
+        # Mark non-bg pixels inside the rect as probable foreground
+        mask[rect_mask & ~is_bg] = cv2.GC_PR_FGD
+        # Mark bg pixels inside the rect as probable background
+        mask[rect_mask & is_bg] = cv2.GC_PR_BGD
+        # Mark outside rect as sure background
+        mask[~rect_mask] = cv2.GC_BGD
+
+        # 3. Run grabCut with mask
+        cv2.grabCut(img, mask, None, bgdModel, fgdModel, 5, cv2.GC_INIT_WITH_MASK)
         
         mask2 = np.where((mask==2)|(mask==0), 0, 1).astype('uint8')
         mask2 = cv2.GaussianBlur(mask2 * 255, (3, 3), 0)
         _, mask_alpha = cv2.threshold(mask2, 100, 255, cv2.THRESH_BINARY)
+
+        # 4. Solid backdrop Euclidean distance override (for synthetic/studio flat backdrops)
+        dist = np.sqrt(np.sum((img.astype(np.float32) - bg_color) ** 2, axis=2))
+        is_flat_bg = dist < 35
+        mask_alpha[is_flat_bg] = 0
         
         b, g, r = cv2.split(img)
         rgba = cv2.merge([b, g, r, mask_alpha])
@@ -395,11 +427,47 @@ def analyze_image(image_path_or_bytes):
         img_cv = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
         h_orig, w_orig, _ = img_cv.shape
         
-        # 1. COLOR ANALYSIS
-        # Resize to smaller image to speed up color clustering
-        img_resized = cv2.resize(img_cv, (100, 100))
-        pixels = img_resized.reshape(-1, 3).astype(np.float32)
-        
+        # 1. COLOR ANALYSIS (EXCLUDING BACKGROUND AND SKIN TONES)
+        # Define skin tone HSV limits
+        lower_skin1 = np.array([0, 15, 40], dtype=np.uint8)
+        upper_skin1 = np.array([25, 170, 255], dtype=np.uint8)
+        lower_skin2 = np.array([165, 15, 40], dtype=np.uint8)
+        upper_skin2 = np.array([180, 170, 255], dtype=np.uint8)
+
+        use_cutout_for_colors = False
+        if cutout_bytes:
+            nparr = np.frombuffer(cutout_bytes, np.uint8)
+            cutout_rgba = cv2.imdecode(nparr, cv2.IMREAD_UNCHANGED)
+            if cutout_rgba is not None and cutout_rgba.shape[2] == 4:
+                cutout_bgr = cutout_rgba[:, :, :3]
+                cutout_alpha = cutout_rgba[:, :, 3]
+                
+                # Resize cutout to speed up color clustering
+                cutout_bgr_resized = cv2.resize(cutout_bgr, (100, 100))
+                cutout_alpha_resized = cv2.resize(cutout_alpha, (100, 100))
+                
+                cutout_hsv = cv2.cvtColor(cutout_bgr_resized, cv2.COLOR_BGR2HSV)
+                skin_mask1 = cv2.inRange(cutout_hsv, lower_skin1, upper_skin1)
+                skin_mask2 = cv2.inRange(cutout_hsv, lower_skin2, upper_skin2)
+                skin_mask = cv2.bitwise_or(skin_mask1, skin_mask2)
+                
+                combined_mask = cv2.bitwise_and(cutout_alpha_resized, cv2.bitwise_not(skin_mask))
+                pixels = cutout_bgr_resized[combined_mask > 10].reshape(-1, 3).astype(np.float32)
+                use_cutout_for_colors = True
+
+        if not use_cutout_for_colors:
+            img_resized = cv2.resize(img_cv, (100, 100))
+            img_hsv = cv2.cvtColor(img_resized, cv2.COLOR_BGR2HSV)
+            skin_mask1 = cv2.inRange(img_hsv, lower_skin1, upper_skin1)
+            skin_mask2 = cv2.inRange(img_hsv, lower_skin2, upper_skin2)
+            skin_mask = cv2.bitwise_or(skin_mask1, skin_mask2)
+            
+            combined_mask = cv2.bitwise_not(skin_mask)
+            pixels = img_resized[combined_mask > 0].reshape(-1, 3).astype(np.float32)
+
+        if pixels.size == 0:
+            pixels = cv2.resize(img_cv, (100, 100)).reshape(-1, 3).astype(np.float32)
+
         # Apply K-Means to find 4 dominant colors
         k = 4
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
@@ -826,10 +894,31 @@ def analyze_image(image_path_or_bytes):
         if semantic_match or pattern_semantic_match or material_semantic_match:
             confidence = max(confidence, 0.99)
             
+        # Strictly map category and subcategory to the new 4 body sectors
+        subcat_lower = subcategory.lower()
+        cat_mapped = "Superior"
+        
+        if subcat_lower in ["vestido", "enterizo", "body"]:
+            cat_mapped = "Base"
+        elif subcat_lower in ["tenis", "botas", "mocasines", "zapatos de vestir", "sandalias", "bolso", "bufanda", "gorra", "gafas de sol", "correa", "medias"]:
+            cat_mapped = "Complementos"
+        elif subcat_lower in ["jeans", "pantalon de vestir", "falda", "shorts", "pantalon"]:
+            cat_mapped = "Inferior"
+        elif category in ["Top", "Outerwear"] or subcat_lower in ["camiseta", "blusa", "camisa", "abrigo", "chaqueta", "blazer", "sueter", "saco"]:
+            cat_mapped = "Superior"
+        else:
+            # fallback mapping based on general category
+            cat_map = {
+                "Top": "Superior", "Outerwear": "Superior",
+                "Bottom": "Inferior",
+                "Footwear": "Complementos", "Accessory": "Complementos"
+            }
+            cat_mapped = cat_map.get(category, "Superior")
+
         return {
             "color_primary": color_primary,
             "color_secondary": color_secondary,
-            "category": category,
+            "category": cat_mapped,
             "subcategory": subcategory,
             "pattern": pattern,
             "material": material,
