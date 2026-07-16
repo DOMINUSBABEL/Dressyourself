@@ -992,7 +992,7 @@ def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=
             suggestion = "Prueba con prendas lisas para mitigar el conflicto de estampados o incoherencia de texturas."
 
     editorial_str = " ".join(editorial_comments)
-    advice = f"{greeting} {editorial_str} Califica un {total_score:.1f}% en la escala Haute Couture (Ocasión: {rule['name_es']}). Tu punto más fuerte es {highest_sub.lower()} ({highest_val:.1f}%). {critique} {suggestion}"
+    advice = f"{greeting} {editorial_str} Califica un {total_score:.1f}% en la escala DressYourself (Ocasión: {rule['name_es']}). Tu punto más fuerte es {highest_sub.lower()} ({highest_val:.1f}%). {critique} {suggestion}"
     
     return {
         "color_score": round(color_score, 1),
@@ -1317,7 +1317,7 @@ def get_style_innovations(clothes):
         justification = (
             f"Inspirado en el New Look de Dior. Al yuxtaponer la calidez o neutralidad de {t['name']} ({t.get('color_primary')}) "
             f"con la profundidad contrastante de {b['name']} ({b.get('color_primary')}), se genera una tensión cromática vibrante "
-            f"que rinde tributo a la alta costura clásica. Un outfit estructurado para proyectar audacia y clase."
+            f"que rinde tributo a la moda interior clásica. Un outfit estructurado para proyectar audacia y clase."
         )
         
         innovations.append({
@@ -1790,7 +1790,7 @@ def generate_fashion_title(occasion, season, silhouette):
         "Business Casual": "del Office Chic",
         "Sporty": "del Athleisure Urbano",
         "Cocktail": "de la Noche Festiva",
-        "Gala": "de la Alta Costura",
+        "Gala": "de la Moda Interior",
         "Casual": "del Estilo Casual",
         "Formal": "de la Elegancia Formal",
         "Deportivo": "del Confort Activo",

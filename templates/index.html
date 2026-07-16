@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dress Yourself | High Fashion AI</title>
+    <title>DressYourself | AI Virtual Wardrobe</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,11 +11,11 @@
     <!-- CSS Stylesheet -->
     <link rel="stylesheet" href="static/css/style.css">
 
-    <!-- Haute Couture Style Enhancements (Dior/Chanel Vibe) -->
+    <!-- DressYourself Style Enhancements (Dior/Chanel Vibe) -->
     <style>
         /* Gold border gradients & Glassmorphism refinements */
         .glass-card {
-            background: rgba(10, 10, 10, 0.78) !important;
+            background: var(--glass-bg);
             backdrop-filter: blur(20px) saturate(180%) !important;
             -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
             border: 1px solid rgba(212, 175, 55, 0.15) !important;
@@ -420,16 +420,16 @@
 </head>
 <body>
     <!-- ONBOARDING LUXURY JOURNEY (Chanel / Dior Style) -->
-    <div id="onboarding-overlay" class="modal-overlay" style="display:none; justify-content:center; align-items:center; z-index:999999; position:fixed; inset:0; background:#050505;">
+    <div id="onboarding-overlay" class="modal-overlay" style="display:none; justify-content:center; align-items:center; z-index:999999; position:fixed; inset:0; background:#FFFFFF;">
         <style>
             .onboarding-card {
                 max-width: 650px;
                 width: 90%;
-                background: rgba(12, 12, 12, 0.95);
+                background: #FFFFFF;
                 border: 1px solid var(--border-gold);
                 padding: 40px;
                 border-radius: 16px;
-                box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 40px rgba(212,175,55,0.05);
+                box-shadow: 0 25px 60px rgba(0,0,0,0.1), 0 0 40px rgba(212,175,55,0.02);
                 text-align: center;
                 position: relative;
                 overflow: hidden;
@@ -463,8 +463,8 @@
                 margin-bottom: 30px;
             }
             .onboarding-option {
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                background: rgba(255, 255, 255, 0.02);
+                border: 1px solid rgba(0, 0, 0, 0.15);
+                background: #FFFFFF;
                 padding: 20px;
                 border-radius: 8px;
                 cursor: pointer;
@@ -484,7 +484,7 @@
             .onboarding-option h4 {
                 font-family: 'Outfit', sans-serif;
                 font-size: 1rem;
-                color: var(--accent-gold);
+                color: #8a6d1c;
                 margin-bottom: 5px;
             }
             .onboarding-option p {
@@ -515,15 +515,15 @@
             <!-- STEP 0: Welcome screen (luxury brand aesthetics) -->
             <div class="onboarding-step active" id="ostep-welcome">
                 <div style="font-size: 0.75rem; letter-spacing: 4px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 15px;">Maison de Mode</div>
-                <h2 class="onboarding-title">DRESS YOURSELF</h2>
+                <h2 class="onboarding-title">DRESSYOURSELF</h2>
                 <div style="width: 40px; height: 1px; background: var(--accent-gold); margin: 15px auto;"></div>
                 <p style="color: var(--text-secondary); font-family: 'Outfit', sans-serif; font-size: 0.95rem; line-height: 1.8; max-width: 450px; margin: 0 auto 35px auto; font-style: italic;">
-                    "Bienvenue en la haute couture del estilismo inteligente. Diseñemos una experiencia a medida, inspirada en las grandes casas de moda de París y Milán."
+                    "Bienvenue al estilismo inteligente de DressYourself. Diseñemos una experiencia a medida, inspirada en las grandes casas de moda de París y Milán."
                 </p>
                 
                 <div class="control-group" style="max-width: 320px; margin: 0 auto 35px auto; text-align: left;">
                     <label for="onboarding-user-name" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-gold); margin-bottom: 8px; display: block;">¿Cuál es tu nombre?</label>
-                    <input type="text" id="onboarding-user-name" placeholder="Ej. Jorge Gomez" class="gold-input" style="width: 100%; text-align: center; font-size: 1.1rem; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color:#fff;" required autocomplete="off">
+                    <input type="text" id="onboarding-user-name" placeholder="Ej. Jorge Gomez" class="gold-input" style="width: 100%; text-align: center; font-size: 1.1rem; padding: 12px; background: #FFFFFF; border: 1px solid #000000; border-radius: 6px; color:#000000;" required autocomplete="off">
                 </div>
                 
                 <div style="display: flex; gap: 15px; justify-content: center; margin-top: 15px;">
@@ -531,7 +531,7 @@
                         <span>Iniciar Personalización</span>
                         <svg viewBox="0 0 24 24" style="width: 18px; height: 18px;" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>
                     </button>
-                    <a href="https://github.com/DOMINUSBABEL/Dressyourself/releases/download/v3.0-demo/DEMO%20DY.apk" class="gold-btn-outline" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 0.9rem;" download>
+                    <a href="#" onclick="openAuthModal(event, 'https://github.com/DOMINUSBABEL/Dressyourself/releases/download/v3.0-demo/DEMO%20DY.apk')" class="gold-btn-outline" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 0.9rem;">
                         <svg viewBox="0 0 24 24" style="width: 18px; height: 18px;" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z" fill="currentColor"/></svg>
                         <span>Descargar APK</span>
                     </a>
@@ -548,8 +548,8 @@
                         <h4>Quiet Luxury</h4>
                         <p>Minimalismo sofisticado, paletas neutras y marcas discretas pero de altísima calidad.</p>
                     </div>
-                    <div class="onboarding-option" onclick="window.selectOnboardingOption('style', 'Haute Couture')">
-                        <h4>Haute Couture Clásico</h4>
+                    <div class="onboarding-option" onclick="window.selectOnboardingOption('style', 'DressYourself')">
+                        <h4>DressYourself Clásico</h4>
                         <p>Siluetas estructuradas y sastrería a la medida inspirada en Dior y Chanel.</p>
                     </div>
                     <div class="onboarding-option" onclick="window.selectOnboardingOption('style', 'Streetwear')">
@@ -616,7 +616,7 @@
                 <div class="onboarding-grid">
                     <div class="onboarding-option" onclick="window.selectOnboardingOption('brand', 'Dior')">
                         <h4>Exclusividad Dior</h4>
-                        <p>Elegancia arquitectónica, siluetas atemporales y un toque haute couture parisino.</p>
+                        <p>Elegancia arquitectónica, siluetas atemporales y un toque DressYourself.</p>
                     </div>
                     <div class="onboarding-option" onclick="window.selectOnboardingOption('brand', 'Chanel')">
                         <h4>Elegancia Chanel</h4>
@@ -628,7 +628,7 @@
                     </div>
                     <div class="onboarding-option" onclick="window.selectOnboardingOption('brand', 'Hybrid')">
                         <h4>Fusión de Lujo</h4>
-                        <p>Una mezcla ecléctica que combina alta costura clásica con streetwear moderno.</p>
+                        <p>Una mezcla ecléctica que combina el estilo clásico de DressYourself con streetwear moderno.</p>
                     </div>
                 </div>
                 
@@ -652,8 +652,8 @@
         <aside class="sidebar">
             <div class="sidebar-brand" style="display: flex; justify-content: space-between; align-items: center; width: 100%; position: relative;">
                 <div style="text-align: left;">
-                    <h1>DRESS YOURSELF</h1>
-                    <span style="font-size: 0.65rem; color: var(--accent-gold); letter-spacing: 2px;">HAUTE COUTURE AI</span>
+                    <h1>DRESSYOURSELF</h1>
+                    <span style="font-size: 0.65rem; color: var(--accent-gold); letter-spacing: 2px;">INNER FASHION</span>
                 </div>
                 <div style="position: relative; cursor: pointer; padding: 5px;" onclick="window.toggleNotificationsPanelDesktop(event)">
                     <span style="font-size: 1.3rem; color: var(--accent-gold);">🔔</span>
@@ -661,14 +661,13 @@
                 </div>
                 
                 <!-- Desktop Notifications Dropdown -->
-                <div id="notifications-panel-desktop" class="glass-card" style="display: none; position: absolute; top: 60px; left: 0; width: 260px; padding: 15px; z-index: 999; border: 1px solid var(--border-gold); border-radius: 10px; background: rgba(10,10,10,0.95); box-shadow: 0 10px 30px rgba(0,0,0,0.6); text-align: left; animation: fadeIn 0.3s ease;">
+                <div id="notifications-panel-desktop" class="glass-card" style="display: none; position: absolute; top: 60px; left: 0; width: 260px; padding: 15px; z-index: 999; border: 1px solid var(--border-gold); border-radius: 10px; text-align: left; animation: fadeIn 0.3s ease;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(212,175,55,0.2); padding-bottom: 8px; margin-bottom: 10px;">
-                        <strong style="color: var(--accent-gold); font-family: var(--font-editorial); font-size: 0.82rem;" id="notif-panel-title-desktop">Notificaciones de Estilo</strong>
+                        <strong style="color: #8a6d1c; font-family: var(--font-editorial); font-size: 0.82rem;" id="notif-panel-title-desktop">Notificaciones de Estilo</strong>
                         <span style="font-size: 0.7rem; color: var(--text-muted); cursor: pointer;" onclick="window.clearNotifications()" id="notif-panel-clear-desktop">Limpiar</span>
                     </div>
                     <div id="notifications-list-desktop" style="display: flex; flex-direction: column; gap: 10px; max-height: 200px; overflow-y: auto;">
                         <!-- Filled by JS -->
-                    </div>
                 </div>
             </div>
             
@@ -681,54 +680,69 @@
                     <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 12.5L7.5 12h9L12 16.5zM20 8H4V6h16v2z" fill="currentColor"/></svg>
                     <span>Closet</span>
                 </button>
-                <button class="nav-btn" data-tab="asistente">
-                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z" fill="currentColor"/></svg>
-                    <span>Asistente</span>
-                </button>
                 <button class="nav-btn" data-tab="innovaciones">
                     <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.07 19.64 10.47 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z" fill="currentColor"/></svg>
                     <span>Innovaciones</span>
-                </button>
-                <button class="nav-btn" data-tab="boutique">
-                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 6h-4V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v1H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-8-2c.55 0 1 .45 1 1v1h-2V5c0-.55.45-1 1-1zm0 10c-2.76 0-5-2.24-5-5h2c0 1.66 1.34 3 3 3s3-1.34 3-3h2c0 2.76-2.24 5-5 5z" fill="currentColor"/></svg>
-                    <span>Boutique</span>
                 </button>
                 <button class="nav-btn" data-tab="probador">
                     <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z" fill="currentColor"/></svg>
                     <span>Probador</span>
                 </button>
-                <button class="nav-btn" data-tab="comunidad">
-                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 1.34 5 8s1.34 3 8 3zm0 2c-2.33 0-7 1.17-7 3.5V20h14v-3.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V20h6v-3.5c0-2.33-4.67-3.5-7-3.5z" fill="currentColor"/></svg>
-                    <span>Comunidad</span>
+
+                <!-- Trigger button for More Functions -->
+                <button class="nav-btn nav-more-trigger" id="desktop-more-trigger" onclick="window.toggleDesktopMoreMenu(event)" data-tab="more-menu">
+                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z" fill="currentColor"/></svg>
+                    <span>Más funciones</span>
+                    <svg viewBox="0 0 24 24" class="more-chevron" style="width:14px; height:14px; margin-left:auto; transition: transform 0.3s;"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="currentColor"/></svg>
                 </button>
-                <button class="nav-btn" data-tab="pedidos">
-                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 8h-3V4H3v12h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 16.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm11.5 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM18 11.5V9h2.25L22 11.5H18z" fill="currentColor"/></svg>
-                    <span>Pedidos</span>
-                </button>
-                <button class="nav-btn" data-tab="calendario">
-                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h2v2H7zm0 4h2v2H7zm4-4h2v2h-2zm0 4h2v2h-2zm4-4h2v2h-2zm0 4h2v2h-2z" fill="currentColor"/></svg>
-                    <span>Calendario</span>
-                </button>
-                <button class="nav-btn" data-tab="capsula">
-                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zM9 4h6v2H9V4zm11 15H4v-8h16v8z" fill="currentColor"/></svg>
-                    <span>Cápsula</span>
-                </button>
-                <button class="nav-btn" data-tab="analiticas">
-                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" fill="currentColor"/></svg>
-                    <span>Analíticas</span>
-                </button>
-                <button class="nav-btn" data-tab="mezclador">
-                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.45 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z" fill="currentColor"/></svg>
-                    <span>Mezclador</span>
-                </button>
-                <button class="nav-btn" data-tab="viajes">
-                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z" fill="currentColor"/></svg>
-                    <span>Viajes</span>
-                </button>
-                <button class="nav-btn" data-tab="configuracion">
-                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" fill="currentColor"/></svg>
-                    <span>Ajustes</span>
-                </button>
+
+                <!-- Collapsible sub-panel container -->
+                <div class="nav-more-panel collapsed" id="desktop-more-panel" style="display: none; flex-direction: column; padding-left: 15px; border-left: 1px solid rgba(212,175,55,0.15); margin-top: 5px; gap: 5px;">
+                    <button class="nav-btn" data-tab="progreso">
+                        <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z" fill="currentColor"/></svg>
+                        <span>Progreso y Retos</span>
+                    </button>
+                    <button class="nav-btn" data-tab="asistente">
+                        <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z" fill="currentColor"/></svg>
+                        <span>Asistente</span>
+                    </button>
+                    <button class="nav-btn" data-tab="boutique">
+                        <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 6h-4V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v1H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-8-2c.55 0 1 .45 1 1v1h-2V5c0-.55.45-1 1-1zm0 10c-2.76 0-5-2.24-5-5h2c0 1.66 1.34 3 3 3s3-1.34 3-3h2c0 2.76-2.24 5-5 5z" fill="currentColor"/></svg>
+                        <span>Boutique</span>
+                    </button>
+                    <button class="nav-btn" data-tab="comunidad">
+                        <svg viewBox="0 0 24 24" class="nav-icon"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 1.34 5 8s1.34 3 8 3zm0 2c-2.33 0-7 1.17-7 3.5V20h14v-3.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V20h6v-3.5c0-2.33-4.67-3.5-7-3.5z" fill="currentColor"/></svg>
+                        <span>Comunidad</span>
+                    </button>
+                    <button class="nav-btn" data-tab="pedidos">
+                        <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 8h-3V4H3v12h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 16.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm11.5 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM18 11.5V9h2.25L22 11.5H18z" fill="currentColor"/></svg>
+                        <span>Pedidos</span>
+                    </button>
+                    <button class="nav-btn" data-tab="calendario">
+                        <svg viewBox="0 0 24 24" class="nav-icon"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h2v2H7zm0 4h2v2H7zm4-4h2v2h-2zm0 4h2v2h-2zm4-4h2v2h-2zm0 4h2v2h-2z" fill="currentColor"/></svg>
+                        <span>Calendario</span>
+                    </button>
+                    <button class="nav-btn" data-tab="capsula">
+                        <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.1 0 2-.89 2-2V8c0-1.1-.9-2-2-2zM9 4h6v2H9V4zm11 15H4v-8h16v8z" fill="currentColor"/></svg>
+                        <span>Cápsula</span>
+                    </button>
+                    <button class="nav-btn" data-tab="analiticas">
+                        <svg viewBox="0 0 24 24" class="nav-icon"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" fill="currentColor"/></svg>
+                        <span>Analíticas</span>
+                    </button>
+                    <button class="nav-btn" data-tab="mezclador">
+                        <svg viewBox="0 0 24 24" class="nav-icon"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.45 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z" fill="currentColor"/></svg>
+                        <span>Mezclador</span>
+                    </button>
+                    <button class="nav-btn" data-tab="viajes">
+                        <svg viewBox="0 0 24 24" class="nav-icon"><path d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z" fill="currentColor"/></svg>
+                        <span>Viajes</span>
+                    </button>
+                    <button class="nav-btn" data-tab="configuracion">
+                        <svg viewBox="0 0 24 24" class="nav-icon"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" fill="currentColor"/></svg>
+                        <span>Ajustes</span>
+                    </button>
+                </div>
             </nav>
         </aside>
 
@@ -737,8 +751,8 @@
             <!-- Mobile Header -->
             <header class="mobile-header" style="position: relative; display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid rgba(212,175,55,0.1); background: rgba(10,10,10,0.5); backdrop-filter: blur(10px);">
                 <div style="text-align: left;">
-                    <h2 style="margin: 0; font-family: var(--font-editorial); letter-spacing: 2px;">DRESS YOURSELF</h2>
-                    <span class="mobile-subtitle" style="font-size: 0.65rem; color: var(--accent-gold); letter-spacing: 3px; display: block;">HAUTE COUTURE AI</span>
+                    <h2 style="margin: 0; font-family: var(--font-editorial); letter-spacing: 2px;">DRESSYOURSELF</h2>
+                    <span class="mobile-subtitle" style="font-size: 0.65rem; color: var(--accent-gold); letter-spacing: 3px; display: block;">INNER FASHION</span>
                 </div>
                 <div style="position: relative; cursor: pointer; padding: 5px;" onclick="window.toggleNotificationsPanel()">
                     <span style="font-size: 1.4rem; color: var(--accent-gold);">🔔</span>
@@ -746,9 +760,9 @@
                 </div>
                 
                 <!-- Notifications Panel (Glassmorphism dropdown) -->
-                <div id="notifications-panel" class="glass-card" style="display: none; position: absolute; top: 65px; right: 20px; width: 280px; padding: 15px; z-index: 999; border: 1px solid var(--border-gold); border-radius: 10px; background: rgba(10,10,10,0.95); box-shadow: 0 10px 30px rgba(0,0,0,0.6); text-align: left; animation: fadeIn 0.3s ease;">
+                <div id="notifications-panel" class="glass-card" style="display: none; position: absolute; top: 65px; right: 20px; width: 280px; padding: 15px; z-index: 999; border: 1px solid var(--border-gold); border-radius: 10px; text-align: left; animation: fadeIn 0.3s ease;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(212,175,55,0.2); padding-bottom: 8px; margin-bottom: 10px;">
-                        <strong style="color: var(--accent-gold); font-family: var(--font-editorial); font-size: 0.85rem;" id="notif-panel-title">Notificaciones de Estilo</strong>
+                        <strong style="color: #8a6d1c; font-family: var(--font-editorial); font-size: 0.85rem;" id="notif-panel-title">Notificaciones de Estilo</strong>
                         <span style="font-size: 0.7rem; color: var(--text-muted); cursor: pointer;" onclick="window.clearNotifications()" id="notif-panel-clear">Limpiar</span>
                     </div>
                     <div id="notifications-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 200px; overflow-y: auto;">
@@ -763,7 +777,7 @@
             <section id="clima" class="tab-content active">
                 <div class="section-header">
                     <h2 class="editorial-title">Clima & Silhouette</h2>
-                    <p class="section-desc">Estilo inteligente adaptado a la temperatura exterior, proyectado sobre tu avatar de alta costura.</p>
+                    <p class="section-desc">Estilo inteligente adaptado a la temperatura exterior, proyectado sobre tu avatar de DressYourself.</p>
                 </div>
                 
                 <div class="weather-widget glass-card">
@@ -794,7 +808,7 @@
                             <!-- Collage layout container -->
                             <div id="clima-flatlay-collage" style="position: relative; width: 100%; height: 100%; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 15px; z-index: 2;">
                                 <div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; font-style: italic; width: 100%;">
-                                    Proyectando combinaciones flat-lay de alta costura...
+                                    Proyectando combinaciones flat-lay de moda interior...
                                 </div>
                             </div>
                         </div>
@@ -812,11 +826,11 @@
                         </div>
                         
                         <!-- NEW OOTD REGISTRATION CONTAINER -->
-                        <div class="glass-card ootd-card" style="margin-top: 15px; padding: 15px; border: 1px solid var(--border-gold); border-radius: 10px; display: flex; align-items: center; justify-content: space-between; background: rgba(15,15,15,0.85); box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 10;">
+                        <div class="glass-card ootd-card" style="margin-top: 15px; padding: 15px; border: 1px solid var(--border-gold); border-radius: 10px; display: flex; align-items: center; justify-content: space-between; z-index: 10;">
                             <div style="display: flex; align-items: center; gap: 10px; text-align: left;">
                                 <span style="font-size: 1.5rem; color: var(--accent-gold);">📅</span>
                                 <div style="display: flex; flex-direction: column;">
-                                    <strong style="color: #fff; font-size: 0.85rem; font-family: var(--font-editorial); letter-spacing: 0.5px;" id="ootd-widget-title">Outfit del Día (OOTD)</strong>
+                                    <strong style="color: var(--text-primary); font-size: 0.85rem; font-family: var(--font-editorial); letter-spacing: 0.5px;" id="ootd-widget-title">Outfit del Día (OOTD)</strong>
                                     <span style="font-size: 0.7rem; color: var(--text-muted);" id="ootd-widget-desc">Registra tu outfit de hoy y suma +5.0% al Styling Index</span>
                                 </div>
                             </div>
@@ -859,65 +873,6 @@
                     </div>
                 </div>
 
-                <!-- Gamified "Babylon Styling Index" Dashboard -->
-                <div class="styling-index-widget glass-card" style="margin: 20px 0; padding: 20px; border: 1px solid var(--border-gold); border-radius: 12px; background: rgba(10, 10, 10, 0.85); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 1.5rem; color: var(--accent-gold);">🏆</span>
-                            <div>
-                                <h4 class="gold-text editorial-title" style="margin: 0; font-size: 0.95rem; font-weight: 700; letter-spacing: 2px;">BABYLON STYLING INDEX</h4>
-                                <span style="font-size: 0.75rem; color: var(--text-muted);">Tu nivel de estilo Haute Couture</span>
-                            </div>
-                        </div>
-                        <div style="text-align: right;">
-                            <span class="gold-text" id="styling-index-rank-label" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Haute Couture Apprentice</span>
-                        </div>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-bottom: 15px;">
-                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.15); padding: 10px; border-radius: 8px; text-align: center;">
-                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px;">Wardrobe Score</div>
-                            <div class="gold-text" id="styling-index-score" style="font-size: 1.4rem; font-weight: bold;">88.5%</div>
-                        </div>
-                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.15); padding: 10px; border-radius: 8px; text-align: center;">
-                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px;">Prendas Catalogadas</div>
-                            <div id="styling-index-scanned" style="font-size: 1.4rem; font-weight: bold; color: var(--text-primary);">0</div>
-                        </div>
-                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.15); padding: 10px; border-radius: 8px; text-align: center;">
-                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px;">Próximo Rango</div>
-                            <div id="styling-index-next-rank" style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); margin-top: 5px;">Haute Couture Master</div>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px;">
-                            <span>Progreso de Rango</span>
-                            <span id="styling-index-progress-pct">0%</span>
-                        </div>
-                        <div style="width: 100%; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden; border: 1px solid rgba(212,175,55,0.2);">
-                            <div id="styling-index-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #b8952b, var(--accent-gold)); transition: width 0.5s ease;"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Panel de Desafíos Diarios (Daily Fashion Quests) -->
-                <div class="daily-quests-panel glass-card" style="margin: 20px 0; padding: 20px; border: 1px solid rgba(212,175,55,0.25); border-radius: 12px; background: rgba(10, 10, 10, 0.85); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 1.5rem; color: var(--accent-gold);">⚡</span>
-                            <div>
-                                <h4 class="gold-text editorial-title" style="margin: 0; font-size: 0.95rem; font-weight: 700; letter-spacing: 2px;">DESAFÍOS DIARIOS DE MODA</h4>
-                                <span style="font-size: 0.75rem; color: var(--text-muted);">Completa misiones y gana bonificaciones al Babylon Styling Index</span>
-                            </div>
-                        </div>
-                        <div class="quest-streak" style="font-size: 0.85rem; color: var(--accent-gold); font-weight: 600; background: rgba(212,175,55,0.1); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(212,175,55,0.2);">
-                            🔥 Racha: <span id="quest-streak-count">1</span> día
-                        </div>
-                    </div>
-                    <div class="quests-list" id="quests-list" style="display: flex; flex-direction: column; gap: 12px;">
-                        <!-- Quests loaded dynamically via JS -->
-                    </div>
-                </div>
 
                 <!-- Filters -->
                 <div class="closet-filters">
@@ -939,27 +894,95 @@
                 </div>
             </section>
 
-            <!-- SECTION 3: ASISTENTE (ARIA) -->
+            <!-- SECTION 2.5: PROGRESO (BABYLON INDEX & QUESTS) -->
+            <section id="progreso" class="tab-content">
+                <div class="section-header">
+                    <h2 class="editorial-title">Mi Progreso de Estilo</h2>
+                    <p class="section-desc">Monitorea tu Babylon Styling Index y completa desafíos para elevar tu armonía.</p>
+                </div>
+
+                <!-- Gamified "Babylon Styling Index" Dashboard -->
+                <div class="styling-index-widget glass-card" style="margin: 20px 0; padding: 20px; border: 1px solid var(--border-gold); border-radius: 12px; background: var(--glass-bg); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.5rem; color: var(--accent-gold);">🏆</span>
+                            <div>
+                                <h4 class="gold-text editorial-title" style="margin: 0; font-size: 0.95rem; font-weight: 700; letter-spacing: 2px;">BABYLON STYLING INDEX</h4>
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">Tu nivel de estilo DressYourself</span>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span class="gold-text" id="styling-index-rank-label" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">DressYourself Apprentice</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.15); padding: 10px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px;">Wardrobe Score</div>
+                            <div class="gold-text" id="styling-index-score" style="font-size: 1.4rem; font-weight: bold;">88.5%</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.15); padding: 10px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px;">Prendas Catalogadas</div>
+                            <div id="styling-index-scanned" style="font-size: 1.4rem; font-weight: bold; color: var(--text-primary);">0</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.15); padding: 10px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px;">Próximo Rango</div>
+                            <div id="styling-index-next-rank" style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); margin-top: 5px;">DressYourself Master</div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px;">
+                            <span>Progreso de Rango</span>
+                            <span id="styling-index-progress-pct">0%</span>
+                        </div>
+                        <div style="width: 100%; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden; border: 1px solid rgba(212,175,55,0.2);">
+                            <div id="styling-index-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #b8952b, var(--accent-gold)); transition: width 0.5s ease;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel de Desafíos Diarios (Daily Fashion Quests) -->
+                <div class="daily-quests-panel glass-card" style="margin: 20px 0; padding: 20px; border: 1px solid rgba(212,175,55,0.25); border-radius: 12px; background: var(--glass-bg); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.5rem; color: var(--accent-gold);">⚡</span>
+                            <div>
+                                <h4 class="gold-text editorial-title" style="margin: 0; font-size: 0.95rem; font-weight: 700; letter-spacing: 2px;">DESAFÍOS DIARIOS DE MODA</h4>
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">Completa misiones y gana bonificaciones al Babylon Styling Index</span>
+                            </div>
+                        </div>
+                        <div class="quest-streak" style="font-size: 0.85rem; color: var(--accent-gold); font-weight: 600; background: rgba(212,175,55,0.1); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(212,175,55,0.2);">
+                            🔥 Racha: <span id="quest-streak-count">1</span> día
+                        </div>
+                    </div>
+                    <div class="quests-list" id="quests-list" style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Quests loaded dynamically via JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: ASISTENTE (ISA) -->
             <section id="asistente" class="tab-content">
                 <div class="section-header">
-                    <h2 class="editorial-title">Aria | Asesora de Estilo Personal</h2>
-                    <p class="section-desc">Asesoría de moda de alta costura interactiva a través de preguntas de estilo guiadas.</p>
+                    <h2 class="editorial-title">ISA | Asesora de Estilo Personal</h2>
+                    <p class="section-desc">Asesoría de moda inteligente de DressYourself interactiva a través de preguntas de estilo guiadas.</p>
                 </div>
 
                 <div class="asistente-container glass-card">
-                    <!-- Aria Visual Frame -->
-                    <div class="aria-frame">
-                        <div class="aria-portrait-wrapper">
-                            <!-- Aria Live Character Image -->
-                            <img id="aria-portrait" src="static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Propuesta Animada.png" alt="Aria - Asistente de Estilo" onerror="this.onerror=null; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 250%22><rect fill=%22%23121212%22 width=%22200%22 height=%22250%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23d4af37%22 font-size=%2240%22 text-anchor=%22middle%22 dy=%22.3em%22>Aria</text></svg>';">
-                            <div class="aria-pulse-ring"></div>
+                    <!-- ISA Visual Frame -->
+                    <div class="isa-frame">
+                        <div class="isa-portrait-wrapper">
+                            <!-- ISA Live Character Image -->
+                            <img id="isa-portrait" src="static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Propuesta Animada.png" alt="ISA - Asistente de Estilo" onerror="this.onerror=null; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 250%22><rect fill=%22%23121212%22 width=%22200%22 height=%22250%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23d4af37%22 font-size=%2240%22 text-anchor=%22middle%22 dy=%22.3em%22>ISA</text></svg>';">
+                            <div class="isa-pulse-ring"></div>
                         </div>
                         
-                        <div class="aria-controls">
+                        <div class="isa-controls">
                             <!-- Dynamic Hair/Style Selection -->
                             <div class="control-group">
-                                <label for="aria-look">Estilo de Aria (Look):</label>
-                                <select id="aria-look" class="gold-select">
+                                <label for="isa-look">Estilo de ISA (Look):</label>
+                                <select id="isa-look" class="gold-select">
                                     <option value="base" selected>Default (Pasarela)</option>
                                     <option value="castano_corto">Pelo Castaño Corto</option>
                                     <option value="rojo_corto">Pelo Rojo Corto</option>
@@ -971,7 +994,7 @@
 
                             <!-- Advisor Personality Tone -->
                             <div class="control-group">
-                                <label for="personality">Personalidad de Aria:</label>
+                                <label for="personality">Personalidad de ISA:</label>
                                 <select id="personality" class="gold-select">
                                     <option value="classy" selected>Clásica</option>
                                     <option value="diva">Diva</option>
@@ -991,7 +1014,7 @@
                         <!-- Progress Tracker -->
                         <div id="rpg-progress-tracker" class="rpg-progress-tracker" style="display: flex;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; width: 100%;">
-                                <span class="gold-text" style="font-size: 0.75rem; letter-spacing: 1px; font-weight: 500;">ASISTENCIA DE ALTA COSTURA</span>
+                                <span class="gold-text" style="font-size: 0.75rem; letter-spacing: 1px; font-weight: 500;">ASISTENCIA DE MODA INTERIOR</span>
                                 <span id="rpg-step-indicator" style="color: var(--text-primary); font-weight: 600; font-size: 0.75rem;">Paso 1 de 3</span>
                             </div>
                             <div style="width: 100%; height: 4px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; overflow: hidden;">
@@ -1001,7 +1024,7 @@
 
                         <div class="bubble-speech">
                             <div class="bubble-tail"></div>
-                            <p id="aria-speech">¡Hola! Soy Aria, tu asesora de estilo personal. Comencemos una sesión de asesoría guiada para crear tu próximo gran outfit.</p>
+                            <p id="isa-speech">¡Hola! Soy ISA, tu asesora de estilo personal. Comencemos una sesión de asesoría guiada para crear tu próximo gran outfit.</p>
                         </div>
 
                         <div id="rpg-options-container" class="rpg-options-container" style="display: flex;">
@@ -1094,6 +1117,10 @@
                     <div class="scan-results-box glass-card" id="scan-results-box" style="display: none;">
                         <h3 class="editorial-subtitle gold-text">Análisis de Estilo Completo</h3>
                         <div class="results-grid">
+                            <div class="result-item" style="grid-column: span 2;">
+                                <label for="edit-res-nombre" class="result-label" style="display: block; margin-bottom: 5px;">Nombre de la Prenda</label>
+                                <input type="text" id="edit-res-nombre" class="gold-input" style="width: 100%; padding: 8px; background: #FFFFFF; color: #000000; border: 1px solid #000000; border-radius: 4px;" placeholder="Ej: Mi Camiseta Favorita">
+                            </div>
                             <div class="result-item">
                                 <span class="result-label">Tipo de Prenda</span>
                                 <strong id="res-tipo" class="result-val">--</strong>
@@ -1217,14 +1244,14 @@
                                 </div>
                             </div>
                             <div class="verdict-bubble">
-                                <strong class="gold-text">Veredicto de Aria:</strong>
+                                <strong class="gold-text">Veredicto de ISA:</strong>
                                 <p id="verdict-text">"Analizando tu silueta..."</p>
                             </div>
                             <div class="verdict-actions" style="width: 100%;">
                                 <button class="gold-btn" id="btn-purchase-boutique" style="display: none;">Comprar Prenda de Boutique</button>
                                 
                                 <!-- Boutique Checkout Widget / Breakdown Card -->
-                                <div id="boutique-checkout-card" class="checkout-breakdown-card glass-card" style="display: none; margin-top: 15px; padding: 15px; border: 1px solid var(--accent-gold) !important; border-radius: 8px; width: 100%; text-align: left; background: rgba(15, 15, 15, 0.9);">
+                                <div id="boutique-checkout-card" class="checkout-breakdown-card glass-card" style="display: none; margin-top: 15px; padding: 15px; border: 1px solid var(--accent-gold) !important; border-radius: 8px; width: 100%; text-align: left; background: rgba(255, 255, 255, 0.9);">
                                     <h4 class="gold-text editorial-title" style="margin-top: 0; font-size: 0.9rem; border-bottom: 1px solid rgba(212, 175, 55, 0.2); padding-bottom: 5px; font-weight: 600; letter-spacing: 1px;">ATELIER CHECKOUT</h4>
                                     <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.85rem;">
                                         <span style="color: var(--text-muted);">Precio de Prenda:</span>
@@ -1333,7 +1360,7 @@
                     <p class="section-desc">Programa tus outfits para los próximos días y planifica tu estilo de la semana.</p>
                 </div>
 
-                <div class="calendar-container glass-card" style="padding: 20px; border-radius: 12px; background: rgba(10, 10, 10, 0.85); border: 1px solid var(--border-gold); margin-bottom: 25px;">
+                <div class="calendar-container glass-card" style="padding: 20px; border-radius: 12px; background: rgba(255, 255, 255, 0.85); border: 1px solid var(--border-gold); margin-bottom: 25px;">
                     <!-- Weekly Grid -->
                     <div class="weekly-grid" id="weekly-calendar-grid">
                         <!-- Loaded dynamically via JS -->
@@ -1341,20 +1368,20 @@
                 </div>
 
                 <!-- Scheduler Dialog (embedded modal) -->
-                <div id="scheduler-modal" class="modal glass-card" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; padding: 25px; border-radius: 12px; background: rgba(15, 15, 15, 0.95); border: 1px solid var(--accent-gold); width: 90%; max-width: 500px; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
+                <div id="scheduler-modal" class="modal glass-card" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; padding: 25px; border-radius: 12px; background: #FFFFFF; border: 1px solid var(--accent-gold); width: 90%; max-width: 500px; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(212,175,55,0.2); padding-bottom: 10px;">
                         <h3 class="gold-text" id="scheduler-modal-title" style="margin: 0; font-family: var(--font-editorial);">Programar Outfit</h3>
-                        <button type="button" onclick="closeSchedulerModal()" style="background: none; border: none; color: #fff; font-size: 1.8rem; cursor: pointer; line-height: 1;">&times;</button>
+                        <button type="button" onclick="closeSchedulerModal()" style="background: none; border: none; color: #000000; font-size: 1.8rem; cursor: pointer; line-height: 1;">&times;</button>
                     </div>
                     <form id="scheduler-form" onsubmit="handleScheduleFormSubmit(event)">
                         <input type="hidden" id="scheduler-date-input">
                         <div style="margin-bottom: 15px;">
                             <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Seleccionar Outfit de tu Ropero</label>
-                            <select id="scheduler-outfit-select" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; outline: none;"></select>
+                            <select id="scheduler-outfit-select" style="width: 100%; padding: 10px; background: #FFFFFF; border: 1px solid #000000; border-radius: 4px; color: #000000; outline: none;"></select>
                         </div>
                         <div style="margin-bottom: 15px;">
                             <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Ciudad de Destino (Confort Térmico CLO)</label>
-                            <select id="scheduler-city-select" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; outline: none;">
+                            <select id="scheduler-city-select" style="width: 100%; padding: 10px; background: #FFFFFF; border: 1px solid #000000; border-radius: 4px; color: #000000; outline: none;">
                                 <option value="0">Bogotá (Frío, Lluvia)</option>
                                 <option value="1">Medellín (Primavera)</option>
                                 <option value="2">Cali (Cálido)</option>
@@ -1370,7 +1397,7 @@
                         </div>
                         <div style="margin-bottom: 20px;">
                             <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Ocasión / Regla de Formalidad</label>
-                            <select id="scheduler-occasion-select" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; outline: none;">
+                            <select id="scheduler-occasion-select" style="width: 100%; padding: 10px; background: #FFFFFF; border: 1px solid #000000; border-radius: 4px; color: #000000; outline: none;">
                                 <option value="Casual">Casual</option>
                                 <option value="Quiet Luxury">Quiet Luxury</option>
                                 <option value="Business Casual">Business Casual</option>
@@ -1382,7 +1409,7 @@
                     </form>
                 </div>
                 <!-- Scheduler Modal Backdrop -->
-                <div id="scheduler-modal-backdrop" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 999;" onclick="closeSchedulerModal()"></div>
+                <div id="scheduler-modal-backdrop" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255,255,255,0.7); z-index: 999;" onclick="closeSchedulerModal()"></div>
             </section>
 
             <!-- SECTION 10: ARMARIO CÁPSULA -->
@@ -1400,7 +1427,7 @@
                 </div>
 
                 <div class="capsule-section-title" style="margin-top: 35px; margin-bottom: 15px;">
-                    <h3 class="gold-text" style="font-family: var(--font-editorial); font-size: 1.1rem; letter-spacing: 1px;">COMBINACIONES DE ALTA COSTURA GENERADA</h3>
+                    <h3 class="gold-text" style="font-family: var(--font-editorial); font-size: 1.1rem; letter-spacing: 1px;">COMBINACIONES DE MODA INTERIOR GENERADA</h3>
                 </div>
                 <div class="capsule-outfits-grid" id="capsule-combinations-grid">
                     <!-- Outfits loaded dynamically -->
@@ -1418,7 +1445,7 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
                     <div class="glass-card" style="padding: 15px; text-align: center; border-radius: 8px;">
                         <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Total de Prendas</span>
-                        <h3 id="analytics-total-items" style="font-size: 1.8rem; margin: 10px 0 5px 0; color: #fff; font-family: var(--font-editorial);">--</h3>
+                        <h3 id="analytics-total-items" style="font-size: 1.8rem; margin: 10px 0 5px 0; color: var(--text-primary); font-family: var(--font-editorial);">--</h3>
                         <p style="font-size: 0.65rem; color: var(--text-secondary); margin: 0;">Prendas digitalizadas</p>
                     </div>
                     <div class="glass-card" style="padding: 15px; text-align: center; border-radius: 8px;">
@@ -1491,12 +1518,12 @@
 
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0;">
                     <!-- Shuffler stack container -->
-                    <div id="shuffle-board" class="glass-card" style="width: 320px; min-height: 400px; padding: 20px; border-radius: 12px; border: 1px solid var(--border-gold); background: rgba(15,15,15,0.9); box-shadow: 0 15px 40px rgba(0,0,0,0.7); display: flex; flex-direction: column; justify-content: space-between; align-items: center; position: relative;">
+                    <div id="shuffle-board" class="glass-card" style="width: 320px; min-height: 400px; padding: 20px; border-radius: 12px; border: 1px solid var(--border-gold); display: flex; flex-direction: column; justify-content: space-between; align-items: center; position: relative;">
                         <!-- Glow pulse border -->
                         <div style="position: absolute; inset: 0; border-radius: 12px; border: 1px solid var(--accent-gold); opacity: 0.2; pointer-events: none;"></div>
 
                         <div style="display: flex; justify-content: space-between; width: 100%; border-bottom: 1px solid rgba(212,175,55,0.2); padding-bottom: 8px; margin-bottom: 15px;">
-                            <strong style="color: #fff; font-size: 0.85rem; font-family: var(--font-editorial);">Sugerencia "Dress Me"</strong>
+                            <strong style="color: var(--text-primary); font-size: 0.85rem; font-family: var(--font-editorial);">Sugerencia "Dress Me"</strong>
                             <span id="shuffle-score-badge" class="capsule-outfit-score-badge">--% Score</span>
                         </div>
 
@@ -1560,7 +1587,7 @@
             <section id="configuracion" class="tab-content">
                 <div class="section-header">
                     <h2 class="editorial-title">Configuración y Opciones</h2>
-                    <p class="section-desc">Personaliza tu cuenta, idioma, ubicación y suscripción Premium de Alta Costura.</p>
+                    <p class="section-desc">Personaliza tu cuenta, idioma, ubicación y suscripción Premium de DressYourself.</p>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start;">
@@ -1597,9 +1624,9 @@
                         <div class="glass-card" style="padding: 24px; border-radius: 12px; border: 1px solid rgba(212,175,55,0.15);">
                             <h4 class="gold-text" style="font-family: var(--font-editorial); margin-top: 0; margin-bottom: 10px; font-size: 1.15rem;">📲 Aplicación Móvil</h4>
                             <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 15px;">
-                                Lleva DressYourself contigo. Descarga el APK oficial para instalar el aplicativo de alta costura directamente en tu dispositivo Android.
+                                Lleva DressYourself contigo. Descarga el APK oficial para instalar el aplicativo de DressYourself directamente en tu dispositivo Android.
                             </p>
-                            <a href="https://github.com/DOMINUSBABEL/Dressyourself/releases/download/v3.0-demo/DEMO%20DY.apk" class="gold-btn" style="text-decoration: none; display: inline-flex; justify-content: center; align-items: center; width: 100%; font-weight: bold; padding: 10px;" download>
+                            <a href="#" onclick="openAuthModal(event, 'https://github.com/DOMINUSBABEL/Dressyourself/releases/download/v3.0-demo/DEMO%20DY.apk')" class="gold-btn" style="text-decoration: none; display: inline-flex; justify-content: center; align-items: center; width: 100%; font-weight: bold; padding: 10px;">
                                 <span>Descargar APK Oficial</span>
                             </a>
                         </div>
@@ -1637,13 +1664,13 @@
                     </div>
 
                     <!-- Monetization card: PRO version without ads -->
-                    <div class="glass-card" style="padding: 30px; border-radius: 12px; border: 1px solid var(--border-gold); background: linear-gradient(135deg, rgba(212,175,55,0.05) 0%, rgba(10,10,10,0.95) 100%); position: relative; overflow: hidden;">
+                    <div class="glass-card" style="padding: 30px; border-radius: 12px; border: 1px solid var(--border-gold); background: linear-gradient(135deg, #FFFFFF 0%, #EFEFEF 100%); position: relative; overflow: hidden;">
                         <div style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: radial-gradient(circle, rgba(212,175,55,0.15) 0%, transparent 70%); pointer-events: none;"></div>
                         
                         <div style="font-size: 0.7rem; letter-spacing: 2px; color: var(--accent-gold); text-transform: uppercase; font-weight: bold; margin-bottom: 10px;">EXCLUSIVIDAD TOTAL</div>
-                        <h3 style="font-family: var(--font-editorial); font-size: 2rem; margin: 0 0 10px 0; color: #fff;">DressYourself <span class="gold-text">PRO</span></h3>
+                        <h3 style="font-family: var(--font-editorial); font-size: 2rem; margin: 0 0 10px 0; color: #000000;">DressYourself <span class="gold-text">PRO</span></h3>
                         <p style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.6; margin-bottom: 25px;">
-                            Únete al círculo selecto de la alta costura digital. Desbloquea todas las funcionalidades avanzadas sin interrupciones.
+                            Únete al círculo selecto de DressYourself PRO. Desbloquea todas las funcionalidades avanzadas sin interrupciones.
                         </p>
                         
                         <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 30px; text-align: left;">
@@ -1661,7 +1688,7 @@
                             </div>
                             <div style="display: flex; align-items: center; gap: 10px; font-size: 0.85rem;">
                                 <span style="color: var(--accent-gold);">✨</span>
-                                <span>Asistente Aria con respuesta en tiempo real</span>
+                                <span>Asistente ISA con respuesta en tiempo real</span>
                             </div>
                         </div>
                         
@@ -1678,35 +1705,143 @@
                     </div>
                     
                 </div>
+
+                <!-- Mobile App Screenshots Showcase -->
+                <div class="glass-card" style="margin-top: 30px; padding: 30px; border-radius: 12px; border: 1px solid rgba(212,175,55,0.15); width: 100%;">
+                    <h4 class="gold-text" style="font-family: var(--font-editorial); margin-top: 0; margin-bottom: 10px; font-size: 1.3rem; text-align: center; letter-spacing: 2px;">📲 VISTAS REALES DE LA APLICACIÓN MÓVIL</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; text-align: center; margin-bottom: 30px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                        Explora capturas de pantalla tomadas directamente de la aplicación de Android (compilación APK) en ejecución. Cada pantalla muestra una sección clave del armario virtual y asistente de estilo inteligente.
+                    </p>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 20px;">
+                        <!-- Card 1: Onboarding -->
+                        <div class="screenshot-card" style="background: rgba(0, 0, 0, 0.03); border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; align-items: center; transition: all 0.3s ease;">
+                            <div class="screenshot-wrapper" style="width: 100%; aspect-ratio: 9/16; overflow: hidden; position: relative; border-bottom: 1px solid rgba(212, 175, 55, 0.1);">
+                                <img src="static/images/onboarding.png" alt="Onboarding App" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                            </div>
+                            <div style="padding: 15px; text-align: center;">
+                                <h5 style="color: #8C6B1C; font-family: var(--font-editorial); font-weight: 600; margin: 0 0 5px 0; font-size: 0.95rem; letter-spacing: 1px;">Bienvenida e Inicio</h5>
+                                <p style="color: var(--text-secondary); font-size: 0.75rem; line-height: 1.4; margin: 0;">Flujo de personalización inicial para configurar tu nombre, paleta de color estacional y filosofía de estilo.</p>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: Clima -->
+                        <div class="screenshot-card" style="background: rgba(0, 0, 0, 0.03); border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; align-items: center; transition: all 0.3s ease;">
+                            <div class="screenshot-wrapper" style="width: 100%; aspect-ratio: 9/16; overflow: hidden; position: relative; border-bottom: 1px solid rgba(212, 175, 55, 0.1);">
+                                <img src="static/images/clima.png" alt="Clima y Siluetas App" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                            </div>
+                            <div style="padding: 15px; text-align: center;">
+                                <h5 style="color: #8C6B1C; font-family: var(--font-editorial); font-weight: 600; margin: 0 0 5px 0; font-size: 0.95rem; letter-spacing: 1px;">Clima & Siluetas</h5>
+                                <p style="color: var(--text-secondary); font-size: 0.75rem; line-height: 1.4; margin: 0;">Sugerencias automáticas del asistente de estilo calibradas según el confort térmico (CLO) y el clima en tiempo real.</p>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Closet Grid -->
+                        <div class="screenshot-card" style="background: rgba(0, 0, 0, 0.03); border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; align-items: center; transition: all 0.3s ease;">
+                            <div class="screenshot-wrapper" style="width: 100%; aspect-ratio: 9/16; overflow: hidden; position: relative; border-bottom: 1px solid rgba(212, 175, 55, 0.1);">
+                                <img src="static/images/closet_grid.png" alt="Closet Digital App" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                            </div>
+                            <div style="padding: 15px; text-align: center;">
+                                <h5 style="color: #8C6B1C; font-family: var(--font-editorial); font-weight: 600; margin: 0 0 5px 0; font-size: 0.95rem; letter-spacing: 1px;">Bóveda del Armario</h5>
+                                <p style="color: var(--text-secondary); font-size: 0.75rem; line-height: 1.4; margin: 0;">Organización inteligente de tu guardarropa virtual por categorías con filtros de colores y texturas de tejido.</p>
+                            </div>
+                        </div>
+
+                        <!-- Card 4: Probador -->
+                        <div class="screenshot-card" style="background: rgba(0, 0, 0, 0.03); border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; align-items: center; transition: all 0.3s ease;">
+                            <div class="screenshot-wrapper" style="width: 100%; aspect-ratio: 9/16; overflow: hidden; position: relative; border-bottom: 1px solid rgba(212, 175, 55, 0.1);">
+                                <img src="static/images/probador.png" alt="Probador Virtual App" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                            </div>
+                            <div style="padding: 15px; text-align: center;">
+                                <h5 style="color: #8C6B1C; font-family: var(--font-editorial); font-weight: 600; margin: 0 0 5px 0; font-size: 0.95rem; letter-spacing: 1px;">Probador Virtual</h5>
+                                <p style="color: var(--text-secondary); font-size: 0.75rem; line-height: 1.4; margin: 0;">Superposición y mezcla digital de prendas de boutique sobre tu ropa física para contrastar compatibilidad.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
         </main>
         
         <!-- Mobile Bottom Navigation Bar -->
         <nav class="bottom-nav">
             <button class="bottom-nav-btn active" data-tab="clima">
-                <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5c.55 0 1 .45 1 1v2c0 .55-.45 1-1 1s-1-.45-1-1V3c0-.55.45-1 1-1zm0 14c.55 0 1 .45 1 1v2c0 .55-.45 1-1 1s-1-.45-1-1v-2c0-.55.45-1 1-1z" fill="currentColor"/></svg>
+                <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5c.55 0 1 .45 1 1v2c0 .55-.45 1-1 1s-1-.45-1-1V3c0-.55.45-1 1-1zm0 14c.55 0 1 .45 1 1v2c0 .55-.45 1-1 1s-1-.45-1-1v-2c0-.55.45-1 1-1zM5.22 6.64c.39-.39 1.02-.39 1.41 0l1.41 1.41c.39.39.39 1.02 0 1.41s-1.02.39-1.41 0L5.22 8.05c-.39-.39-.39-1.02 0-1.41zm10.6 10.6c.39-.39 1.02-.39 1.41 0l1.41 1.41c.39.39.39 1.02 0 1.41s-1.02.39-1.41 0l-1.41-1.41c-.4-.39-.4-1.03 0-1.42zm-12.6-3.8c.55 0 1 .45 1 1v2c0 .55-.45 1-1 1s-1-.45-1-1v-2c0-.55.45-1 1-1zm14 0c.55 0 1 .45 1 1v2c0 .55-.45 1-1 1s-1-.45-1-1v-2c0-.55.45-1 1-1z" fill="currentColor"/></svg>
                 <span>Clima</span>
             </button>
             <button class="bottom-nav-btn" data-tab="closet">
                 <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM4 6h16v2H4V6z" fill="currentColor"/></svg>
                 <span>Closet</span>
             </button>
-            <button class="bottom-nav-btn" data-tab="asistente">
-                <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z" fill="currentColor"/></svg>
-                <span>Asistente</span>
-            </button>
             <button class="bottom-nav-btn" data-tab="innovaciones">
                 <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.07 19.64 10.47 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9z" fill="currentColor"/></svg>
                 <span>Scan</span>
-            </button>
-            <button class="bottom-nav-btn" data-tab="boutique">
-                <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 6h-4V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v1H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z" fill="currentColor"/></svg>
-                <span>Boutique</span>
             </button>
             <button class="bottom-nav-btn" data-tab="probador">
                 <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z" fill="currentColor"/></svg>
                 <span>Probar</span>
             </button>
+
+            <!-- Mobile "Más" Trigger Button -->
+            <button class="bottom-nav-btn" id="mobile-more-trigger" onclick="window.toggleMobileMoreDrawer(event)" data-tab="more-menu">
+                <svg viewBox="0 0 24 24" class="nav-icon"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" fill="currentColor"/></svg>
+                <span>Más</span>
+            </button>
+
+            <!-- Mobile Drawer Overlay Container -->
+            <div id="mobile-more-drawer" class="mobile-drawer-overlay" style="display: none; position: fixed; inset: 0; background: rgba(5,5,5,0.7); z-index: 10000; justify-content: flex-end; flex-direction: column;" onclick="window.handleDrawerOverlayClick(event)">
+                <div class="mobile-drawer-content glass-card" style="width: 100%; border-top: 1px solid var(--border-gold); border-radius: 20px 20px 0 0; padding: 20px 20px 40px 20px; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);" onclick="event.stopPropagation()">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(212,175,55,0.15); padding-bottom: 12px;">
+                        <span style="font-family: var(--font-editorial); color: #8a6d1c; letter-spacing: 2px; text-transform: uppercase; font-size: 0.9rem;">Más Funciones</span>
+                        <button onclick="window.toggleMobileMoreDrawer(event)" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; padding: 5px;">&times;</button>
+                    </div>
+                    <div class="mobile-drawer-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; text-align: center; max-height: 50vh; overflow-y: auto;">
+                        <button class="bottom-nav-btn drawer-item" data-tab="progreso" onclick="window.handleDrawerItemClick('progreso')">
+                            <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z" fill="currentColor"/></svg>
+                            <span>Progreso y Retos</span>
+                        </button>
+                        <button class="bottom-nav-btn drawer-item" data-tab="asistente" onclick="window.handleDrawerItemClick('asistente')">
+                            <svg viewBox="0 0 24 24" class="nav-icon"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z" fill="currentColor"/></svg>
+                            <span>Asistente</span>
+                        </button>
+                        <button class="bottom-nav-btn drawer-item" data-tab="boutique" onclick="window.handleDrawerItemClick('boutique')">
+                            <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 6h-4V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v1H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-8-2c.55 0 1 .45 1 1v1h-2V5c0-.55.45-1 1-1zm0 10c-2.76 0-5-2.24-5-5h2c0 1.66 1.34 3 3 3s3-1.34 3-3h2c0 2.76-2.24 5-5 5z" fill="currentColor"/></svg>
+                            <span>Boutique</span>
+                        </button>
+                        <button class="bottom-nav-btn drawer-item" data-tab="comunidad" onclick="window.handleDrawerItemClick('comunidad')">
+                            <svg viewBox="0 0 24 24" class="nav-icon"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 1.34 5 8s1.34 3 8 3zm0 2c-2.33 0-7 1.17-7 3.5V20h14v-3.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V20h6v-3.5c0-2.33-4.67-3.5-7-3.5z" fill="currentColor"/></svg>
+                            <span>Comunidad</span>
+                        </button>
+                        <button class="bottom-nav-btn drawer-item" data-tab="pedidos" onclick="window.handleDrawerItemClick('pedidos')">
+                            <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 8h-3V4H3v12h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 16.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm11.5 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM18 11.5V9h2.25L22 11.5H18z" fill="currentColor"/></svg>
+                            <span>Pedidos</span>
+                        </button>
+                        <button class="bottom-nav-btn drawer-item" data-tab="calendario" onclick="window.handleDrawerItemClick('calendario')">
+                            <svg viewBox="0 0 24 24" class="nav-icon"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h2v2H7zm0 4h2v2H7zm4-4h2v2h-2zm0 4h2v2h-2zm4-4h2v2h-2zm0 4h2v2h-2z" fill="currentColor"/></svg>
+                            <span>Calendario</span>
+                        </button>
+                        <button class="bottom-nav-btn drawer-item" data-tab="capsula" onclick="window.handleDrawerItemClick('capsula')">
+                            <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.1 0 2-.89 2-2V8c0-1.1-.9-2-2-2zM9 4h6v2H9V4zm11 15H4v-8h16v8z" fill="currentColor"/></svg>
+                            <span>Cápsula</span>
+                        </button>
+                        <button class="bottom-nav-btn drawer-item" data-tab="analiticas" onclick="window.handleDrawerItemClick('analiticas')">
+                            <svg viewBox="0 0 24 24" class="nav-icon"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" fill="currentColor"/></svg>
+                            <span>Analíticas</span>
+                        </button>
+                        <button class="bottom-nav-btn drawer-item" data-tab="mezclador" onclick="window.handleDrawerItemClick('mezclador')">
+                            <svg viewBox="0 0 24 24" class="nav-icon"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.45 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z" fill="currentColor"/></svg>
+                            <span>Mezclador</span>
+                        </button>
+                        <button class="bottom-nav-btn drawer-item" data-tab="viajes" onclick="window.handleDrawerItemClick('viajes')">
+                            <svg viewBox="0 0 24 24" class="nav-icon"><path d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z" fill="currentColor"/></svg>
+                            <span>Viajes</span>
+                        </button>
+                        <button class="bottom-nav-btn drawer-item" data-tab="configuracion" onclick="window.handleDrawerItemClick('configuracion')">
+                            <svg viewBox="0 0 24 24" class="nav-icon"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" fill="currentColor"/></svg>
+                            <span>Ajustes</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </nav>
     </div>
 
@@ -1862,7 +1997,7 @@
             </div>
             <div class="modal-body" style="display:flex; flex-direction:column; gap:15px;">
                 <label for="location-select" style="font-size:0.9rem; color:var(--text-primary); text-align:left;">Seleccionar una ciudad de Colombia:</label>
-                <select id="location-select" class="builder-select-input" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border-gold); background:#111; color:#fff;">
+                <select id="location-select" class="builder-select-input" style="width:100%; padding:8px; border-radius:6px; background:#FFFFFF; color:#000000; border:1px solid #000000;">
                     <option value="0">Bogotá</option>
                     <option value="1">Medellín</option>
                     <option value="2">Cali</option>
@@ -1889,8 +2024,8 @@
     </div>
 
     <!-- MODAL PARA CREAR PRENDA PERSONALIZADA -->
-    <div id="custom-garment-modal" class="modal-overlay" style="display:none; justify-content:center; align-items:center; z-index:10000; position:fixed; inset:0; background:rgba(0,0,0,0.85);">
-        <div class="modal-content glass-card animate-slide-up" style="max-width: 500px; padding: 25px; box-sizing: border-box; background: rgba(15,15,15,0.95); border: 1px solid var(--border-gold); width: 90%; max-height: 90vh; overflow-y: auto; border-radius: 12px; margin: 0 auto; box-shadow: 0 15px 40px rgba(0,0,0,0.8);">
+    <div id="custom-garment-modal" class="modal-overlay" style="display:none; justify-content:center; align-items:center; z-index:10000; position:fixed; inset:0; background:rgba(255,255,255,0.85);">
+        <div class="modal-content glass-card animate-slide-up" style="max-width: 500px; padding: 25px; box-sizing: border-box; background: #FFFFFF; border: 1px solid var(--border-gold); width: 90%; max-height: 90vh; overflow-y: auto; border-radius: 12px; margin: 0 auto; box-shadow: 0 15px 40px rgba(0,0,0,0.15);">
             <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid var(--border-gold); padding-bottom:10px;">
                 <h3 class="gold-text" style="margin:0; font-family:'Outfit', sans-serif; font-size:1.2rem;">✨ Personalizar Prenda</h3>
                 <span class="close-modal-btn" id="btn-close-custom-garment-modal" style="cursor:pointer; font-size:1.5rem; color:var(--text-muted);" onclick="window.closeCustomGarmentModal()">&times;</span>
@@ -1899,12 +2034,12 @@
                 
                 <div class="control-group">
                     <label for="custom-garment-name" style="font-size:0.8rem; color:var(--text-secondary); margin-bottom: 5px;">Nombre de la Prenda:</label>
-                    <input type="text" id="custom-garment-name" placeholder="Ej. Camisa de Seda Italiana" class="gold-input" required autocomplete="off" style="width:100%; padding:10px; background:#111; border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:6px;">
+                    <input type="text" id="custom-garment-name" placeholder="Ej. Camisa de Seda Italiana" class="gold-input" required autocomplete="off" style="width:100%; padding:10px; background:#FFFFFF; border:1px solid #000000; color:#000000; border-radius:6px;">
                 </div>
 
                 <div class="control-group">
                     <label for="custom-garment-category" style="font-size:0.8rem; color:var(--text-secondary); margin-bottom: 5px;">Categoría:</label>
-                    <select id="custom-garment-category" class="gold-select" style="width:100%; padding:10px; background:#111; border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:6px;" onchange="window.toggleCustomCategoryInput(this.value)">
+                    <select id="custom-garment-category" class="gold-select" style="width:100%; padding:10px; background:#FFFFFF; border:1px solid #000000; color:#000000; border-radius:6px;" onchange="window.toggleCustomCategoryInput(this.value)">
                         <option value="Top" selected>Top (Prenda Superior)</option>
                         <option value="Bottom">Bottom (Prenda Inferior)</option>
                         <option value="Outerwear">Outerwear (Abrigo/Chaqueta)</option>
@@ -1916,13 +2051,13 @@
 
                 <div class="control-group" id="custom-category-name-group" style="display:none;">
                     <label for="custom-category-name" style="font-size:0.8rem; color:var(--text-secondary); margin-bottom: 5px;">Nombre de la Nueva Categoría:</label>
-                    <input type="text" id="custom-category-name" placeholder="Ej. Joyería, Guantes, Sombrero" class="gold-input" autocomplete="off" style="width:100%; padding:10px; background:#111; border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:6px;">
+                    <input type="text" id="custom-category-name" placeholder="Ej. Joyería, Guantes, Sombrero" class="gold-input" autocomplete="off" style="width:100%; padding:10px; background:#FFFFFF; border:1px solid #000000; color:#000000; border-radius:6px;">
                 </div>
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
                     <div class="control-group">
                         <label for="custom-garment-material" style="font-size:0.8rem; color:var(--text-secondary); margin-bottom: 5px;">Tejido/Material:</label>
-                        <select id="custom-garment-material" class="gold-select" style="width:100%; padding:10px; background:#111; border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:6px;">
+                        <select id="custom-garment-material" class="gold-select" style="width:100%; padding:10px; background:#FFFFFF; border:1px solid #000000; color:#000000; border-radius:6px;">
                             <option value="Seda" selected>Seda</option>
                             <option value="Algodón">Algodón</option>
                             <option value="Lana">Lana</option>
@@ -1934,7 +2069,7 @@
 
                     <div class="control-group">
                         <label for="custom-garment-style" style="font-size:0.8rem; color:var(--text-secondary); margin-bottom: 5px;">Estilo/Diseño:</label>
-                        <select id="custom-garment-style" class="gold-select" style="width:100%; padding:10px; background:#111; border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:6px;">
+                        <select id="custom-garment-style" class="gold-select" style="width:100%; padding:10px; background:#FFFFFF; border:1px solid #000000; color:#000000; border-radius:6px;">
                             <option value="Classic" selected>Clásico</option>
                             <option value="Minimalist">Minimalista (Quiet Luxury)</option>
                             <option value="Streetwear">Streetwear</option>
@@ -1947,7 +2082,7 @@
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
                     <div class="control-group">
                         <label for="custom-garment-color" style="font-size:0.8rem; color:var(--text-secondary); margin-bottom: 5px;">Color:</label>
-                        <select id="custom-garment-color" class="gold-select" style="width:100%; padding:10px; background:#111; border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:6px;">
+                        <select id="custom-garment-color" class="gold-select" style="width:100%; padding:10px; background:#FFFFFF; border:1px solid #000000; color:#000000; border-radius:6px;">
                             <option value="Negro Nocturno" selected>Negro Nocturno</option>
                             <option value="Blanco Puro">Blanco Puro</option>
                             <option value="Beige Arena">Beige Arena</option>
@@ -1959,7 +2094,7 @@
 
                     <div class="control-group">
                         <label for="custom-garment-price" style="font-size:0.8rem; color:var(--text-secondary); margin-bottom: 5px;">Precio ($ USD, opcional):</label>
-                        <input type="number" step="0.01" id="custom-garment-price" placeholder="Ej. 120.00" class="gold-input" autocomplete="off" style="width:100%; padding:10px; background:#111; border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:6px;">
+                        <input type="number" step="0.01" id="custom-garment-price" placeholder="Ej. 120.00" class="gold-input" autocomplete="off" style="width:100%; padding:10px; background:#FFFFFF; border:1px solid #000000; color:#000000; border-radius:6px;">
                     </div>
                 </div>
 
@@ -1994,6 +2129,26 @@
             </div>
             <div id="babylon-pay-checkmark" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--accent-gold); display: inline-flex; justify-content: center; align-items: center; font-size: 3rem; color: var(--accent-gold); opacity: 0; transform: scale(0.5); transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-shadow: 0 0 10px var(--accent-gold); box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);">
                 ✓
+            </div>
+        </div>
+    </div>
+
+    <!-- Authorization Passcode Modal -->
+    <div id="download-auth-modal" class="auth-modal" style="display: none;" onclick="closeAuthModal()">
+        <div class="auth-modal-content glass-card" onclick="event.stopPropagation()">
+            <div class="modal-decor-line"></div>
+            <h3 class="gold-text">Developer Authorization Required</h3>
+            <p class="modal-subtitle">Enter credentials to download the DressYourself development beta build.</p>
+            
+            <div class="auth-input-group">
+                <input type="password" id="auth-code-input" class="auth-field" placeholder="••••••••" onkeyup="handleAuthKey(event)" autocomplete="off" />
+            </div>
+            
+            <div id="auth-error-msg" class="auth-error" style="display: none;"></div>
+            
+            <div class="auth-modal-actions">
+                <button class="btn-modal-secondary" onclick="closeAuthModal()">Cancel</button>
+                <button class="btn-modal-primary" onclick="verifyAuthCode()">Confirm Download</button>
             </div>
         </div>
     </div>

@@ -3,6 +3,37 @@ from bs4 import BeautifulSoup
 import json
 import re
 from urllib.parse import urlparse
+import socket
+import ipaddress
+
+def is_safe_url(url):
+    try:
+        parsed = urlparse(url)
+        if parsed.scheme not in ('http', 'https'):
+            return False
+        
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+            
+        try:
+            addr_info = socket.getaddrinfo(hostname, None)
+        except (socket.gaierror, socket.herror, socket.error):
+            return True
+            
+        for info in addr_info:
+            ip_str = info[4][0]
+            ip = ipaddress.ip_address(ip_str)
+            if (ip.is_loopback or 
+                ip.is_private or 
+                ip.is_reserved or 
+                ip.is_link_local or 
+                ip.is_multicast or
+                not ip.is_global):
+                return False
+        return True
+    except Exception:
+        return False
 
 def extract_domain_name(url):
     try:
@@ -72,6 +103,9 @@ def scrape_clothing_product(url):
     Scrapes an online clothing store URL using OpenGraph tags, JSON-LD, or fallback CSS heuristics.
     Extremely adaptive and interoperable across different sites.
     """
+    if not is_safe_url(url):
+        raise ValueError("Acceso denegado: La URL proporcionada no es segura.")
+        
     brand = extract_domain_name(url)
     
     headers = {

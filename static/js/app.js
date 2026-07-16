@@ -1,7 +1,7 @@
 /**
- * Dress Yourself - Client Interactive Engine
+ * DressYourself - Client Interactive Engine
  * Handles asynchronous API connections, state management, vision scanning, 
- * interactive fitting room, Aria's styles/personalities, silhouette hover highlight,
+ * interactive fitting room, ISA's styles/personalities, silhouette hover highlight,
  * real-time community fashion tags, and personalized Outfit Builder.
  */
 
@@ -15,14 +15,14 @@ const STATE = {
         closet: null,
         boutique: null
     },
-    ariaLook: 'base',
-    ariaPersonality: 'classy',
+    isaLook: 'base',
+    isaPersonality: 'classy',
     currentOrder: {
         id: 'DY-74692',
         status: 'Procesado', // Procesado, Enviado, En Camino, Entregado
         progress: 10,
         logs: [
-            { time: '14:32', text: 'Orden recibida en Dress Yourself Atelier.' },
+            { time: '14:32', text: 'Orden recibida en DressYourself Atelier.' },
             { time: '15:10', text: 'Prendas curadas y preparadas en el empaque de seda.' }
         ]
     },
@@ -52,8 +52,8 @@ const STATE = {
     dailyQuests: null
 };
 
-// Look image map for Aria
-const ARIA_LOOK_IMAGES = {
+// Look image map for ISA
+const ISA_LOOK_IMAGES = {
     base: 'static/proposals/Propuestas%20de%20Asistente%20Personal/Propuesta%20(Animada%20)/Propuesta%20Animada.png',
     castano_corto: 'static/proposals/Propuestas%20de%20Asistente%20Personal/Propuesta%20(Animada%20)/Versiones%20del%20personaje/Pelo%20Casta%C3%B1o%20Corto.jpeg',
     rojo_corto: 'static/proposals/Propuestas%20de%20Asistente%20Personal/Propuesta%20(Animada%20)/Versiones%20del%20personaje/Pelo%20Rojo%20corto.jpeg',
@@ -85,7 +85,7 @@ function getEmptyStateHTML(type) {
                     <line x1="20" y1="85" x2="80" y2="85"/>
                 </svg>
                 <h4 style="font-family: var(--font-editorial); color: var(--accent-gold); margin-bottom: 8px; letter-spacing: 1px; font-size: 0.9rem;">COLECCIÓN SIN DISEÑAR</h4>
-                <p style="font-size: 0.8rem; color: var(--text-secondary); max-width: 340px; line-height: 1.4; margin: 0 auto;">Aún no has guardado ninguna combinación de outfits. Haz clic en "Diseñar Outfit" para crear tu primera composición de alta costura.</p>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); max-width: 340px; line-height: 1.4; margin: 0 auto;">Aún no has guardado ninguna combinación de outfits. Haz clic en "Diseñar Outfit" para crear tu primera composición de DressYourself.</p>
             </div>
         `;
     } else if (type === 'chat') {
@@ -95,8 +95,8 @@ function getEmptyStateHTML(type) {
                     <path d="M30 25 H70 C75 25, 78 28, 78 33 V57 C78 62, 75 65, 70 65 H50 L35 75 V65 H30 C25 65, 22 62, 22 57 V33 C22 28, 25 25, 30 25 Z" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M40 40 H60 M40 50 H55" stroke-linecap="round"/>
                 </svg>
-                <h4 style="font-family: var(--font-editorial); color: var(--accent-gold); margin-bottom: 8px; letter-spacing: 1.5px; font-size: 0.9rem;">CONVERSACIÓN CON ARIA</h4>
-                <p style="font-size: 0.8rem; color: var(--text-secondary); max-width: 280px; line-height: 1.4; margin: 0 auto;">Pregúntale a Aria sobre tendencias, colores o consejos personalizados de costura.</p>
+                <h4 style="font-family: var(--font-editorial); color: var(--accent-gold); margin-bottom: 8px; letter-spacing: 1.5px; font-size: 0.9rem;">CONVERSACIÓN CON ISA</h4>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); max-width: 280px; line-height: 1.4; margin: 0 auto;">Pregúntale a ISA sobre tendencias, colores o consejos personalizados de costura.</p>
             </div>
         `;
     }
@@ -221,7 +221,7 @@ const MOCK_DATA = {
         { id: 'b4', cat: 'calzado', brand: 'PRADA', name: 'Tacones Velvet Emerald', price: '$340', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=500&auto=format&fit=crop' },
         { id: 'b5', cat: 'superior', brand: 'JIL SANDER', name: 'Camisa Oversize Silk Sage', price: '$160', image: 'https://images.unsplash.com/photo-1551854838-212c50b4c184?q=80&w=500&auto=format&fit=crop' }
     ],
-    ariaQuotes: {
+    isaQuotes: {
         classy: [
             "La sencillez es la clave de la verdadera elegancia, querido.",
             "Una silueta limpia nunca pasa de moda. Agrega textura antes que logos.",
@@ -257,7 +257,7 @@ const MOCK_DATA = {
     posts: [
         { id: 'mock_1', user: 'Alessia V.', initials: 'AV', img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600&auto=format&fit=crop', desc: 'Tarde de lino y champaña con un blazer clásico.', rating: 4.8, rating_count: 53, userRating: 0 },
         { id: 'mock_2', user: 'Mateo Garces', initials: 'MG', img: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=600&auto=format&fit=crop', desc: 'Quiet luxury en la ciudad. Paletas crema y botas altas.', rating: 4.2, rating_count: 41, userRating: 0 },
-        { id: 'mock_3', user: 'Sophia Atelier', initials: 'SA', img: 'https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?q=80&w=600&auto=format&fit=crop', desc: 'Probando el Vestidor de Aria. Combinación aprobada al 92%.', rating: 4.6, rating_count: 28, userRating: 0 }
+        { id: 'mock_3', user: 'Sophia Atelier', initials: 'SA', img: 'https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?q=80&w=600&auto=format&fit=crop', desc: 'Probando el Vestidor de ISA. Combinación aprobada al 92%.', rating: 4.6, rating_count: 28, userRating: 0 }
     ],
     initialOutfits: [
         {
@@ -305,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initWeather();
     initCloset();
     initBoutique();
-    initAria();
+    initIsa();
     initScanner();
     initFittingRoom();
     initComunidad();
@@ -399,7 +399,7 @@ function switchTab(tabName) {
         if (typeof initCalendar === 'function') initCalendar();
     } else if (tabName === 'capsula') {
         if (typeof initCapsule === 'function') initCapsule();
-    } else if (tabName === 'closet') {
+    } else if (tabName === 'progreso') {
         if (typeof initQuestsPanel === 'function') initQuestsPanel();
     } else if (tabName === 'analiticas') {
         if (typeof initAnalytics === 'function') initAnalytics();
@@ -409,6 +409,80 @@ function switchTab(tabName) {
         if (typeof initPacking === 'function') initPacking();
     }
 }
+
+const MORE_TABS = ['progreso', 'asistente', 'boutique', 'comunidad', 'pedidos', 'calendario', 'capsula', 'analiticas', 'mezclador', 'viajes', 'configuracion'];
+
+window.toggleDesktopMoreMenu = function(event) {
+    if (event) event.preventDefault();
+    const panel = document.getElementById('desktop-more-panel');
+    const chevron = document.querySelector('#desktop-more-trigger .more-chevron');
+    if (!panel) return;
+    
+    if (panel.classList.contains('collapsed')) {
+        panel.classList.remove('collapsed');
+        panel.classList.add('expanded');
+        panel.style.display = 'flex';
+        if (chevron) chevron.classList.add('rotated');
+    } else {
+        panel.classList.remove('expanded');
+        panel.classList.add('collapsed');
+        if (chevron) chevron.classList.remove('rotated');
+        setTimeout(() => {
+            if (panel.classList.contains('collapsed')) {
+                panel.style.display = 'none';
+            }
+        }, 300);
+    }
+};
+
+window.toggleMobileMoreDrawer = function(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    const overlay = document.getElementById('mobile-more-drawer');
+    if (!overlay) return;
+    const content = overlay.querySelector('.mobile-drawer-content');
+    
+    if (overlay.style.display === 'none') {
+        overlay.style.display = 'flex';
+        overlay.offsetHeight;
+        content.style.transform = 'translateY(0)';
+    } else {
+        content.style.transform = 'translateY(100%)';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 300);
+    }
+};
+
+window.handleDrawerOverlayClick = function(event) {
+    if (event.target.id === 'mobile-more-drawer') {
+        window.toggleMobileMoreDrawer(event);
+    }
+};
+
+window.handleDrawerItemClick = function(tabName) {
+    if (typeof switchTab === 'function') {
+        switchTab(tabName);
+    }
+    window.toggleMobileMoreDrawer();
+};
+
+const originalSwitchTab = window.switchTab;
+window.switchTab = function(tabName) {
+    if (typeof originalSwitchTab === 'function') {
+        originalSwitchTab(tabName);
+    }
+    const isSubTab = MORE_TABS.includes(tabName);
+    document.querySelectorAll('.nav-more-trigger, #mobile-more-trigger').forEach(trigger => {
+        if (isSubTab) {
+            trigger.classList.add('active');
+        } else {
+            trigger.classList.remove('active');
+        }
+    });
+};
 
 // 2. Weather & Daily Recommendations Integration (with GPS geolocation, Nominatim reverse geocoding & location picker)
 async function initWeather() {
@@ -675,7 +749,7 @@ function renderRecommendations(items) {
             polaroid.style.height = '75px';
             polaroid.style.borderRadius = '6px';
             polaroid.style.border = '1.5px solid var(--border-gold)';
-            polaroid.style.background = '#111';
+            polaroid.style.background = '#FFFFFF';
             polaroid.style.overflow = 'hidden';
             polaroid.style.transform = `rotate(${rotation}deg)`;
             polaroid.style.boxShadow = '2px 2px 8px rgba(0,0,0,0.3)';
@@ -691,7 +765,7 @@ function renderRecommendations(items) {
             polaroid.addEventListener('mouseenter', () => {
                 polaroid.style.transform = 'scale(1.2) rotate(0deg)';
                 polaroid.style.boxShadow = '0 10px 20px rgba(0,0,0,0.5)';
-                polaroid.style.borderColor = '#00ff88';
+                polaroid.style.borderColor = '#D4AF35';
                 card.classList.add('highlighted-card');
                 card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             });
@@ -712,7 +786,7 @@ function renderRecommendations(items) {
             if (polaroid) {
                 polaroid.style.transform = 'scale(1.2) rotate(0deg)';
                 polaroid.style.boxShadow = '0 10px 20px rgba(0,0,0,0.5)';
-                polaroid.style.borderColor = '#00ff88';
+                polaroid.style.borderColor = '#D4AF35';
             }
         });
 
@@ -808,7 +882,7 @@ function updateStylingIndex() {
     }
     scoreEl.textContent = `${score}%`;
     
-    // Let's define ranking progress towards "Haute Couture Master" (need 12 items)
+    // Let's define ranking progress towards "DressYourself Master" (need 12 items)
     const targetItems = 12;
     const progressPct = Math.min(100, Math.round((count / targetItems) * 100));
     if (progressPctEl) progressPctEl.textContent = `${progressPct}%`;
@@ -816,7 +890,7 @@ function updateStylingIndex() {
     
     if (rankLabelEl) {
         if (progressPct >= 100) {
-            rankLabelEl.textContent = "Haute Couture Master 👑";
+            rankLabelEl.textContent = "DressYourself Master 👑";
             rankLabelEl.style.color = "var(--accent-gold)";
         } else if (progressPct >= 60) {
             rankLabelEl.textContent = "Senior Stylist";
@@ -825,7 +899,7 @@ function updateStylingIndex() {
             rankLabelEl.textContent = "Fashion Coordinator";
             rankLabelEl.style.color = "var(--text-secondary)";
         } else {
-            rankLabelEl.textContent = "Haute Couture Apprentice";
+            rankLabelEl.textContent = "DressYourself Apprentice";
             rankLabelEl.style.color = "var(--text-muted)";
         }
     }
@@ -857,13 +931,21 @@ function renderCloset(category) {
             selectForFitting('closet', item);
         });
 
+        const catLabel = {
+            'superior': 'Prenda Superior',
+            'inferior': 'Prenda Inferior',
+            'calzado': 'Calzado',
+            'abrigo': 'Abrigo',
+            'accesorio': 'Accesorio'
+        }[item.cat] || item.cat;
+        
         card.innerHTML = `
             <div class="closet-img-wrapper">
                 <img src="${item.image}" alt="${item.name}" onerror="this.onerror=null; this.style.objectFit='contain'; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 250%22><rect fill=%22%23171717%22 width=%22200%22 height=%22250%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23646464%22 font-size=%2214%22 text-anchor=%22middle%22 dy=%22.3em%22>Imagen no disponible</text></svg>';">
                 <span class="closet-style-tag">${item.style || ''}</span>
             </div>
             <div class="closet-info">
-                <span class="closet-cat">${item.cat}</span>
+                <span class="closet-cat">${catLabel}</span>
                 <div class="closet-name">${item.name}</div>
             </div>
         `;
@@ -972,39 +1054,39 @@ function renderSavedCombinations() {
     });
 }
 
-// 4. Aria Assistant Engine
-function initAria() {
-    const lookSelector = document.getElementById('aria-look');
+// 4. ISA Assistant Engine
+function initIsa() {
+    const lookSelector = document.getElementById('isa-look');
     const personalitySelector = document.getElementById('personality');
-    const portraitImg = document.getElementById('aria-portrait');
+    const portraitImg = document.getElementById('isa-portrait');
 
     if (lookSelector) {
         lookSelector.addEventListener('change', (e) => {
             const lookKey = e.target.value;
-            STATE.ariaLook = lookKey;
+            STATE.isaLook = lookKey;
             
             if (portraitImg) {
                 portraitImg.style.opacity = '0';
                 setTimeout(() => {
-                    portraitImg.src = ARIA_LOOK_IMAGES[lookKey] || ARIA_LOOK_IMAGES.base;
+                    portraitImg.src = ISA_LOOK_IMAGES[lookKey] || ISA_LOOK_IMAGES.base;
                     portraitImg.style.opacity = '1';
                 }, 300);
             }
 
-            triggerAriaSpeech(`He cambiado mi apariencia a ${e.target.options[e.target.selectedIndex].text}. ¿Qué tal me queda?`);
+            triggerIsaSpeech(`He cambiado mi apariencia a ${e.target.options[e.target.selectedIndex].text}. ¿Qué tal me queda?`);
         });
     }
 
     if (personalitySelector) {
         personalitySelector.addEventListener('change', (e) => {
-            STATE.ariaPersonality = e.target.value;
-            triggerAriaSpeech(getRandomQuote());
+            STATE.isaPersonality = e.target.value;
+            triggerIsaSpeech(getRandomQuote());
         });
     }
 
     if (portraitImg) {
         portraitImg.addEventListener('click', () => {
-            triggerAriaSpeech(getRandomQuote());
+            triggerIsaSpeech(getRandomQuote());
         });
     }
 
@@ -1013,13 +1095,13 @@ function initAria() {
 }
 
 function getRandomQuote() {
-    const quotes = MOCK_DATA.ariaQuotes[STATE.ariaPersonality] || MOCK_DATA.ariaQuotes.classy;
+    const quotes = MOCK_DATA.isaQuotes[STATE.isaPersonality] || MOCK_DATA.isaQuotes.classy;
     return quotes[Math.floor(Math.random() * quotes.length)];
 }
 
-function triggerAriaSpeech(text) {
-    const speechEl = document.getElementById('aria-speech');
-    const pulseRing = document.querySelector('.aria-pulse-ring');
+function triggerIsaSpeech(text) {
+    const speechEl = document.getElementById('isa-speech');
+    const pulseRing = document.querySelector('.isa-pulse-ring');
     
     speechEl.style.opacity = '0';
     
@@ -1045,7 +1127,7 @@ async function handleUserMessage() {
     appendChatMessage('user', text);
 
     try {
-        const response = await fetch(`/api/ganchito/quote?personality=${STATE.ariaPersonality}&q=${encodeURIComponent(text)}`);
+        const response = await fetch(`/api/isa/quote?personality=${STATE.isaPersonality}&q=${encodeURIComponent(text)}`);
         if (!response.ok) throw new Error("Fallback");
         const data = await response.json();
         
@@ -1055,18 +1137,18 @@ async function handleUserMessage() {
         } else {
             appendChatMessage('bot', data.response);
         }
-        triggerAriaSpeech(data.response);
+        triggerIsaSpeech(data.response);
     } catch (e) {
         setTimeout(() => {
             const botReplies = {
                 classy: `Como asesora de tu closet, considero que "${text}" queda excelente con un blazer sastrero clásico. Menos es siempre más.`,
                 diva: `¡Ay, cariño! Sobre "${text}"... Si no te hace resaltar bajo los reflectores de la pasarela, ¡siguiente prenda!`,
-                sarcastic: `¿En serio me preguntas por "${text}"? Aria te aconseja que revisemos esa decisión antes de salir al público.`,
+                sarcastic: `¿En serio me preguntas por "${text}"? ISA te aconseja que revisemos esa decisión antes de salir al público.`,
                 nervous: `¡Ay no sé! Sobre "${text}"... espero que no llame demasiado la atención de forma incorrecta. ¿Qué tal un total black?`
             };
-            const reply = botReplies[STATE.ariaPersonality] || botReplies.classy;
+            const reply = botReplies[STATE.isaPersonality] || botReplies.classy;
             appendChatMessage('bot', reply);
-            triggerAriaSpeech(reply);
+            triggerIsaSpeech(reply);
         }, 1000);
     }
 }
@@ -1272,7 +1354,7 @@ async function selectRPGOption(nodeId, optionId, optionText, nextNodeId) {
         if (tracker) tracker.style.display = 'none';
         if (optionsContainer) optionsContainer.style.display = 'none';
         
-        appendChatMessage('bot', lang === 'es' ? "Procesando tus elecciones de estilo... Creando tu combinación de alta costura..." : "Processing your style choices... Creating your haute couture outfit...");
+        appendChatMessage('bot', lang === 'es' ? "Procesando tus elecciones de estilo... Creando tu combinación de DressYourself..." : "Processing your style choices... Creating your DressYourself outfit...");
         
         let resultData = null;
         try {
@@ -1294,15 +1376,15 @@ async function selectRPGOption(nodeId, optionId, optionText, nextNodeId) {
         
         setTimeout(() => {
             const congratMsg = lang === 'es' 
-                ? `Aria ha revelado tu perfil ideal: ¡Te ha asignado el título de "${resultData.title}"!` 
-                : `Aria has revealed your ideal profile: You have been awarded the title of "${resultData.title}"!`;
+                ? `ISA ha revelado tu perfil ideal: ¡Te ha asignado el título de "${resultData.title}"!` 
+                : `ISA has revealed your ideal profile: You have been awarded the title of "${resultData.title}"!`;
             
             appendChatMessage('bot', congratMsg, null, resultData);
             
-            const ariaSpeech = lang === 'es' 
+            const isaSpeech = lang === 'es' 
                 ? `¡Bonjour chérie! He revelado tu perfil de estilo: eres ${resultData.title}. He puesto tu combinación ideal a continuación.` 
                 : `Bonjour chérie! I have revealed your style profile: you are ${resultData.title}. I have placed your ideal combination below.`;
-            triggerAriaSpeech(ariaSpeech);
+            triggerIsaSpeech(isaSpeech);
             
             // Otorga 10 puntos al Babylon Styling Index por completar el juego de rol!
             grantStylingIndexBonus(10.0, lang);
@@ -1335,7 +1417,7 @@ function renderRPGRecommendation(data) {
         const rot = (index % 2 === 0) ? -2 : 2;
         const brand = item.store_name || (item.is_owned ? "Closet" : "Boutique");
         itemsHTML += `
-            <div style="background: #111; border: 1px solid rgba(212,175,55,0.15); border-radius: 6px; padding: 8px; transform: rotate(${rot}deg); display: flex; flex-direction: column; gap: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+            <div style="background: #FFFFFF; border: 1px solid rgba(212,175,55,0.15); border-radius: 6px; padding: 8px; transform: rotate(${rot}deg); display: flex; flex-direction: column; gap: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                 <img src="${item.image_url}" alt="${item.name}" style="width: 100%; height: 90px; object-fit: cover; border-radius: 4px;">
                 <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 500;">${brand}</span>
                 <span style="font-size: 0.7rem; font-weight: bold; color: var(--text-primary); max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;">${item.name}</span>
@@ -1351,10 +1433,10 @@ function renderRPGRecommendation(data) {
     const accessoryId = o.accessory ? o.accessory.id : 'null';
 
     return `
-        <div style="padding: 12px; background: rgba(10,10,10,0.85); border: 1px solid var(--border-gold); border-radius: 8px; width: 100%; display: flex; flex-direction: column; gap: 12px; font-family: 'Outfit', sans-serif;">
+        <div style="padding: 12px; background: rgba(255,255,255,0.85); border: 1px solid var(--border-gold); border-radius: 8px; width: 100%; display: flex; flex-direction: column; gap: 12px; font-family: 'Outfit', sans-serif;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(212,175,55,0.15); padding-bottom: 8px;">
                 <span style="color: var(--accent-gold); font-size: 0.9rem; font-weight: 700; letter-spacing: 0.5px;">${data.title}</span>
-                <span style="color: #00ff88; font-weight: bold; font-size: 1.0rem; text-shadow: 0 0 8px rgba(0,255,136,0.3);">${s.total_score.toFixed(1)}%</span>
+                <span style="color: #D4AF35; font-weight: bold; font-size: 1.0rem; text-shadow: 0 0 8px rgba(212,175,53,0.3);">${s.total_score.toFixed(1)}%</span>
             </div>
             
             <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; text-align: left; margin: 0;">${data.justification}</p>
@@ -1876,10 +1958,13 @@ function initScanner() {
             'Gafas de Sol': 'accesorio', 'Bolso': 'accesorio'
         };
         const activeItem = STATE.scanQueue[STATE.activeScanIndex];
+        const nameInput = document.getElementById('edit-res-nombre');
+        const customName = nameInput ? nameInput.value.trim() : '';
+        const scanName = customName || scanCategory || 'Prenda Escaneada';
         const newGarment = {
             id: 'c_scanned_' + Date.now(),
             cat: (activeItem && activeItem.result && activeItem.result.cat) || catMap[scanCategory] || 'superior',
-            name: scanCategory || 'Prenda Escaneada',
+            name: scanName,
             style: document.getElementById('res-estilo').textContent,
             image: previewImg.src
         };
@@ -1900,6 +1985,11 @@ function initScanner() {
 
 function showScanResults(results) {
     const resultsBox = document.getElementById('scan-results-box');
+    
+    const nameInput = document.getElementById('edit-res-nombre');
+    if (nameInput) {
+        nameInput.value = results.name || `${results.tipo || results.subcategory || 'Camiseta'} (${results.material || results.texture || 'Algodón'})`;
+    }
     
     document.getElementById('res-tipo').textContent = results.tipo || results.subcategory || results.category || '--';
     document.getElementById('res-estilo').textContent = results.estilo || results.pattern || '--';
@@ -2154,14 +2244,14 @@ async function evaluateFittingMatch() {
             if (bdPattern) bdPattern.textContent = `${data.pattern_score}%`;
             if (bdWeather) bdWeather.textContent = `${data.weather_score}%`;
             
-            const quoteResponse = await fetch(`/api/ganchito/quote?personality=${STATE.ariaPersonality}&closet_id=${closetItem.id}&boutique_id=${boutiqueItem.id}`);
+            const quoteResponse = await fetch(`/api/isa/quote?personality=${STATE.isaPersonality}&closet_id=${closetItem.id}&boutique_id=${boutiqueItem.id}`);
             if (quoteResponse.ok) {
                 const quoteData = await quoteResponse.json();
                 verdictText.textContent = `"${quoteData.response}"`;
                 
-                const ariaSpeech = document.getElementById('aria-speech');
-                if (ariaSpeech) {
-                    ariaSpeech.textContent = `¡Bonjour! El ensamble califica en un ${data.total_score}%. ${data.advice}`;
+                const isaSpeech = document.getElementById('isa-speech');
+                if (isaSpeech) {
+                    isaSpeech.textContent = `¡Bonjour! El ensamble califica en un ${data.total_score}%. ${data.advice}`;
                 }
             } else {
                 verdictText.textContent = `"${data.advice}"`;
@@ -2413,7 +2503,7 @@ async function renderComunidadFeed() {
             let itemsHtml = post.items.map((item, idx) => {
                 const rotation = [5, -4, 3, -6, 2][idx % 5];
                 return `
-                    <div style="width: 75px; height: 75px; border-radius: 6px; border: 1.5px solid var(--border-gold); background: #111; overflow: hidden; transform: rotate(${rotation}deg); box-shadow: 2px 2px 8px rgba(0,0,0,0.4); flex-shrink: 0; position: relative; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.15) z-index(5)'" onmouseout="this.style.transform='scale(1) rotate(${rotation}deg)'">
+                    <div style="width: 75px; height: 75px; border-radius: 6px; border: 1.5px solid var(--border-gold); background: #FFFFFF; overflow: hidden; transform: rotate(${rotation}deg); box-shadow: 2px 2px 8px rgba(0,0,0,0.4); flex-shrink: 0; position: relative; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.15) z-index(5)'" onmouseout="this.style.transform='scale(1) rotate(${rotation}deg)'">
                         <img src="${item.image}" alt="${item.name}" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect fill=%27%23222%27 width=%27100%27 height=%27100%27/%3E%3C/svg%3E';">
                     </div>
                 `;
@@ -2884,7 +2974,7 @@ async function updateBuilderScore() {
                 card.style.height = '75px';
                 card.style.borderRadius = '6px';
                 card.style.border = '1.5px solid var(--border-gold)';
-                card.style.background = '#111';
+                card.style.background = '#FFFFFF';
                 card.style.overflow = 'hidden';
                 card.style.transform = `rotate(${slot.rot}deg)`;
                 card.style.boxShadow = '2px 2px 8px rgba(0,0,0,0.3)';
@@ -3173,17 +3263,17 @@ function switchChatMode(mode) {
     STATE.chatMode = mode;
     const btnLibre = document.getElementById('btn-mode-libre');
     const btnRPG = document.getElementById('btn-mode-rpg');
-    const ariaControls = document.querySelector('.aria-controls');
+    const isaControls = document.querySelector('.isa-controls');
     const chatInputRow = document.querySelector('.chat-input-row');
     const rpgProgress = document.getElementById('rpg-progress-tracker');
     const rpgOptions = document.getElementById('rpg-options-container');
-    const portraitImg = document.getElementById('aria-portrait');
+    const portraitImg = document.getElementById('isa-portrait');
     const chatHistory = document.getElementById('chat-history');
     
     if (mode === 'rpg') {
         if (btnLibre) btnLibre.classList.remove('active');
         if (btnRPG) btnRPG.classList.add('active');
-        if (ariaControls) ariaControls.style.display = 'none';
+        if (isaControls) isaControls.style.display = 'none';
         if (chatInputRow) chatInputRow.style.display = 'none';
         if (rpgProgress) rpgProgress.style.display = 'flex';
         if (rpgOptions) rpgOptions.style.display = 'flex';
@@ -3194,7 +3284,7 @@ function switchChatMode(mode) {
                 portraitImg.style.opacity = '1';
             }, 300);
         }
-        triggerAriaSpeech("¡Hola! Soy Aria, tu asesora de estilo personal. Comencemos con una sesión interactiva para definir tu próximo gran outfit. Elige una opción abajo para empezar.");
+        triggerIsaSpeech("¡Hola! Soy ISA, tu asesora de estilo personal. Comencemos con una sesión interactiva para definir tu próximo gran outfit. Elige una opción abajo para empezar.");
         if (chatHistory) chatHistory.innerHTML = '';
         STATE.rpgAnswers = [];
         STATE.rpgCurrentNode = 'occasion_step';
@@ -3202,18 +3292,18 @@ function switchChatMode(mode) {
     } else {
         if (btnLibre) btnLibre.classList.add('active');
         if (btnRPG) btnRPG.classList.remove('active');
-        if (ariaControls) ariaControls.style.display = 'flex';
+        if (isaControls) isaControls.style.display = 'flex';
         if (chatInputRow) chatInputRow.style.display = 'flex';
         if (rpgProgress) rpgProgress.style.display = 'none';
         if (rpgOptions) rpgOptions.style.display = 'none';
         if (portraitImg) {
             portraitImg.style.opacity = '0';
             setTimeout(() => {
-                portraitImg.src = ARIA_LOOK_IMAGES[STATE.ariaLook] || ARIA_LOOK_IMAGES.base;
+                portraitImg.src = ISA_LOOK_IMAGES[STATE.isaLook] || ISA_LOOK_IMAGES.base;
                 portraitImg.style.opacity = '1';
             }, 300);
         }
-        triggerAriaSpeech(getRandomQuote());
+        triggerIsaSpeech(getRandomQuote());
         if (chatHistory) {
             chatHistory.innerHTML = '';
             fetch('/api/chat/history')
@@ -3270,7 +3360,7 @@ function renderRPGNode(nodeData) {
     
     const textToDisplay = nodeData.question || nodeData.text || "Selecciona una opción:";
     appendChatMessage('bot', textToDisplay);
-    triggerAriaSpeech(textToDisplay);
+    triggerIsaSpeech(textToDisplay);
     
     if (rpgOptions) {
         rpgOptions.innerHTML = '';
@@ -3300,7 +3390,7 @@ async function completeRPGGame() {
     if (stepIndicator) stepIndicator.textContent = "Completado";
     if (progressBar) progressBar.style.width = "100%";
     if (rpgOptions) {
-        rpgOptions.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; font-style: italic; padding: 10px;">Generando tu outfit Haute Couture...</div>`;
+        rpgOptions.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; font-style: italic; padding: 10px;">Generando tu outfit DressYourself...</div>`;
     }
     
     let result = null;
@@ -3333,7 +3423,7 @@ async function completeRPGGame() {
     }
     
     appendChatMessage('bot', "¡Espléndido! He diseñado el look ideal para ti:", null, result);
-    triggerAriaSpeech("¡Look completado! Pruébatelo en el probador.");
+    triggerIsaSpeech("¡Look completado! Pruébatelo en el probador.");
 }
 
 function renderRPGRecommendation(recommendation) {
@@ -3363,7 +3453,7 @@ function renderRPGRecommendation(recommendation) {
 
     outfitItems.forEach(itm => {
         const ownedBadge = itm.is_owned 
-            ? `<span style="background: rgba(0, 255, 136, 0.12); color: #00ff88; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(0, 255, 136, 0.25); font-family: 'Outfit', sans-serif;">Mi Closet</span>`
+            ? `<span style="background: rgba(212, 175, 53, 0.12); color: #D4AF35; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(212, 175, 53, 0.25); font-family: 'Outfit', sans-serif;">Mi Closet</span>`
             : `<span style="background: rgba(212, 175, 55, 0.12); color: var(--accent-gold); font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(212, 175, 55, 0.25); font-family: 'Outfit', sans-serif;">${itm.brand}</span>`;
         
         let buyButton = '';
@@ -3377,7 +3467,7 @@ function renderRPGRecommendation(recommendation) {
         }
 
         itemsHTML += `
-            <div style="flex: 1; min-width: 100px; max-width: 150px; border: 1px solid var(--border-gold); padding: 8px; border-radius: 6px; background: rgba(10,10,10,0.8); display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 10px rgba(0,0,0,0.4);">
+            <div style="flex: 1; min-width: 100px; max-width: 150px; border: 1px solid var(--border-gold); padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.8); display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                 <div style="width: 100%; height: 90px; overflow: hidden; border-radius: 4px; border: 1px solid rgba(212,175,55,0.15); margin-bottom: 6px; position: relative;">
                     <img src="${itm.image_url}" alt="${itm.name}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27100%27 height=%27100%27 fill=%27%23333%27%3E%3Crect width=%27100%27 height=%27100%27 fill=%27%23111%27/%3E%3C/svg%3E';">
                 </div>
@@ -3930,7 +4020,7 @@ function renderQuests() {
         card.innerHTML = `
             <div style="flex-grow: 1;">
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
-                    <strong style="color: #fff; font-size: 0.85rem; font-family: var(--font-editorial); letter-spacing: 0.5px;">${q.theme}</strong>
+                    <strong style="font-size: 0.85rem; font-family: var(--font-editorial); letter-spacing: 0.5px;">${q.theme}</strong>
                     <span class="quest-badge ${q.completed ? 'completed' : 'active'}">${q.completed ? 'Completado' : 'Activo'}</span>
                 </div>
                 <p style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; margin: 0 0 4px 0;">${q.description}</p>
@@ -4743,7 +4833,7 @@ window.buyPremiumPro = function() {
 };
 
 // ==========================================
-// HAUTE COUTURE SYSTEM - SOTA NEW EXTENSIONS
+// DRESSYOURSELF SYSTEM - SOTA NEW EXTENSIONS
 // ==========================================
 
 // 1. LOCAL RPG NODES & OFFLINE COMPLETION
@@ -5025,7 +5115,7 @@ const TRANSLATIONS = {
         'nav_configuracion': 'Ajustes',
         // Clima (Weather) Section
         'clima_header': 'Clima & Silhouette',
-        'clima_desc': 'Estilo inteligente adaptado a la temperatura exterior, proyectado sobre tu avatar de alta costura.',
+        'clima_desc': 'Estilo inteligente adaptado a la temperatura exterior, proyectado sobre tu avatar de DressYourself.',
         'clima_flatlay': 'Lienzo de Estilo (Flat Lay)',
         'clima_recommended_title': 'Outfit Recomendado para Hoy',
         // Closet Section
@@ -5044,17 +5134,17 @@ const TRANSLATIONS = {
         'quests_streak': '🔥 Racha: ',
         'quests_days': ' día(s)',
         'quests_days_streak': 'día',
-        // Aria Assistant Section
-        'aria_title': 'Aria | Asesora de Estilo Personal',
-        'aria_desc': 'Asesoría de moda de alta costura interactiva a través de preguntas de estilo guiadas.',
-        'aria_hair_label': 'Estilo de Aria (Look):',
-        'aria_personality_label': 'Personalidad de Aria:',
-        'aria_rpg_header': 'Sesión de Asesoría Interactiva',
-        'aria_rpg_progress': 'ASISTENCIA DE ALTA COSTURA',
-        'aria_speech_default': '¡Hola! Soy Aria, tu asesora de estilo personal. Comencemos una sesión de asesoría guiada para crear tu próximo gran outfit.',
+        // ISA Assistant Section
+        'isa_title': 'ISA | Asesora de Estilo Personal',
+        'isa_desc': 'Asesoría de moda inteligente de DressYourself interactiva a través de preguntas de estilo guiadas.',
+        'isa_hair_label': 'Estilo de ISA (Look):',
+        'isa_personality_label': 'Personalidad de ISA:',
+        'isa_rpg_header': 'Sesión de Asesoría Interactiva',
+        'isa_rpg_progress': 'ASISTENCIA DRESSYOURSELF',
+        'isa_speech_default': '¡Hola! Soy ISA, tu asesora de estilo personal. Comencemos una sesión de asesoría guiada para crear tu próximo gran outfit.',
         // Settings Section
         'settings_title': 'Ajustes del Sistema',
-        'settings_desc': 'Personaliza tu cuenta, idioma, ubicación y suscripción Premium de Alta Costura.',
+        'settings_desc': 'Personaliza tu cuenta, idioma, ubicación y suscripción Premium de DressYourself.',
         'settings_lang_label': 'Idioma del Sistema:',
         'settings_location_label': 'Ubicación Principal (Clima):',
         // OOTD Widget
@@ -5091,7 +5181,7 @@ const TRANSLATIONS = {
         'nav_configuracion': 'Settings',
         // Clima (Weather) Section
         'clima_header': 'Weather & Silhouette',
-        'clima_desc': 'Smart style adapted to outdoor temperature, projected on your haute couture avatar.',
+        'clima_desc': 'Smart style adapted to outdoor temperature, projected on your DressYourself avatar.',
         'clima_flatlay': 'Style Canvas (Flat Lay)',
         'clima_recommended_title': 'Recommended Outfit for Today',
         // Closet Section
@@ -5110,17 +5200,17 @@ const TRANSLATIONS = {
         'quests_streak': '🔥 Streak: ',
         'quests_days': ' day(s)',
         'quests_days_streak': 'day',
-        // Aria Assistant Section
-        'aria_title': 'Aria | Personal Stylist Advisor',
-        'aria_desc': 'Interactive high fashion consulting through guided style questions.',
-        'aria_hair_label': "Aria's Style (Look):",
-        'aria_personality_label': "Aria's Personality:",
-        'aria_rpg_header': 'Interactive Styling Session',
-        'aria_rpg_progress': 'HAUTE COUTURE ASSISTANCE',
-        'aria_speech_default': "Hello! I am Aria, your personal style advisor. Let's begin a guided styling session to design your next great outfit.",
+        // ISA Assistant Section
+        'isa_title': 'ISA | Personal Stylist Advisor',
+        'isa_desc': 'Interactive DressYourself consulting through guided style questions.',
+        'isa_hair_label': "ISA's Style (Look):",
+        'isa_personality_label': "ISA's Personality:",
+        'isa_rpg_header': 'Interactive Styling Session',
+        'isa_rpg_progress': 'DRESSYOURSELF ASSISTANCE',
+        'isa_speech_default': "Hello! I am ISA, your personal style advisor. Let's begin a guided styling session to design your next great outfit.",
         // Settings Section
         'settings_title': 'System Settings',
-        'settings_desc': 'Customize your account, language, location and Premium subscription.',
+        'settings_desc': 'Customize your account, language, location and Premium DressYourself subscription.',
         'settings_lang_label': 'System Language:',
         'settings_location_label': 'Primary Location (Weather):',
         // OOTD Widget
@@ -5160,7 +5250,7 @@ const QUEST_TRANSLATIONS = {
     }
 };
 
-const ARIA_QUOTES_LANG = {
+const ISA_QUOTES_LANG = {
     'es': {
         classy: [
             "La sencillez es la clave de la verdadera elegancia, querido.",
@@ -5249,12 +5339,12 @@ function applySystemTranslations(lang) {
         
         { sel: '.daily-quests-panel h4.gold-text', key: 'quests_title' },
         { sel: '.daily-quests-panel .section-desc', key: 'quests_desc', isTextContent: true },
-        { sel: '#asistente .editorial-title', key: 'aria_title' },
-        { sel: '#asistente .section-desc', key: 'aria_desc' },
-        { sel: '#asistente label[for="aria-look"]', key: 'aria_hair_label' },
-        { sel: '#asistente label[for="personality"]', key: 'aria_personality_label' },
-        { sel: '#asistente .chat-mode-header h4', key: 'aria_rpg_header' },
-        { sel: '#asistente .rpg-progress-tracker span:first-child', key: 'aria_rpg_progress' },
+        { sel: '#asistente .editorial-title', key: 'isa_title' },
+        { sel: '#asistente .section-desc', key: 'isa_desc' },
+        { sel: '#asistente label[for="isa-look"]', key: 'isa_hair_label' },
+        { sel: '#asistente label[for="personality"]', key: 'isa_personality_label' },
+        { sel: '#asistente .chat-mode-header h4', key: 'isa_rpg_header' },
+        { sel: '#asistente .rpg-progress-tracker span:first-child', key: 'isa_rpg_progress' },
         
         { sel: '#configuracion .editorial-title', key: 'settings_title', isTextContent: true },
         { sel: '#configuracion .section-desc', key: 'settings_desc' },
@@ -5285,10 +5375,10 @@ function applySystemTranslations(lang) {
         }
     });
 
-    // Update Aria default speech if chat is at step 1
-    const ariaSpeechEl = document.getElementById('aria-speech');
-    if (ariaSpeechEl && (ariaSpeechEl.textContent.includes('Soy Aria') || ariaSpeechEl.textContent.includes('I am Aria'))) {
-        ariaSpeechEl.textContent = dict['aria_speech_default'];
+    // Update ISA default speech if chat is at step 1
+    const isaSpeechEl = document.getElementById('isa-speech');
+    if (isaSpeechEl && (isaSpeechEl.textContent.includes('Soy ISA') || isaSpeechEl.textContent.includes('I am ISA'))) {
+        isaSpeechEl.textContent = dict['isa_speech_default'];
     }
 
     // Translate Daily Quests structure dynamically
@@ -5312,8 +5402,8 @@ function applySystemTranslations(lang) {
         streakCountEl.parentElement.innerHTML = `${streakText}<span id="quest-streak-count" style="font-weight:bold;">${savedStreak}</span> ${daysText}`;
     }
 
-    // Update Aria Quotes Language Map
-    MOCK_DATA.ariaQuotes = ARIA_QUOTES_LANG[lang] || ARIA_QUOTES_LANG.es;
+    // Update ISA Quotes Language Map
+    MOCK_DATA.isaQuotes = ISA_QUOTES_LANG[lang] || ISA_QUOTES_LANG.es;
 
     // Refresh OOTD Button state
     checkOOTDState();
@@ -5466,10 +5556,10 @@ function renderNotifications() {
             const borderCol = n.type === 'warning' ? 'rgba(230,73,73,0.3)' : 'rgba(212,175,55,0.3)';
             
             html += `
-                <div style="padding: 8px 10px; border-radius: 6px; border: 1px solid ${borderCol}; background: rgba(255,255,255,0.02); display: flex; gap: 8px; align-items: flex-start; font-size: 0.72rem; line-height: 1.3;">
+                <div style="padding: 8px 10px; border-radius: 6px; border: 1px solid ${borderCol}; background: rgba(0,0,0,0.02); display: flex; gap: 8px; align-items: flex-start; font-size: 0.72rem; line-height: 1.3;">
                     <span>${icon}</span>
                     <div style="flex-grow: 1;">
-                        <strong style="color: #fff; display: block; font-family: var(--font-editorial);">${title}</strong>
+                        <strong style="color: var(--text-primary); display: block; font-family: var(--font-editorial);">${title}</strong>
                         <span style="color: var(--text-secondary);">${message}</span>
                     </div>
                 </div>
@@ -5497,7 +5587,7 @@ function showInAppOOTDReminder() {
     container.style.padding = '12px 15px';
     container.style.border = '1px solid var(--border-gold)';
     container.style.borderRadius = '10px';
-    container.style.background = 'rgba(10, 10, 10, 0.95)';
+    container.style.background = 'rgba(255, 255, 255, 0.95)';
     container.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
     container.style.zIndex = '9999';
     container.style.display = 'flex';
@@ -5559,3 +5649,67 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize notifications
     initNotifications();
 });
+
+// Passcode Modal Control Logic for Beta APK Downloads
+let pendingApkUrl = "";
+
+window.openAuthModal = function(event, downloadUrl) {
+    if (event) event.preventDefault();
+    pendingApkUrl = downloadUrl;
+    
+    const modal = document.getElementById("download-auth-modal");
+    const input = document.getElementById("auth-code-input");
+    const errorMsg = document.getElementById("auth-error-msg");
+    
+    if (modal && input) {
+        input.value = "";
+        errorMsg.style.display = "none";
+        errorMsg.textContent = "";
+        modal.style.display = "flex";
+        setTimeout(() => modal.classList.add("show"), 10);
+        input.focus();
+    }
+};
+
+window.closeAuthModal = function() {
+    const modal = document.getElementById("download-auth-modal");
+    if (modal) {
+        modal.classList.remove("show");
+        setTimeout(() => {
+            modal.style.display = "none";
+        }, 400);
+    }
+    pendingApkUrl = "";
+};
+
+window.handleAuthKey = function(event) {
+    if (event.key === "Enter") {
+        window.verifyAuthCode();
+    }
+};
+
+window.verifyAuthCode = function() {
+    const input = document.getElementById("auth-code-input");
+    const errorMsg = document.getElementById("auth-error-msg");
+    
+    if (input && input.value === "DYAPPPREVIEW2026TEST") {
+        window.closeAuthModal();
+        if (pendingApkUrl) {
+            const downloadLink = document.createElement("a");
+            downloadLink.href = pendingApkUrl;
+            downloadLink.setAttribute("download", "");
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+    } else {
+        if (errorMsg) {
+            errorMsg.textContent = "Código de autorización inválido.";
+            errorMsg.style.display = "block";
+        }
+        if (input) {
+            input.focus();
+            input.select();
+        }
+    }
+};

@@ -11,6 +11,7 @@ import time
 import random
 import threading
 import re
+from werkzeug.utils import secure_filename
 
 import database
 import vision_engine
@@ -34,6 +35,7 @@ def start_order_simulator():
     def run_simulator():
         print("[Order Simulator] Thread started successfully.", flush=True)
         while True:
+            conn = None
             try:
                 # Open database connection within thread
                 conn = database.get_db_connection()
@@ -64,9 +66,11 @@ def start_order_simulator():
                     print(f"[Order Simulator] Updated Order #{order_id}: Progress {new_prog}%, Status: '{new_status}'", flush=True)
                     
                 conn.commit()
-                conn.close()
             except Exception as e:
                 print(f"[Order Simulator Error] {e}", flush=True)
+            finally:
+                if conn:
+                    conn.close()
             
             # Wait 5 seconds between increments
             time.sleep(5)
@@ -167,12 +171,14 @@ def scan_image():
         if file.filename == '':
             return jsonify({"error": "Nombre de archivo vacío."}), 400
             
+        sanitized_filename = secure_filename(file.filename) or "temp_scan"
+            
         # Create temp folder for scanning
         temp_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'temp_scans')
         os.makedirs(temp_dir, exist_ok=True)
         
         # Save temp file
-        temp_path = os.path.join(temp_dir, f"scan_{int(time.time())}_{file.filename}")
+        temp_path = os.path.join(temp_dir, f"scan_{int(time.time())}_{sanitized_filename}")
         file.save(temp_path)
         
         try:
@@ -418,19 +424,22 @@ def save_schedule():
 
 @app.route('/api/schedule/<string:date_str>', methods=['DELETE'])
 def delete_schedule(date_str):
+    conn = None
     try:
         conn = database.get_db_connection()
         cursor = conn.cursor()
         cursor.execute("DELETE FROM schedule WHERE date_str = ?", (date_str,))
         conn.commit()
         changes = cursor.rowcount
-        conn.close()
         if changes > 0:
             return jsonify({"message": f"Programación para {date_str} eliminada."}), 200
         else:
             return jsonify({"error": "No hay programación para esta fecha."}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
 
 
 # --- Virtual Shopping Cart Endpoints ---
@@ -554,8 +563,8 @@ CATEGORY_MAP = {
     "Accessory": "accesorio",
 }
 
-# Ganchito personality quotes for the chat assistant
-GANCHITO_QUOTES = {
+# ISA personality quotes for the chat assistant
+ISA_QUOTES = {
     "classy": [
         "La sencillez es la clave de la verdadera elegancia, querido.",
         "Una silueta limpia nunca pasa de moda. Agrega textura antes que logos.",
@@ -583,11 +592,12 @@ GANCHITO_QUOTES = {
 }
 
 
+
 def get_reverse_geocode_nominatim(lat, lon):
     import requests
     url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lon}&zoom=12"
     headers = {
-        'User-Agent': 'DressYourself/1.0 (contact@dressyourself.com)',
+        'User-Agent': 'DressYourself/1.0 (contact@dressyourselfapp.com)',
         'Accept-Language': 'es'
     }
     retries = 3
@@ -765,11 +775,13 @@ def closet_scan_image():
         if file.filename == '':
             return jsonify({"error": "Nombre de archivo vacío."}), 400
 
+        sanitized_filename = secure_filename(file.filename) or "temp_scan"
+
         # Create temp folder for scanning
         temp_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'temp_scans')
         os.makedirs(temp_dir, exist_ok=True)
 
-        temp_path = os.path.join(temp_dir, f"scan_{int(time.time())}_{file.filename}")
+        temp_path = os.path.join(temp_dir, f"scan_{int(time.time())}_{sanitized_filename}")
         file.save(temp_path)
 
         try:
@@ -899,8 +911,8 @@ def get_pedido_status():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/api/ganchito/quote', methods=['GET'])
-def get_ganchito_quote():
+@app.route('/api/isa/quote', methods=['GET'])
+def get_isa_quote():
     """Frontend expects { response }."""
     try:
         personality = request.args.get('personality', 'classy').lower()
@@ -910,7 +922,10 @@ def get_ganchito_quote():
         url_match = re.search(r'(https?://[^\s]+)', user_query)
         if url_match:
             url = url_match.group(1)
-            scraped = store_scraper.scrape_clothing_product(url)
+            try:
+                scraped = store_scraper.scrape_clothing_product(url)
+            except ValueError as ve:
+                return jsonify({"error": str(ve)}), 400
             
             # Formulate response based on scraped garment
             name = scraped["name"]
@@ -922,7 +937,7 @@ def get_ganchito_quote():
             cat_es = {"Top": "Prenda Superior", "Bottom": "Prenda Inferior", "Outerwear": "Prenda de Abrigo", "Footwear": "Calzado", "Accessory": "Accesorio"}.get(cat, cat)
             
             if personality == "classy":
-                response_text = f"He analizado el enlace de la tienda local {brand}. Se trata de una pieza de {cat_es.lower()} ({name}) de subcategoría {subcat} con un valor de ${price:.2f}. Califica como una excelente opción de alta costura para contrastar con tu armario clásico."
+                response_text = f"He analizado el enlace de la tienda local {brand}. Se trata de una pieza de {cat_es.lower()} ({name}) de subcategoría {subcat} con un valor de ${price:.2f}. Califica como una excelente opción de moda interior para contrastar con tu armario clásico."
             elif personality == "diva":
                 response_text = f"¡Ay, cariño! Me pasas una pieza divina de {brand}. Este/a {name} es un espectáculo. Me encanta el estilo de {subcat}. Definitivamente tienes que probártela con tus prendas del closet."
             elif personality == "sarcastic":
@@ -950,7 +965,7 @@ def get_ganchito_quote():
                 "response": response_text,
                 "scraped_item": scraped_item
             }), 200
-
+ 
         closet_id = request.args.get('closet_id')
         boutique_id = request.args.get('boutique_id')
         
@@ -964,7 +979,7 @@ def get_ganchito_quote():
             
             if personality == "classy":
                 if score >= 85:
-                    quote = f"¡Excelente gusto! Esta combinación de {closet_item['name']} y {boutique_item['name']} tiene una puntuación Haute Couture de {score}%. Una armonía clásica impecable."
+                    quote = f"¡Excelente gusto! Esta combinación de {closet_item['name']} y {boutique_item['name']} tiene una puntuación DressYourself de {score}%. Una armonía clásica impecable."
                 else:
                     quote = f"El ensamble puntúa un {score}%. Te recomiendo buscar un balance de color más sutil, como sugieren nuestros cánones de elegancia."
             elif personality == "diva":
@@ -985,9 +1000,9 @@ def get_ganchito_quote():
             else:
                 quote = advice
         else:
-            quotes = GANCHITO_QUOTES.get(personality, GANCHITO_QUOTES["classy"])
+            quotes = ISA_QUOTES.get(personality, ISA_QUOTES["classy"])
             quote = random.choice(quotes)
-
+ 
         # If user sent a message, personalize the response
         if user_query:
             personality_prefixes = {
@@ -998,12 +1013,12 @@ def get_ganchito_quote():
             }
             prefix = personality_prefixes.get(personality, '')
             quote = prefix + quote
-
+ 
         # Save user and bot message to chat history
         if user_query:
             database.save_chat_message(sender="user", message=user_query)
             database.save_chat_message(sender="bot", message=quote)
-
+ 
         return jsonify({"response": quote}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -1359,7 +1374,7 @@ def serve_index():
     else:
         return jsonify({
             "status": "online",
-            "message": "Dress Yourself REST API is running. Point your client to this server.",
+            "message": "DressYourself REST API is running. Point your client to this server.",
             "note": "Static frontend files not found at templates/, root or static/. Web app GUI is unavailable."
         }), 200
 
