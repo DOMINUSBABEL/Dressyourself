@@ -816,6 +816,8 @@ def closet_scan_image():
             "material": material,
             "confianza": confianza,
             "consejo": consejo,
+            "cutout_base64": result.get("cutout_base64"),
+            "category": result.get("category")
         }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500

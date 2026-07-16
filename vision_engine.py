@@ -3,6 +3,9 @@ import numpy as np
 from PIL import Image
 import os
 import unicodedata
+import base64
+import requests
+import json
 
 # Color mapping to Spanish names (RGB values)
 COLOR_MAP = {
@@ -225,6 +228,121 @@ MATERIAL_KEYWORD_MAPPING = {
     "cotton": "Algodón"
 }
 
+
+
+def remove_background(image_path_or_bytes):
+    """
+    Removes background using OpenCV grabCut to isolate the garment as a transparent PNG.
+    Saves or returns transparent PNG bytes in a centered 1024x1024 canvas.
+    """
+    try:
+        if isinstance(image_path_or_bytes, str):
+            img = cv2.imread(image_path_or_bytes)
+        else:
+            nparr = np.frombuffer(image_path_or_bytes, np.uint8)
+            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+        if img is None:
+            return None
+
+        h, w, _ = img.shape
+        mask = np.zeros((h, w), np.uint8)
+        bgdModel = np.zeros((1, 65), np.float64)
+        fgdModel = np.zeros((1, 65), np.float64)
+
+        # Inset rectangle slightly to extract the central item
+        rect = (int(w * 0.05), int(h * 0.05), int(w * 0.9), int(h * 0.9))
+        cv2.grabCut(img, mask, rect, bgdModel, fgdModel, 3, cv2.GC_INIT_WITH_RECT)
+        
+        mask2 = np.where((mask==2)|(mask==0), 0, 1).astype('uint8')
+        mask2 = cv2.GaussianBlur(mask2 * 255, (3, 3), 0)
+        _, mask_alpha = cv2.threshold(mask2, 100, 255, cv2.THRESH_BINARY)
+        
+        b, g, r = cv2.split(img)
+        rgba = cv2.merge([b, g, r, mask_alpha])
+        
+        # Crop transparent padding
+        pts = np.argwhere(mask_alpha > 0)
+        if len(pts) > 0:
+            y_min, x_min = pts.min(axis=0)
+            y_max, x_max = pts.max(axis=0)
+            cropped = rgba[y_min:y_max+1, x_min:x_max+1]
+        else:
+            cropped = rgba
+
+        # Resize to fit in 1024x1024 box (keeping aspect ratio)
+        ch, cw, _ = cropped.shape
+        fit_size = 900
+        scale = min(float(fit_size) / cw, float(fit_size) / ch)
+        nw, nh = int(cw * scale), int(ch * scale)
+        resized = cv2.resize(cropped, (nw, nh), interpolation=cv2.INTER_AREA)
+        
+        # Place in a transparent 1024x1024 square
+        canvas = np.zeros((1024, 1024, 4), dtype=np.uint8)
+        dx = (1024 - nw) // 2
+        dy = (1024 - nh) // 2
+        canvas[dy:dy+nh, dx:dx+nw] = resized
+        
+        _, encoded = cv2.imencode('.png', canvas)
+        return encoded.tobytes()
+    except Exception as e:
+        print(f"Error in background removal: {e}")
+        return None
+
+def analyze_image_with_openai(image_path_or_bytes, api_key):
+    """
+    Performs AI vision analysis to tag and classify garments using OpenAI chat completions.
+    """
+    if isinstance(image_path_or_bytes, str):
+        with open(image_path_or_bytes, "rb") as image_file:
+            base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+    else:
+        base64_image = base64.b64encode(image_path_or_bytes).decode('utf-8')
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}"
+    }
+
+    payload = {
+        "model": "gpt-4o-mini",
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": (
+                            "Analyze this clothing image. Classify the item and return a JSON object with: "
+                            "category (choose exactly one from: Superior, Inferior, Base, Complementos), "
+                            "subcategory (e.g. Camiseta, Jeans, Blazer, Botas, Vestido, etc.), "
+                            "pattern (e.g. Liso, Rayas, Cuadros, Estampado, etc.), "
+                            "material (e.g. Algodón, Denim, Lana, Seda, Cuero, Lino, etc.), "
+                            "color_primary (approximate color name in Spanish like Blanco Puro, Negro Carbón, Azul Índigo, etc.), "
+                            "color_secondary (optional secondary color name in Spanish, or null), "
+                            "name (a clean name for the garment, e.g. 'Chaqueta de Denim Azul'), "
+                            "confidence (number from 0 to 1)."
+                        )
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{base64_image}"
+                        }
+                    }
+                ]
+            }
+        ],
+        "response_format": { "type": "json_object" },
+        "max_tokens": 300
+    }
+
+    response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+    if response.status_code == 200:
+        content = response.json()['choices'][0]['message']['content']
+        return json.loads(content)
+    else:
+        raise Exception(f"OpenAI API error: {response.text}")
 
 def analyze_image(image_path_or_bytes):
     """
@@ -689,7 +807,8 @@ def analyze_image(image_path_or_bytes):
             "subcategory": subcategory,
             "pattern": pattern,
             "material": material,
-            "confidence": round(confidence * 100, 2)
+            "confidence": round(confidence * 100, 2),
+            "cutout_base64": cutout_b64
         }
         
     except Exception as e:

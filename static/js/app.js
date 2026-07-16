@@ -1984,6 +1984,21 @@ function initScanner() {
 
 
 function showScanResults(results) {
+    // 1. UPDATE PREVIEW AND QUEUE ITEM WITH TRANSPARENT CUTOUT (WARDROBE TECHNOLOGY)
+    const previewImg = document.getElementById('scan-preview-img');
+    if (previewImg && results.cutout_base64) {
+        previewImg.src = results.cutout_base64;
+        const activeItem = STATE.scanQueue[STATE.activeScanIndex];
+        if (activeItem) {
+            activeItem.base64 = results.cutout_base64;
+        }
+        const activeThumb = document.getElementById(`scan-thumb-${STATE.activeScanIndex}`);
+        if (activeThumb) {
+            const thumbImg = activeThumb.querySelector('img');
+            if (thumbImg) thumbImg.src = results.cutout_base64;
+        }
+    }
+
     const resultsBox = document.getElementById('scan-results-box');
     
     const nameInput = document.getElementById('edit-res-nombre');
