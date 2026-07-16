@@ -1674,6 +1674,38 @@ function analyzeImageLocally(file) {
 
 // 5. Vision Scanner & AI Cataloging (With multiple file and camera support)
 function initScanner() {
+    // Helper: Compress and resize base64 images for SQLite/Room performance
+    function compressImage(base64Str, maxW = 512, maxH = 512, quality = 0.7) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let w = img.width;
+                let h = img.height;
+                if (w > h) {
+                    if (w > maxW) {
+                        h = Math.round(h * (maxW / w));
+                        w = maxW;
+                    }
+                } else {
+                    if (h > maxH) {
+                        w = Math.round(w * (maxH / h));
+                        h = maxH;
+                    }
+                }
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            };
+            img.onerror = () => {
+                resolve(base64Str);
+            };
+            img.src = base64Str;
+        });
+    }
+    
     const dropZone = document.getElementById('scanner-drop-zone');
     const fileInput = document.getElementById('scanner-file-input');
     const btnScan = document.getElementById('btn-scan');
@@ -1735,15 +1767,16 @@ function initScanner() {
             STATE.scanQueue.push(item);
 
             const reader = new FileReader();
-            reader.onload = (event) => {
-                item.base64 = event.target.result;
+            reader.onload = async (event) => {
+                const compressed = await compressImage(event.target.result);
+                item.base64 = compressed;
                 
                 // Create thumbnail
                 const thumb = document.createElement('div');
                 thumb.className = `scan-thumb ${index === 0 ? 'active' : ''}`;
                 thumb.id = `scan-thumb-${index}`;
                 thumb.innerHTML = `
-                    <img src="${event.target.result}" alt="Thumbnail">
+                    <img src="${compressed}" alt="Thumbnail">
                     <div class="scan-thumb-spinner-overlay">
                         <svg viewBox="0 0 36 36" class="circular-spinner">
                             <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
