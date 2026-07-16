@@ -355,6 +355,30 @@ def analyze_image(image_path_or_bytes):
     - Pattern (Liso, Rayas, Cuadros, Estampado)
     - Realistic confidence score (0.0 to 1.0)
     """
+    # 1. ALWAYS REMOVE BACKGROUND LOCALLY TO CREATE TRANSPARENT CUTOUT
+    cutout_bytes = remove_background(image_path_or_bytes)
+    cutout_b64 = None
+    if cutout_bytes:
+        cutout_b64 = f"data:image/png;base64,{base64.b64encode(cutout_bytes).decode('utf-8')}"
+
+    # 2. GOOGLE GEMINI INTEGRATION (OPENAI SERVICES DISABLED)
+    api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+    if api_key:
+        try:
+            gemini_res = analyze_image_with_gemini(image_path_or_bytes, api_key)
+            return {
+                "color_primary": gemini_res.get("color_primary", "Negro Carbón"),
+                "color_secondary": gemini_res.get("color_secondary") or "N/A",
+                "category": gemini_res.get("category", "Superior"),
+                "subcategory": gemini_res.get("subcategory", "Camiseta"),
+                "pattern": gemini_res.get("pattern", "Liso"),
+                "material": gemini_res.get("material", "Algodón"),
+                "confidence": round(gemini_res.get("confidence", 0.95) * 100, 2),
+                "cutout_base64": cutout_b64
+            }
+        except Exception as e:
+            print(f"Gemini analysis failed, falling back to local: {e}")
+
     try:
         # Load image
         if isinstance(image_path_or_bytes, str):
