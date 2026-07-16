@@ -1936,15 +1936,42 @@ function initScanner() {
                     result = await analyzeImageLocally(item.file);
                 }
 
-                // Save directly into the closet during batch scans
-                const newGarment = {
-                    id: 'c_scanned_' + Date.now() + '_' + i,
-                    cat: result.cat || catMap[result.tipo] || 'superior',
-                    name: result.tipo || 'Prenda Escaneada',
-                    style: result.estilo || 'Classic',
-                    image: item.base64
+                // Save persistently into SQLite/Room database during batch scans
+                const backendCat = result.category || result.cat || 'Superior';
+                const finalImg = result.cutout_base64 || item.base64;
+                
+                const bodyPayload = {
+                    name: `${result.tipo || 'Prenda'} (${result.material || 'Algodón'})`,
+                    image_url: finalImg,
+                    category: backendCat,
+                    subcategory: result.material || 'Algodón',
+                    color_primary: result.color_hex || '#121212',
+                    color_name: result.color_nombre || 'Negro',
+                    pattern: result.estilo || 'Classic',
+                    price: 0.0,
+                    is_owned: 1
                 };
-                STATE.closetItems.unshift(newGarment);
+
+                try {
+                    const postRes = await fetch('/api/clothes', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(bodyPayload)
+                    });
+                    if (postRes.ok) {
+                        console.log(`Garment ${i+1} saved persistently in Room`);
+                    }
+                } catch (e) {
+                    console.error("Batch SQLite save failed, falling back to memory:", e);
+                    const newGarment = {
+                        id: 'c_scanned_' + Date.now() + '_' + i,
+                        cat: mapCategory(backendCat),
+                        name: `${result.tipo || 'Prenda'} (${result.material || 'Algodón'})`,
+                        style: result.estilo || 'Classic',
+                        image: finalImg
+                    };
+                    STATE.closetItems.unshift(newGarment);
+                }
                 
                 item.status = 'completed';
                 item.result = result;
@@ -1962,6 +1989,11 @@ function initScanner() {
                 await new Promise(r => setTimeout(r, 1200));
             }
 
+            // Reload closet items from Room database
+            if (typeof loadClosetItems === 'function') {
+                await loadClosetItems();
+            }
+            
             // Finish batch
             laser.classList.remove('active');
             btnScan.removeAttribute('disabled');
@@ -2150,8 +2182,7 @@ function renderBoutique() {
 // 7. Interactive Fitting Room (Touch & Mouse Support)
 function initFittingRoom() {
     const sourceTabs = document.querySelectorAll('.source-tab');
-    const slotCloset = document.getElementById('slot-closet');
-    const slotBoutique = document.getElementById('slot-boutique');
+    const canvasBoard = document.getElementById('fitting-canvas-board');
 
     sourceTabs.forEach(tab => {
         tab.addEventListener('click', () => {
@@ -2161,16 +2192,162 @@ function initFittingRoom() {
         });
     });
 
-    [slotCloset, slotBoutique].forEach(slot => {
-        slot.addEventListener('dragover', (e) => e.preventDefault());
-        slot.addEventListener('drop', (e) => {
+    if (canvasBoard) {
+        canvasBoard.addEventListener('dragover', (e) => e.preventDefault());
+        canvasBoard.addEventListener('drop', (e) => {
             e.preventDefault();
-            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-            if (data.source && data.item) {
-                selectForFitting(data.source, data.item);
+            try {
+                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                if (data.item) {
+                    window.addGarmentToCanvas(data.item);
+                }
+            } catch (err) {
+                console.error("Drop error:", err);
             }
         });
-    });
+    }
+
+    window.canvasItems = [];
+
+    window.clearCanvas = function() {
+        const board = document.getElementById('fitting-canvas-board');
+        if (board) board.innerHTML = '';
+        window.canvasItems = [];
+        const hint = document.getElementById('canvas-empty-hint');
+        if (hint) hint.style.display = 'flex';
+        updateCanvasRecommendation();
+    };
+
+    window.addGarmentToCanvas = function(item) {
+        if (window.canvasItems.some(c => c.id === item.id)) {
+            showToast("Esta prenda ya está en el lienzo.", "info");
+            return;
+        }
+        
+        const board = document.getElementById('fitting-canvas-board');
+        if (!board) return;
+        
+        const hint = document.getElementById('canvas-empty-hint');
+        if (hint) hint.style.display = 'none';
+
+        const card = document.createElement('div');
+        card.className = 'canvas-floating-item';
+        card.id = `canvas-item-${item.id}`;
+        
+        const size = 125;
+        const x = Math.max(20, Math.floor(Math.random() * (board.clientWidth - size - 40)));
+        const y = Math.max(20, Math.floor(Math.random() * (board.clientHeight - size - 40)));
+        
+        card.style.cssText = `
+            position: absolute;
+            width: ${size}px;
+            height: ${size}px;
+            left: ${x}px;
+            top: ${y}px;
+            cursor: move;
+            touch-action: none;
+            user-select: none;
+            background: transparent;
+            z-index: 10;
+        `;
+        
+        card.innerHTML = `
+            <div class="canvas-item-frame" style="position: relative; width: 100%; height: 100%; border: 1.5px solid var(--border-gold); background: #FFFFFF; border-radius: 8px; padding: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column;">
+                <div class="canvas-item-img-wrapper" style="flex: 1; min-height: 0; display: flex; justify-content: center; align-items: center; background: #FFFFFF; border-radius: 4px; overflow: hidden;">
+                    <img src="${item.image}" alt="${item.name}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                </div>
+                <div style="font-size: 0.55rem; text-align: center; color: var(--text-secondary); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    ${item.name}
+                </div>
+                <button class="btn-remove-canvas-item" style="position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; border-radius: 50%; background: #FFFFFF; border: 1.5px solid var(--border-gold); color: #000000; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 100;">&times;</button>
+            </div>
+        `;
+        
+        card.querySelector('.btn-remove-canvas-item').addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.removeGarmentFromCanvas(item.id);
+        });
+        
+        // Simple Drag handler
+        let isDragging = false;
+        let startX = 0, startY = 0;
+        let currentX = x, currentY = y;
+        
+        card.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('btn-remove-canvas-item')) return;
+            isDragging = true;
+            startX = e.clientX - currentX;
+            startY = e.clientY - currentY;
+            card.style.zIndex = 50;
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            currentX = e.clientX - startX;
+            currentY = e.clientY - startY;
+            currentX = Math.max(0, Math.min(currentX, board.clientWidth - card.clientWidth));
+            currentY = Math.max(0, Math.min(currentY, board.clientHeight - card.clientHeight));
+            card.style.left = `${currentX}px`;
+            card.style.top = `${currentY}px`;
+            
+            const cObj = window.canvasItems.find(c => c.id === item.id);
+            if (cObj) { cObj.x = currentX; cObj.y = currentY; }
+        });
+        
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            card.style.zIndex = 10;
+        });
+        
+        // Touch events for Android WebViews
+        card.addEventListener('touchstart', (e) => {
+            if (e.target.classList.contains('btn-remove-canvas-item')) return;
+            isDragging = true;
+            const touch = e.touches[0];
+            startX = touch.clientX - currentX;
+            startY = touch.clientY - currentY;
+            card.style.zIndex = 50;
+        });
+        
+        card.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            const touch = e.touches[0];
+            currentX = touch.clientX - startX;
+            currentY = touch.clientY - startY;
+            currentX = Math.max(0, Math.min(currentX, board.clientWidth - card.clientWidth));
+            currentY = Math.max(0, Math.min(currentY, board.clientHeight - card.clientHeight));
+            card.style.left = `${currentX}px`;
+            card.style.top = `${currentY}px`;
+            
+            const cObj = window.canvasItems.find(c => c.id === item.id);
+            if (cObj) { cObj.x = currentX; cObj.y = currentY; }
+        });
+        
+        card.addEventListener('touchend', () => {
+            isDragging = false;
+            card.style.zIndex = 10;
+        });
+        
+        board.appendChild(card);
+        window.canvasItems.push({ id: item.id, element: card, x, y, data: item });
+        updateCanvasRecommendation();
+    };
+
+    window.removeGarmentFromCanvas = function(id) {
+        const idx = window.canvasItems.findIndex(c => c.id === id);
+        if (idx !== -1) {
+            const item = window.canvasItems[idx];
+            if (item.element && item.element.parentNode) {
+                item.element.parentNode.removeChild(item.element);
+            }
+            window.canvasItems.splice(idx, 1);
+            if (window.canvasItems.length === 0) {
+                const hint = document.getElementById('canvas-empty-hint');
+                if (hint) hint.style.display = 'flex';
+            }
+            updateCanvasRecommendation();
+        }
+    };
 
     renderFittingSource('closet');
 }
@@ -2208,26 +2385,9 @@ function renderFittingSource(sourceType) {
 }
 
 function selectForFitting(type, item) {
-    STATE.fittingSlots[type] = item;
-    
-    const slot = document.getElementById(`slot-${type}`);
-    slot.setAttribute('data-empty', 'false');
-    
-    const content = slot.querySelector('.slot-content');
-    content.innerHTML = `
-        <img src="${item.image}" alt="${item.name}" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 fill=%27%23333%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%231a1a2e%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%23d4af37%27 font-family=%27sans-serif%27 font-size=%2714%27%3EImagen no disponible%3C/text%3E%3C/svg%3E';">
-        <div class="slot-item-info">
-            <span class="slot-item-cat">${item.cat}</span>
-            <h4 class="slot-item-name">${item.name}</h4>
-        </div>
-    `;
-
-    // Apply elastic flash loaded animation to the slot
-    slot.classList.remove('slot-loaded');
-    void slot.offsetWidth; // Force DOM reflow to trigger CSS animation
-    slot.classList.add('slot-loaded');
-
-    evaluateFittingMatch();
+    if (typeof window.addGarmentToCanvas === 'function') {
+        window.addGarmentToCanvas(item);
+    }
 }
 
 window.clearFittingSlot = function(type) {
@@ -2256,7 +2416,66 @@ window.loadScrapedToFitting = function(item) {
     showToast(`¡Prenda de ${item.brand} cargada en el Probador!`);
 };
 
+async function updateCanvasRecommendation() {
+    const verdictBox = document.getElementById('fitting-verdict');
+    if (!verdictBox) return;
+    
+    if (!window.canvasItems || window.canvasItems.length === 0) {
+        verdictBox.style.display = 'none';
+        return;
+    }
+    
+    verdictBox.style.display = 'flex';
+    
+    const scoreBar = document.getElementById('score-bar');
+    const scorePct = document.getElementById('score-pct');
+    const verdictText = document.getElementById('verdict-text');
+    const bdColor = document.getElementById('breakdown-color');
+    const bdStyle = document.getElementById('breakdown-style');
+    const bdPattern = document.getElementById('breakdown-pattern');
+    const bdWeather = document.getElementById('breakdown-weather');
+    
+    try {
+        const ids = window.canvasItems.map(c => c.id).join(',');
+        const cityIndex = localStorage.getItem('dy_selected_city_index') || 0;
+        const occasionEl = document.getElementById('fitting-occasion');
+        const toneEl = document.getElementById('fitting-tone');
+        const emotionEl = document.getElementById('fitting-emotion');
+        const occasion = occasionEl ? occasionEl.value : 'Casual';
+        const tone = toneEl ? toneEl.value : 'classy';
+        const emotion = emotionEl ? emotionEl.value : 'relaxed';
+        
+        const url = `/api/recommend?city_index=${cityIndex}&occasion=${encodeURIComponent(occasion)}&tone=${encodeURIComponent(tone)}&emotion=${encodeURIComponent(emotion)}&ids=${ids}`;
+        
+        const response = await fetch(url);
+        if (response.ok) {
+            const data = await response.json();
+            
+            if (scoreBar) scoreBar.style.width = `${data.total_score}%`;
+            if (scorePct) scorePct.textContent = `${data.total_score.toFixed(0)}%`;
+            
+            if (bdColor) bdColor.textContent = `${data.color_score.toFixed(0)}%`;
+            if (bdStyle) bdStyle.textContent = `${data.style_score.toFixed(0)}%`;
+            if (bdPattern) bdPattern.textContent = `${data.pattern_score.toFixed(0)}%`;
+            if (bdWeather) bdWeather.textContent = `${data.weather_score.toFixed(0)}%`;
+            
+            verdictText.textContent = `"${data.advice}"`;
+            
+            const isaSpeech = document.getElementById('isa-speech');
+            if (isaSpeech) {
+                isaSpeech.textContent = `¡Bonjour! El ensamble del lienzo califica en un ${data.total_score.toFixed(0)}%. ${data.advice}`;
+            }
+        }
+    } catch (e) {
+        console.error("Canvas recommendation failed:", e);
+    }
+}
+
 async function evaluateFittingMatch() {
+    if (window.canvasItems && window.canvasItems.length > 0) {
+        await updateCanvasRecommendation();
+        return;
+    }
     const closetItem = STATE.fittingSlots.closet;
     const boutiqueItem = STATE.fittingSlots.boutique;
 
