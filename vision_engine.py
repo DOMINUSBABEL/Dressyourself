@@ -289,60 +289,62 @@ def remove_background(image_path_or_bytes):
         print(f"Error in background removal: {e}")
         return None
 
-def analyze_image_with_openai(image_path_or_bytes, api_key):
+def analyze_image_with_gemini(image_path_or_bytes, api_key):
     """
-    Performs AI vision analysis to tag and classify garments using OpenAI chat completions.
+    Performs AI vision analysis to tag and classify garments using Google Gemini API.
     """
     if isinstance(image_path_or_bytes, str):
         with open(image_path_or_bytes, "rb") as image_file:
-            base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+            img_data = image_file.read()
     else:
-        base64_image = base64.b64encode(image_path_or_bytes).decode('utf-8')
+        img_data = image_path_or_bytes
 
+    base64_image = base64.b64encode(img_data).decode('utf-8')
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
     headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}"
+        "Content-Type": "application/json"
     }
+
+    prompt = (
+        "Analyze this clothing image. Classify the item and return a JSON object with: "
+        "category (choose exactly one from: Superior, Inferior, Base, Complementos), "
+        "subcategory (e.g. Camiseta, Jeans, Blazer, Botas, Vestido, etc.), "
+        "pattern (e.g. Liso, Rayas, Cuadros, Estampado, etc.), "
+        "material (e.g. Algodón, Denim, Lana, Seda, Cuero, Lino, etc.), "
+        "color_primary (approximate color name in Spanish like Blanco Puro, Negro Carbón, Azul Índigo, etc.), "
+        "color_secondary (optional secondary color name in Spanish, or null), "
+        "name (a clean name for the garment, e.g. 'Chaqueta de Denim Azul'), "
+        "confidence (number from 0.0 to 1.0)."
+    )
 
     payload = {
-        "model": "gpt-4o-mini",
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": (
-                            "Analyze this clothing image. Classify the item and return a JSON object with: "
-                            "category (choose exactly one from: Superior, Inferior, Base, Complementos), "
-                            "subcategory (e.g. Camiseta, Jeans, Blazer, Botas, Vestido, etc.), "
-                            "pattern (e.g. Liso, Rayas, Cuadros, Estampado, etc.), "
-                            "material (e.g. Algodón, Denim, Lana, Seda, Cuero, Lino, etc.), "
-                            "color_primary (approximate color name in Spanish like Blanco Puro, Negro Carbón, Azul Índigo, etc.), "
-                            "color_secondary (optional secondary color name in Spanish, or null), "
-                            "name (a clean name for the garment, e.g. 'Chaqueta de Denim Azul'), "
-                            "confidence (number from 0 to 1)."
-                        )
-                    },
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/jpeg;base64,{base64_image}"
-                        }
+        "contents": [{
+            "parts": [
+                {"text": prompt},
+                {
+                    "inlineData": {
+                        "mimeType": "image/jpeg",
+                        "data": base64_image
                     }
-                ]
-            }
-        ],
-        "response_format": { "type": "json_object" },
-        "max_tokens": 300
+                }
+            ]
+        }],
+        "generationConfig": {
+            "responseMimeType": "application/json"
+        }
     }
 
-    response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+    response = requests.post(url, headers=headers, json=payload)
     if response.status_code == 200:
-        content = response.json()['choices'][0]['message']['content']
-        return json.loads(content)
+        res_data = response.json()
+        try:
+            content_text = res_data['candidates'][0]['content']['parts'][0]['text']
+            return json.loads(content_text)
+        except Exception as e:
+            raise Exception(f"Failed to parse Gemini output: {e}")
     else:
-        raise Exception(f"OpenAI API error: {response.text}")
+        raise Exception(f"Gemini API error: {response.text}")
 
 def analyze_image(image_path_or_bytes):
     """
