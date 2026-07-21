@@ -3,31 +3,41 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
-    /* Color Palette */
-    --bg-primary: #FFFFFF;
-    --bg-secondary: #C9C9C9;
-    --bg-tertiary: #FFFFFF;
-    --accent-gold: #D4AF35; /* Premium Gold Accents */
-    --accent-gold-hover: #DCDC60;
-    --accent-gold-light: rgba(212, 175, 53, 0.15);
-    --accent-gold-glow: rgba(212, 175, 53, 0.25);
-    --text-primary: #000000;
-    --text-secondary: #1E1E1E;
-    --text-muted: #555555;
-    --border-color: rgba(0, 0, 0, 0.15);
-    --border-gold: rgba(212, 175, 53, 0.15);
-    --glass-bg: rgba(255, 255, 255, 0.75);
-    --glass-blur: blur(20px) saturate(180%);
-    --card-shadow: 0 20px 45px rgba(0, 0, 0, 0.1);
-    
-    /* Fonts */
-    --font-editorial: 'Cinzel', serif;
-    --font-ui: 'Inter', sans-serif;
-    --font-nav: 'Outfit', sans-serif;
-    
-    /* Transitions */
-    --transition-smooth: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-    --transition-snappy: all 0.15s ease-out;
+  /* ==========================================================================
+     DESIGN SYSTEM TOKENS - MINIMALIST MINT & GRAYSCALE (JULY 2026 AUDIT)
+     Palette: White, Slate Grays, Silver Metallic & Soft Matte Mint Green
+     Typography: Sans-Serif (Plus Jakarta Sans, Inter, Outfit)
+     ========================================================================== */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F8FAFC;
+  --bg-tertiary: #F1F5F9;
+  
+  --accent-mint: #7BCEB5;         /* Soft Matte Mint Green */
+  --accent-mint-soft: #A8E6CF;    /* Muted Pastel Mint */
+  --accent-mint-hover: #5EBDA1;   /* Deeper Mint Accent */
+  --accent-mint-light: rgba(123, 206, 181, 0.15);
+  --accent-mint-glow: rgba(123, 206, 181, 0.25);
+  
+  --color-silver: #E2E8F0;        /* Metallic Slate Silver */
+  --color-silver-dark: #94A3B8;
+  
+  --text-primary: #0F172A;        /* Deep Slate Dark */
+  --text-secondary: #334155;      /* Slate Medium */
+  --text-muted: #64748B;          /* Muted Gray */
+  
+  --border-color: #E2E8F0;
+  --border-mint: rgba(123, 206, 181, 0.35);
+  
+  --glass-bg: rgba(255, 255, 255, 0.88);
+  --glass-blur: blur(20px) saturate(180%);
+  --card-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  
+  /* Sans-Serif Typography Stack (Meeting Requirement) */
+  --font-title: 'Plus Jakarta Sans', sans-serif;
+  --font-editorial: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-ui: 'Outfit', sans-serif;
+  --font-nav: 'Outfit', sans-serif;
 }
 
 /* Base Styles & Reset */
@@ -3082,3 +3092,50 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
 }
 
 
+
+
+
+/* ==========================================================================
+   RESPONSIVE RESOLUTION & SAFE AREA INSETS (MULTI-DEVICE COMPATIBILITY)
+   ========================================================================== */
+.mobile-bottom-nav {
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+}
+
+.app-header {
+  padding-top: max(10px, env(safe-area-inset-top));
+}
+
+/* Fluid Closet & Boutique Grid */
+.closet-grid, .boutique-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(115px, 28vw, 160px), 1fr)) !important;
+  gap: clamp(10px, 2.5vw, 18px) !important;
+}
+
+/* Extra Small Phones (e.g. 320px - 360px) */
+@media (max-width: 360px) {
+  .editorial-title {
+    font-size: clamp(1.2rem, 5vw, 1.5rem) !important;
+  }
+  .section-desc {
+    font-size: 0.8rem !important;
+  }
+  .fitting-source-panel {
+    max-height: 220px !important;
+  }
+  .gold-btn-large, .gold-btn-outline {
+    padding: 8px 14px !important;
+    font-size: 0.75rem !important;
+  }
+}
+
+/* Foldable & Tablet Screens (e.g. min-width 768px) */
+@media (min-width: 768px) {
+  .closet-grid, .boutique-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+  }
+  .fitting-canvas-container {
+    height: 460px !important;
+  }
+}

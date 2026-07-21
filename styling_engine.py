@@ -1013,7 +1013,7 @@ def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=
         "color_contrast": contrast_level
     }
 
-def recommend_outfit(clothes, city_index, occasion):
+def recommend_outfit(clothes, city_index, occasion, body_shape="hourglass"):
     """
     Coordinates a complete outfit: Top, Bottom, Footwear.
     Adds Outerwear if effective temperature (wind chill) <= 16°C or if it is raining.
@@ -1022,6 +1022,7 @@ def recommend_outfit(clothes, city_index, occasion):
       - Occasion styling preferences (formality limits & preferred types)
       - Thermal isolation (CLO index vs weather requirements)
       - Rain friendliness (if city_rain == 1, prioritize rain_friendly items)
+      - Body morphology alignment
     """
     city = next((c for c in CITIES if c["index"] == int(city_index)), CITIES[0])
     temp = city["temp"]
@@ -1199,8 +1200,9 @@ def recommend_outfit(clothes, city_index, occasion):
         ) + justification
 
     # Calculate fashion score for the outfit
-    rec_items = [selected_top, selected_bottom, selected_footwear, selected_outerwear, selected_accessory]
+    rec_items = [it for it in [selected_top, selected_bottom, selected_footwear, selected_outerwear, selected_accessory] if it]
     score_details = calculate_fashion_score(rec_items, city["name"], occasion, temp, rain)
+    morphology_details = evaluate_body_morphology(body_shape, rec_items)
     
     advice = score_details["advice"]
     if use_boutique_fallback:
@@ -1220,6 +1222,8 @@ def recommend_outfit(clothes, city_index, occasion):
         "footwear": selected_footwear,
         "outerwear": selected_outerwear,
         "accessory": selected_accessory,
+        "outfit": rec_items,
+        "morphology": morphology_details,
         "justification": justification,
         
         "color_score": score_details["color_score"],
@@ -1946,3 +1950,141 @@ def process_rpg_completion(answers, clothes):
 # BabylonSwarm_Commit_52: test(qa): add unit tests for biophysical CLO thermal calculation accuracy
 
 # BabylonSwarm_Commit_58: fix(styling): handle zero items gracefully inside capsule wardrobe builders
+
+
+# ==============================================================================
+# BODY MORPHOLOGY & "NO TE LO PONGAS" (WHAT NOT TO WEAR) ENGINE
+# Concept: Personalized styling advice based on body shape & digital wardrobe
+# ==============================================================================
+
+BODY_MORPHOLOGIES = {
+    "hourglass": {
+        "name_es": "Reloj de Arena",
+        "description": "Busto y caderas proporcionados con una cintura claramente definida.",
+        "best_cuts": ["cuello v", "corte imperio", "pantalón tiro alto", "vestido ajustado", "blazer entallado", "fajado"],
+        "avoid_cuts": ["oversized sin forma", "cuello alto cerrado sin cintura", "túnicas rectas cuadradas"],
+        "what_to_wear": [
+            "Resalta la cintura con cortes entallados, cinturones o prendas de tiro alto.",
+            "Utiliza escotes en V, corazón o cruzados para estilizar el torso.",
+            "Prefiere faldas lápiz, corte A estructurado y pantalones de bota recta o flare."
+        ],
+        "what_not_to_wear": [
+            "Evita prendas extremadamente holgadas de arriba a abajo que oculten tu cintura natural.",
+            "No te lo pongas: capas sobrepuestas voluminosas sin definición en el talle."
+        ]
+    },
+    "triangle": {
+        "name_es": "Triángulo (Pera)",
+        "description": "Caderas más anchas que los hombros y parte superior más ligera.",
+        "best_cuts": ["mangas abullonadas", "hombreras", "cuello barco", "pantalón recto", "corte a", "colores claros arriba"],
+        "avoid_cuts": ["pantalones estampados voluminosos", "faldas con alforzas en cadera", "camisetas ajustadas oscuras arriba"],
+        "what_to_wear": [
+            "Atrae la atención visual al torso superior con colores claros, estampados y detalles en hombros.",
+            "Usa escotes barco, estructurados o con solapas amplias para equilibrar hombros con caderas.",
+            "Prefiere pantalones y faldas fluidas en tonos oscuros o neutros y corte recto o A."
+        ],
+        "what_not_to_wear": [
+            "No te lo pongas: pantalones de tiro muy bajo o faldas con volantes gruesos en la cadera.",
+            "Evita estampados grandes en la prenda inferior si buscas esterilizar la figura."
+        ]
+    },
+    "inverted_triangle": {
+        "name_es": "Triángulo Invertido",
+        "description": "Hombros o espalda más anchos que la cadera.",
+        "best_cuts": ["pantalón palazzo", "falda plisada", "cuello v profundo", "peplum", "estampados en parte inferior"],
+        "avoid_cuts": ["hombreras", "mangas globo", "cuello barco amplio", "chaquetas con solapas anchas"],
+        "what_to_wear": [
+            "Añade volumen en la prenda inferior con faldas plisadas, estampados o pantalones palazzo y cargo.",
+            "Usa escotes verticales (V profundo) y líneas fluidas en el torso superior.",
+            "Busca abrigos o blazers sin hombreras marcadas y de líneas limpias."
+        ],
+        "what_not_to_wear": [
+            "No te lo pongas: prendas superiores con hombreras gigantes o cuellos desbocados horizontales.",
+            "Evita blusas sin mangas con escote halter muy cerrado que ensanchen la espalda."
+        ]
+    },
+    "rectangle": {
+        "name_es": "Rectángulo",
+        "description": "Hombros, cintura y caderas alineados en proporción similar.",
+        "best_cuts": ["cinturones", "peplum", "faldas con vuelo", "cortes asimétricos", "capas estructuradas"],
+        "avoid_cuts": ["vestidos rectos rígidos", "prendas cuadradas monótonas sin accesorio en cintura"],
+        "what_to_wear": [
+            "Crea la ilusión de curva usando cinturones, detalles peplum o cruzados.",
+            "Juega con contrastes de color entre la parte superior e inferior.",
+            "Utiliza faldas con volumen y pantalones con pliegues o detalles."
+        ],
+        "what_not_to_wear": [
+            "No te lo pongas: looks totalmente rectos de pies a cabeza sin marcación visual de cintura.",
+            "Evita prendas monolíticas rígidas que acentúen la falta de curvas."
+        ]
+    },
+    "oval": {
+        "name_es": "Óvalo (Manzana)",
+        "description": "Zona abdominal más prominente con piernas y brazos estilizados.",
+        "best_cuts": ["corte imperio", "cuello v", "vestidos envolventes", "telas fluidas caída vertical", "monocromía"],
+        "avoid_cuts": ["cinturones anchos ajustados al abdomen", "telas rígidas brillantes", "crop tops"],
+        "what_to_wear": [
+            "Destaca tus extremidades (piernas y brazos) con faldas a la rodilla o escotes en V.",
+            "Opta por prendas de caída fluida, líneas verticales y conjuntos monocromáticos.",
+            "Prefiere blazers abiertos y cardigans de corte largo que generen columnas verticales."
+        ],
+        "what_not_to_wear": [
+            "No te lo pongas: telas elásticas brillantes que marquen excesivamente el abdomen.",
+            "Evita cinturones ajustados en la parte más ancha del torso."
+        ]
+    }
+}
+
+def evaluate_body_morphology(body_shape, garments):
+    """
+    Evaluates an ensemble of garments against a specific body shape morphology.
+    Returns score (0-100), advice, what_to_wear and what_not_to_wear rules.
+    """
+    key = (body_shape or "").lower().strip()
+    if key not in BODY_MORPHOLOGIES:
+        # Default mapping
+        if "reloj" in key or "hourglass" in key:
+            key = "hourglass"
+        elif "pera" in key or "triangulo" in key or "triangle" in key:
+            key = "triangle"
+        elif "invertid" in key:
+            key = "inverted_triangle"
+        elif "rectang" in key or "rectangle" in key:
+            key = "rectangle"
+        elif "oval" in key or "manzana" in key or "apple" in key:
+            key = "oval"
+        else:
+            key = "hourglass"
+            
+    info = BODY_MORPHOLOGIES[key]
+    score = 82.0
+    feedback_rules = []
+    avoid_warnings = []
+    
+    garments_list = [g for g in (garments or []) if isinstance(g, dict)]
+    
+    # Analyze garment attributes
+    text_corpus = " ".join([f"{g.get('name', '')} {g.get('subcategory', '')} {g.get('style', '')} {g.get('pattern', '')}" for g in garments_list]).lower()
+    
+    # Check best cuts
+    best_matches = [cut for cut in info["best_cuts"] if cut in text_corpus]
+    avoid_matches = [cut for cut in info["avoid_cuts"] if cut in text_corpus]
+    
+    if best_matches:
+        score += len(best_matches) * 5.0
+        feedback_rules.append(f"Las prendas elegidas con corte {', '.join(best_matches)} favorecen tu silueta {info['name_es']}.")
+    
+    if avoid_matches:
+        score -= len(avoid_matches) * 8.0
+        avoid_warnings.append(f"Consejo 'No Te Lo Pongas': Evita elementos como {', '.join(avoid_matches)} para no desequilibrar la silueta {info['name_es']}.")
+        
+    score = max(30.0, min(100.0, score))
+    
+    return {
+        "body_shape": info["name_es"],
+        "score": score,
+        "description": info["description"],
+        "what_to_wear": info["what_to_wear"],
+        "what_not_to_wear": info["what_not_to_wear"] + avoid_warnings,
+        "feedback": feedback_rules or [f"El conjunto presenta proporciones armónicas para el tipo de cuerpo {info['name_es']}."]
+    }

@@ -2234,7 +2234,7 @@ function initFittingRoom() {
         card.className = 'canvas-floating-item';
         card.id = `canvas-item-${item.id}`;
         
-        const size = 125;
+        const size = Math.max(90, Math.min(130, Math.floor((board.clientWidth || 340) * 0.28)));
         const x = Math.max(20, Math.floor(Math.random() * (board.clientWidth - size - 40)));
         const y = Math.max(20, Math.floor(Math.random() * (board.clientHeight - size - 40)));
         

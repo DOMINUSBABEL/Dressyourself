@@ -200,14 +200,19 @@ def get_recommendation():
         items = get_items_from_request()
         city_index = request.args.get('city_index', 0)
         occasion = request.args.get('occasion', 'Casual')
+        body_shape = request.args.get('body_shape', 'hourglass')
         city = next((c for c in styling_engine.CITIES if c["index"] == int(city_index)), styling_engine.CITIES[0])
         
         if items:
             score_res = styling_engine.calculate_fashion_score(items, city["name"], occasion)
+            morph_res = styling_engine.evaluate_body_morphology(body_shape, items)
+            score_res["morphology"] = morph_res
             return jsonify(score_res), 200
             
         clothes_list = database.get_all_clothes()
-        rec = styling_engine.recommend_outfit(clothes_list, city_index, occasion)
+        rec = styling_engine.recommend_outfit(clothes_list, city_index, occasion, body_shape=body_shape)
+        if rec and "outfit" in rec and isinstance(rec["outfit"], list):
+            rec["morphology"] = styling_engine.evaluate_body_morphology(body_shape, rec["outfit"])
         return jsonify(rec), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
