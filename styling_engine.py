@@ -664,7 +664,7 @@ def get_item_clo(item):
         
     return 0.10 # default
 
-def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=None, rain=None):
+def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=None, rain=None, user_profile=None):
     items = [item for item in items if item is not None]
     n = len(items)
     if n == 0:
@@ -915,8 +915,68 @@ def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=
 
     weather_score = max(0.0, min(100.0, weather_score))
 
+    # --- User Profile Adjustments ---
+    sustainability_penalty = 0.0
+    history_bonus = 0.0
+    
+    if user_profile:
+        # 1. Body shape / Silueta corporal
+        body_shape = user_profile.get("body_shape")
+        if body_shape:
+            morph = evaluate_body_morphology(body_shape, items)
+            style_score = style_score * 0.7 + morph["score"] * 0.3
+            if morph.get("feedback"):
+                editorial_comments = getattr(calculate_fashion_score, '_editorial_cache', [])
+                editorial_comments.extend(morph["feedback"])
+                calculate_fashion_score._editorial_cache = editorial_comments
+
+        # 2. Skin tone / Fototipo de piel
+        skin_tone = user_profile.get("skin_tone")
+        if skin_tone:
+            # Matriz cruzada fototipo con colores
+            skin_match_score = 0
+            for item in items:
+                col = normalize_str(item.get("color_primary", ""))
+                if skin_tone == "claro":
+                    if any(k in col for k in ["azul", "verde", "rojo", "negro", "marino", "esmeralda"]): skin_match_score += 5
+                    elif any(k in col for k in ["amarillo", "beige", "blanco", "crema"]): skin_match_score -= 5
+                elif skin_tone == "medio":
+                    if any(k in col for k in ["beige", "mostaza", "verde oliva", "marron", "blanco"]): skin_match_score += 5
+                elif skin_tone == "oscuro":
+                    if any(k in col for k in ["blanco", "amarillo", "rojo", "rosa", "verde", "mostaza"]): skin_match_score += 5
+                    elif any(k in col for k in ["negro", "marron", "marino"]): skin_match_score -= 5
+            color_score = max(0.0, min(100.0, color_score + skin_match_score))
+
+        # 3. Sostenibilidad: Penalización por no rotar prendas en N días
+        today = __import__("datetime").date.today()
+        for item in items:
+            last_worn = item.get("last_worn")
+            if last_worn:
+                try:
+                    if isinstance(last_worn, str):
+                        last_worn_date = __import__("datetime").datetime.strptime(last_worn, "%Y-%m-%d").date()
+                    else:
+                        last_worn_date = last_worn
+                    days_since = (today - last_worn_date).days
+                    if days_since < 7:  # Si se usó hace menos de 7 días, penalizar
+                        sustainability_penalty += (7 - days_since) * 2.0
+                except Exception:
+                    pass
+
+        # 4. Historial de calificaciones del usuario
+        rating_history = user_profile.get("rating_history", {})
+        for item in items:
+            item_id = str(item.get("id", ""))
+            if item_id in rating_history:
+                rating = rating_history[item_id]
+                if rating >= 4:
+                    history_bonus += 2.0
+                elif rating <= 2:
+                    history_bonus -= 3.0
+
     # Calculate final weights
     total_score = 0.35 * color_score + 0.30 * style_score + 0.15 * pattern_score + 0.20 * weather_score
+    total_score = max(0.0, min(100.0, total_score - sustainability_penalty + history_bonus))
     scores_dict = {"Color": color_score, "Estilo": style_score, "Patrón": pattern_score, "Clima": weather_score}
     highest_sub = max(scores_dict, key=scores_dict.get)
     highest_val = scores_dict[highest_sub]
@@ -941,7 +1001,9 @@ def calculate_fashion_score(items, city_name="Bogotá", occasion="Casual", temp=
             critique_list.append("las prendas no se adaptan perfectamente a las condiciones climáticas actuales")
 
     # --- Advanced Editorial Commentary in Spanish ---
-    editorial_comments = []
+    editorial_comments = getattr(calculate_fashion_score, '_editorial_cache', [])
+    calculate_fashion_score._editorial_cache = []  # reset
+    
     # 12-Season commentary
     editorial_comments.append(color_season_commentary)
     
@@ -2066,9 +2128,18 @@ def evaluate_body_morphology(body_shape, garments):
     # Analyze garment attributes
     text_corpus = " ".join([f"{g.get('name', '')} {g.get('subcategory', '')} {g.get('style', '')} {g.get('pattern', '')}" for g in garments_list]).lower()
     
-    # Check best cuts
-    best_matches = [cut for cut in info["best_cuts"] if cut in text_corpus]
-    avoid_matches = [cut for cut in info["avoid_cuts"] if cut in text_corpus]
+    # Check best cuts & avoid cuts
+    best_matches = []
+    for cut in info["best_cuts"]:
+        cut_stem = cut.rstrip('s').lower()
+        if cut_stem in text_corpus or cut.lower() in text_corpus or any(w.rstrip('s') in text_corpus for w in cut.lower().split() if len(w) > 3):
+            best_matches.append(cut)
+            
+    avoid_matches = []
+    for cut in info["avoid_cuts"]:
+        cut_stem = cut.rstrip('s').lower()
+        if cut_stem in text_corpus or cut.lower() in text_corpus or any(w.rstrip('s') in text_corpus for w in cut.lower().split() if len(w) > 3):
+            avoid_matches.append(cut)
     
     if best_matches:
         score += len(best_matches) * 5.0

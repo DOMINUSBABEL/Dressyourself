@@ -759,13 +759,43 @@ function renderRecommendations(items) {
             polaroid.innerHTML = `
                 <img src="${item.image}" alt="${item.name}" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect fill=%27%23222%27 width=%27100%27 height=%27100%27/%3E%3C/svg%3E';">
                 <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(212,175,55,0); transition: background 0.2s;"></div>
+                <div class="polaroid-rating" style="position: absolute; bottom: -20px; left: 0; width: 100%; text-align: center; transition: bottom 0.3s; background: rgba(0,0,0,0.6); padding: 2px 0;">
+                    <span class="star-rating-icon" style="color: #ccc; cursor: pointer; font-size: 0.8rem;" onclick="window.ratePolaroid(event, ${index}, 1)">★</span>
+                    <span class="star-rating-icon" style="color: #ccc; cursor: pointer; font-size: 0.8rem;" onclick="window.ratePolaroid(event, ${index}, 2)">★</span>
+                    <span class="star-rating-icon" style="color: #ccc; cursor: pointer; font-size: 0.8rem;" onclick="window.ratePolaroid(event, ${index}, 3)">★</span>
+                    <span class="star-rating-icon" style="color: #ccc; cursor: pointer; font-size: 0.8rem;" onclick="window.ratePolaroid(event, ${index}, 4)">★</span>
+                    <span class="star-rating-icon" style="color: #ccc; cursor: pointer; font-size: 0.8rem;" onclick="window.ratePolaroid(event, ${index}, 5)">★</span>
+                </div>
             `;
+            
+            window.ratePolaroid = function(e, idx, rating) {
+                e.stopPropagation();
+                const container = document.getElementById(\`clima-polaroid-\${idx}\`);
+                if (!container) return;
+                const stars = container.querySelectorAll('.star-rating-icon');
+                stars.forEach((star, i) => {
+                    if (i < rating) {
+                        star.classList.add('active-star');
+                        star.classList.add('star-elastic-bounce');
+                    } else {
+                        star.classList.remove('active-star');
+                        star.classList.remove('star-elastic-bounce');
+                    }
+                });
+                if (typeof createGoldParticleBurst === 'function') {
+                    createGoldParticleBurst(e.target);
+                }
+                showToast(\`¡Gracias por calificar con \${rating} estrellas!\`);
+            };
 
             // Hover sync from Polaroid to Card
             polaroid.addEventListener('mouseenter', () => {
                 polaroid.style.transform = 'scale(1.2) rotate(0deg)';
                 polaroid.style.boxShadow = '0 10px 20px rgba(0,0,0,0.5)';
                 polaroid.style.borderColor = '#D4AF35';
+                polaroid.style.zIndex = '10';
+                const ratingDiv = polaroid.querySelector('.polaroid-rating');
+                if (ratingDiv) ratingDiv.style.bottom = '0px';
                 card.classList.add('highlighted-card');
                 card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             });
@@ -774,6 +804,9 @@ function renderRecommendations(items) {
                 polaroid.style.transform = `rotate(${rotation}deg)`;
                 polaroid.style.boxShadow = '2px 2px 8px rgba(0,0,0,0.3)';
                 polaroid.style.borderColor = 'var(--border-gold)';
+                polaroid.style.zIndex = '1';
+                const ratingDiv = polaroid.querySelector('.polaroid-rating');
+                if (ratingDiv) ratingDiv.style.bottom = '-20px';
                 card.classList.remove('highlighted-card');
             });
 
@@ -882,9 +915,19 @@ function updateStylingIndex() {
     }
     scoreEl.textContent = `${score}%`;
     
-    // Let's define ranking progress towards "DressYourself Master" (need 12 items)
-    const targetItems = 12;
+    // Let's define ranking progress towards "Maestro del Estilo" (need 20 items)
+    const targetItems = 20;
     const progressPct = Math.min(100, Math.round((count / targetItems) * 100));
+    
+    // Update Gamification Widget in Sidebar
+    const gCountEl = document.getElementById('gamification-count');
+    const gBarEl = document.getElementById('gamification-bar');
+    if (gCountEl) gCountEl.textContent = count;
+    if (gBarEl) gBarEl.style.width = \`\${progressPct}%\`;
+    if (count >= 20 && gBarEl) {
+        gBarEl.style.background = 'var(--accent-emerald)';
+        showToast("¡Has alcanzado el título de Maestro del Estilo!", "success");
+    }
     if (progressPctEl) progressPctEl.textContent = `${progressPct}%`;
     if (progressBarEl) progressBarEl.style.width = `${progressPct}%`;
     
@@ -4926,30 +4969,53 @@ window.handleCustomGarmentSubmit = async function(event) {
 
 window.onboardingData = {
     name: '',
-    style: '',
-    color: '',
-    brand: ''
+    goal: '',
+    city: '',
+    chest: 95,
+    waist: 80,
+    hips: 100,
+    skinTone: '#FDE4C8'
+};
+
+window.handleGoogleSignIn = function() {
+    showToast("Autenticando con Google (Firebase JS SDK)...");
+    setTimeout(() => {
+        window.nextOnboardingStep(2);
+    }, 1000);
+};
+
+window.detectLocationOB = function() {
+    document.getElementById('ob-profile-city').value = 'Bogotá (Detectado)';
+    window.checkStep3();
+};
+
+window.checkStep3 = function() {
+    const name = document.getElementById('ob-profile-name').value.trim();
+    const city = document.getElementById('ob-profile-city').value.trim();
+    const btn = document.getElementById('btn-onboarding-next-3');
+    if (name && city) {
+        btn.disabled = false;
+        window.onboardingData.name = name;
+        window.onboardingData.city = city;
+    } else {
+        btn.disabled = true;
+    }
+};
+
+window.selectSkinTone = function(el, color) {
+    document.querySelectorAll('#ostep-4 [onclick^="window.selectSkinTone"]').forEach(div => {
+        div.style.borderColor = 'transparent';
+    });
+    el.style.borderColor = 'var(--accent-gold)';
+    window.onboardingData.skinTone = color;
 };
 
 window.nextOnboardingStep = function(stepNum) {
-    if (stepNum === 1) {
-        const nameVal = document.getElementById('onboarding-user-name').value;
-        if (!nameVal.trim()) {
-            showToast("Por favor ingresa tu nombre", "error");
-            return;
-        }
-        window.onboardingData.name = nameVal;
-    }
-    
     document.querySelectorAll('.onboarding-step').forEach(step => {
         step.classList.remove('active');
     });
     
-    let stepId = '';
-    if (stepNum === 1) stepId = 'ostep-style';
-    else if (stepNum === 2) stepId = 'ostep-color';
-    else if (stepNum === 3) stepId = 'ostep-brand';
-    
+    let stepId = 'ostep-' + stepNum;
     const stepEl = document.getElementById(stepId);
     if (stepEl) stepEl.classList.add('active');
 };
@@ -4966,19 +5032,22 @@ window.selectOnboardingOption = function(type, value) {
     window.onboardingData[type] = value;
     
     let nextBtnId = '';
-    if (type === 'style') nextBtnId = 'btn-onboarding-next-1';
-    else if (type === 'color') nextBtnId = 'btn-onboarding-next-2';
-    else if (type === 'brand') nextBtnId = 'btn-onboarding-finish';
+    if (type === 'goal') nextBtnId = 'btn-onboarding-next-2';
     
-    const btn = document.getElementById(nextBtnId);
-    if (btn) btn.disabled = false;
+    if (nextBtnId) {
+        const btn = document.getElementById(nextBtnId);
+        if (btn) btn.disabled = false;
+    }
 };
 
 window.completeOnboarding = function() {
+    window.onboardingData.chest = document.getElementById('measure-chest').value;
+    window.onboardingData.waist = document.getElementById('measure-waist').value;
+    window.onboardingData.hips = document.getElementById('measure-hips').value;
+
     localStorage.setItem('dy_user_name', window.onboardingData.name);
-    localStorage.setItem('dy_user_style', window.onboardingData.style);
-    localStorage.setItem('dy_user_color_season', window.onboardingData.color);
-    localStorage.setItem('dy_user_brand_focus', window.onboardingData.brand);
+    localStorage.setItem('dy_user_goal', window.onboardingData.goal);
+    localStorage.setItem('dy_user_city', window.onboardingData.city);
     localStorage.setItem('dy_onboarding_completed', 'true');
     
     const settingsUsername = document.getElementById('settings-username');
@@ -4993,7 +5062,7 @@ window.completeOnboarding = function() {
             if (typeof createGoldParticleBurst === 'function') {
                 createGoldParticleBurst();
             }
-            showToast(`¡Bienvenido, ${window.onboardingData.name}! Tu experiencia Maison de Mode ha sido activada.`);
+            showToast(`¡Bienvenido, ${window.onboardingData.name}!`);
         }, 600);
     }
 };
@@ -5401,14 +5470,16 @@ const TRANSLATIONS = {
         'quests_streak': '🔥 Racha: ',
         'quests_days': ' día(s)',
         'quests_days_streak': 'día',
-        // ISA Assistant Section
-        'isa_title': 'ISA | Asesora de Estilo Personal',
+        // Ganchito Assistant Section
+        'isa_title': 'Ganchito | Asesor de Estilo Personal',
         'isa_desc': 'Asesoría de moda inteligente de DressYourself interactiva a través de preguntas de estilo guiadas.',
-        'isa_hair_label': 'Estilo de ISA (Look):',
-        'isa_personality_label': 'Personalidad de ISA:',
+        'isa_hair_label': 'Estilo de Ganchito (Look):',
+        'isa_personality_label': 'Personalidad de Ganchito:',
+        'isa_personality_classy': 'Elegante',
+        'isa_personality_diva': 'Diva',
         'isa_rpg_header': 'Sesión de Asesoría Interactiva',
         'isa_rpg_progress': 'ASISTENCIA DRESSYOURSELF',
-        'isa_speech_default': '¡Hola! Soy ISA, tu asesora de estilo personal. Comencemos una sesión de asesoría guiada para crear tu próximo gran outfit.',
+        'isa_speech_default': '¡Hola! Soy Ganchito, tu asesor de estilo personal. Comencemos una sesión de asesoría guiada para crear tu próximo gran outfit.',
         // Settings Section
         'settings_title': 'Ajustes del Sistema',
         'settings_desc': 'Personaliza tu cuenta, idioma, ubicación y suscripción Premium de DressYourself.',
@@ -5467,14 +5538,16 @@ const TRANSLATIONS = {
         'quests_streak': '🔥 Streak: ',
         'quests_days': ' day(s)',
         'quests_days_streak': 'day',
-        // ISA Assistant Section
-        'isa_title': 'ISA | Personal Stylist Advisor',
+        // Ganchito Assistant Section
+        'isa_title': 'Ganchito | Personal Stylist Advisor',
         'isa_desc': 'Interactive DressYourself consulting through guided style questions.',
-        'isa_hair_label': "ISA's Style (Look):",
-        'isa_personality_label': "ISA's Personality:",
+        'isa_hair_label': "Ganchito Style (Look):",
+        'isa_personality_label': "Ganchito Personality:",
+        'isa_personality_classy': 'Classy',
+        'isa_personality_diva': 'Diva',
         'isa_rpg_header': 'Interactive Styling Session',
         'isa_rpg_progress': 'DRESSYOURSELF ASSISTANCE',
-        'isa_speech_default': "Hello! I am ISA, your personal style advisor. Let's begin a guided styling session to design your next great outfit.",
+        'isa_speech_default': "Hello! I am Ganchito, your personal style advisor. Let's begin a guided styling session to design your next great outfit.",
         // Settings Section
         'settings_title': 'System Settings',
         'settings_desc': 'Customize your account, language, location and Premium DressYourself subscription.',

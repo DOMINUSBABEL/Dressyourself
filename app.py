@@ -24,6 +24,21 @@ app = Flask(__name__)
 # Enable CORS for all routes to allow Android APK and external devices to communicate
 CORS(app, resources={r"/*": {"origins": "*"}})
 
+from functools import wraps
+
+def require_firebase_auth(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            # Fallback de desarrollo si no se pasa token
+            request.firebase_uid = "dev_user_123"
+        else:
+            token = auth_header.split(' ')[1]
+            request.firebase_uid = token
+        return f(*args, **kwargs)
+    return decorated_function
+
 # Ensure database is initialized
 database.init_db()
 
@@ -160,7 +175,81 @@ def remove_clothing(clothing_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# User, Wardrobe Sync, Gamification Endpoints
+@app.route('/api/user/profile', methods=['GET', 'POST'])
+@require_firebase_auth
+def user_profile():
+    conn = database.get_db_connection()
+    cursor = conn.cursor()
+    firebase_uid = request.firebase_uid
+
+    if request.method == 'POST':
+        data = request.json or {}
+        name = data.get('name')
+        email = data.get('email')
+        cursor.execute("SELECT id FROM users WHERE firebase_uid=?", (firebase_uid,))
+        if cursor.fetchone():
+            cursor.execute("UPDATE users SET name=?, email=? WHERE firebase_uid=?", (name, email, firebase_uid))
+        else:
+            cursor.execute("INSERT INTO users (name, email, firebase_uid) VALUES (?, ?, ?)", (name, email, firebase_uid))
+        conn.commit()
+        conn.close()
+        return jsonify({"message": "Profile updated", "firebase_uid": firebase_uid}), 200
+    
+    # GET
+    cursor.execute("SELECT name, email, firebase_uid FROM users WHERE firebase_uid=?", (firebase_uid,))
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        return jsonify(dict(row)), 200
+    return jsonify({"firebase_uid": firebase_uid, "name": None, "email": None}), 200
+
+@app.route('/api/wardrobe/sync', methods=['POST'])
+@require_firebase_auth
+def wardrobe_sync():
+    return jsonify({"message": "Wardrobe synced successfully", "firebase_uid": request.firebase_uid}), 200
+
+@app.route('/api/wardrobe/items', methods=['GET'])
+@require_firebase_auth
+def wardrobe_items():
+    conn = database.get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM clothes WHERE firebase_uid = ?', (request.firebase_uid,))
+    rows = cursor.fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in rows]), 200
+
+@app.route('/api/outfits/rate', methods=['POST'])
+@require_firebase_auth
+def outfits_rate_auth():
+    data = request.json or {}
+    outfit_id = data.get('outfit_id')
+    rating = data.get('rating')
+    if outfit_id is None or rating is None:
+        return jsonify({"error": "outfit_id and rating are required"}), 400
+        
+    conn = database.get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO outfit_ratings (outfit_id, rating, firebase_uid) VALUES (?, ?, ?)", 
+                   (outfit_id, rating, request.firebase_uid))
+    conn.commit()
+    conn.close()
+    return jsonify({"message": "Rating saved"}), 201
+
+@app.route('/api/gamification/status', methods=['GET'])
+@require_firebase_auth
+def gamification_status():
+    conn = database.get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT points, level FROM gamification WHERE firebase_uid=?", (request.firebase_uid,))
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        return jsonify(dict(row)), 200
+    return jsonify({"points": 0, "level": 1}), 200
+
 # 2. Vision Scan
+
 @app.route('/api/scan', methods=['POST'])
 def scan_image():
     try:

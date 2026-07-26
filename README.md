@@ -25,16 +25,12 @@
   - **Style Clash (Streetwear)**: Mezclas subversivas con estilo (ej. calzado deportivo con abrigos elegantes).
 - Incluye una justificación estilística redactada con el tono de una revista de modas.
 
-### 4. 🧷 Ganchito: Asistente Vintage Interactivo
-- Inspirado en los asistentes de oficina retro, **Ganchito** te acompaña en pantalla con diálogos divertidos y consejos.
-- Permite seleccionar 4 personalidades: *Clásico*, *Diva* (glamuroso), *Sarcástico* (humor negro) y *Nervioso* (miedo a que se oxide su gancho de metal). Su avatar y diálogos cambian en tiempo real.
-
-### 5. 🛍️ Boutique, Probador y Envío
+### 4. 🛍️ Boutique, Probador y Envío
 - Explora prendas en venta de tiendas de moda (Zara, H&M, Mango) con indicadores claros de "Aún no está comprada".
 - **Probador Híbrido (Fitting Room)**: Contrasta visualmente una prenda de boutique a la par de tus prendas del closet para comprobar compatibilidad de colores y formas antes de adquirirla.
 - Compra simulada con generador de códigos de rastreo e hilo de segundo plano (background thread) que actualiza el porcentaje de entrega de tus despachos cada 5 segundos de forma autónoma.
 
-### 6. 📱 Compatibilidad con APK y Modo Offline
+### 5. 📱 Compatibilidad con APK y Modo Offline
 - La interfaz de usuario es **100% responsiva** (Mobile-First):
   - **En móviles (APK)**: Activa controles adaptados a gestos táctiles y una barra de navegación inferior (Bottom Navigation Bar) idéntica a una aplicación nativa.
   - **En escritorio (Web)**: Expande paneles laterales de alta gama y cuadrículas amplias.
@@ -57,7 +53,7 @@ DressYourself-Web/
 │   ├── css/
 │   │   └── style.css     # Estilos premium, glassmorphism y animaciones
 │   └── js/
-│       └── app.js        # Lógica SPA, fetches, personalidades de Ganchito y Mocks
+│       └── app.js        # Lógica SPA, fetches y Mocks
 └── .gitignore            # Exclusión de bases de datos locales y cachés
 ```
 

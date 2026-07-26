@@ -234,6 +234,7 @@ def remove_background(image_path_or_bytes):
     """
     Removes background using OpenCV grabCut to isolate the garment as a transparent PNG.
     Uses a hybrid border-color and bounding box mask initialization for near-perfect segmentation.
+    Incluye filtro de remoción de sombras y limpieza de fondo estilo Moda AI.
     """
     try:
         if isinstance(image_path_or_bytes, str):
@@ -290,6 +291,17 @@ def remove_background(image_path_or_bytes):
         is_flat_bg = dist < 35
         mask_alpha[is_flat_bg] = 0
         
+        # Filtro de remoción de sombras y limpieza de fondo estilo Moda AI
+        # Convert to LAB to detect shadows (low lightness)
+        lab_img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+        l_channel, a_channel, b_channel = cv2.split(lab_img)
+        # Shadows usually have low L value, but we only remove shadows on the background/edges
+        shadow_mask = (l_channel < 50) & (dist < 80)
+        mask_alpha[shadow_mask] = 0
+
+        # Suavizado de bordes (Feathering) para limpieza estilo Moda AI
+        mask_alpha = cv2.GaussianBlur(mask_alpha, (5, 5), 0)
+
         b, g, r = cv2.split(img)
         rgba = cv2.merge([b, g, r, mask_alpha])
         
@@ -320,6 +332,59 @@ def remove_background(image_path_or_bytes):
     except Exception as e:
         print(f"Error in background removal: {e}")
         return None
+
+def extract_multiple_items(image_path_or_bytes):
+    """
+    Recorta múltiples prendas en fotos de clósets desorganizados.
+    Utiliza detección de contornos para separar elementos individuales.
+    Retorna una lista de bytes de imágenes recortadas.
+    """
+    try:
+        if isinstance(image_path_or_bytes, str):
+            img = cv2.imread(image_path_or_bytes)
+        else:
+            nparr = np.frombuffer(image_path_or_bytes, np.uint8)
+            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+        if img is None:
+            return []
+
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        blurred = cv2.GaussianBlur(gray, (11, 11), 0)
+        
+        # Umbral adaptativo para clósets desorganizados con iluminación irregular
+        thresh = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+                                       cv2.THRESH_BINARY_INV, 15, 5)
+
+        # Operaciones morfológicas para unir partes de la misma prenda
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
+        closed = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=3)
+        opened = cv2.morphologyEx(closed, cv2.MORPH_OPEN, kernel, iterations=1)
+
+        contours, _ = cv2.findContours(opened, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        min_area = (img.shape[0] * img.shape[1]) * 0.05 # Al menos 5% del tamaño de la imagen
+        items = []
+
+        for c in contours:
+            if cv2.contourArea(c) > min_area:
+                x, y, w, h = cv2.boundingRect(c)
+                # Expandir un poco el bounding box
+                pad = 20
+                x1 = max(0, x - pad)
+                y1 = max(0, y - pad)
+                x2 = min(img.shape[1], x + w + pad)
+                y2 = min(img.shape[0], y + h + pad)
+
+                crop = img[y1:y2, x1:x2]
+                _, encoded = cv2.imencode('.png', crop)
+                items.append(encoded.tobytes())
+
+        return items
+    except Exception as e:
+        print(f"Error in extract_multiple_items: {e}")
+        return []
+
 
 def analyze_image_with_gemini(image_path_or_bytes, api_key):
     """

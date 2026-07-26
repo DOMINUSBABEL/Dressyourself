@@ -75,6 +75,52 @@ def init_db():
         except sqlite3.OperationalError:
             pass
 
+    # Create new tables requested
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            email TEXT,
+            firebase_uid TEXT UNIQUE
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS outfit_ratings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            outfit_id INTEGER,
+            rating INTEGER,
+            firebase_uid TEXT,
+            FOREIGN KEY(outfit_id) REFERENCES outfits(id)
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS user_consents (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            firebase_uid TEXT,
+            consent_type TEXT,
+            granted INTEGER DEFAULT 0
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS gamification (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            firebase_uid TEXT,
+            points INTEGER DEFAULT 0,
+            level INTEGER DEFAULT 1
+        )
+    ''')
+
+    # Ensure firebase_uid is present in clothes, users, outfit_ratings, user_consents, gamification
+    tables_to_alter = ['clothes', 'users', 'outfit_ratings', 'user_consents', 'gamification']
+    for table in tables_to_alter:
+        try:
+            cursor.execute(f"ALTER TABLE {table} ADD COLUMN firebase_uid TEXT")
+        except sqlite3.OperationalError:
+            pass
+
 
     # Create orders table
     cursor.execute('''

@@ -4,40 +4,39 @@
 
 :root {
   /* ==========================================================================
-     DESIGN SYSTEM TOKENS - MINIMALIST MINT & GRAYSCALE (JULY 2026 AUDIT)
-     Palette: White, Slate Grays, Silver Metallic & Soft Matte Mint Green
-     Typography: Sans-Serif (Plus Jakarta Sans, Inter, Outfit)
+     DESIGN SYSTEM TOKENS - HIGH-END DARK GLASSMORPHISM (IMPECCABLE)
+     Palette: Nocturne Slate, Glass Panels, Vivid Accents
+     Typography: Outfit (Headings), Inter (Body)
      ========================================================================== */
-  --bg-primary: #FFFFFF;
-  --bg-secondary: #F8FAFC;
-  --bg-tertiary: #F1F5F9;
+  --bg-primary: #090d16;
+  --bg-secondary: #0c121e;
+  --bg-tertiary: #111827;
   
-  --accent-mint: #7BCEB5;         /* Soft Matte Mint Green */
-  --accent-mint-soft: #A8E6CF;    /* Muted Pastel Mint */
-  --accent-mint-hover: #5EBDA1;   /* Deeper Mint Accent */
-  --accent-mint-light: rgba(123, 206, 181, 0.15);
-  --accent-mint-glow: rgba(123, 206, 181, 0.25);
+  --accent-gold: #6366f1;         /* Re-mapping gold to Indigo for main accent */
+  --accent-gold-light: rgba(99, 102, 241, 0.15);
+  --accent-gold-hover: #4f46e5;
   
-  --color-silver: #E2E8F0;        /* Metallic Slate Silver */
-  --color-silver-dark: #94A3B8;
+  --accent-magenta: #f43f5e;
+  --accent-emerald: #10b981;
   
-  --text-primary: #0F172A;        /* Deep Slate Dark */
-  --text-secondary: #334155;      /* Slate Medium */
-  --text-muted: #64748B;          /* Muted Gray */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
   
-  --border-color: #E2E8F0;
-  --border-mint: rgba(123, 206, 181, 0.35);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-gold: rgba(99, 102, 241, 0.35);
   
-  --glass-bg: rgba(255, 255, 255, 0.88);
-  --glass-blur: blur(20px) saturate(180%);
-  --card-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  --glass-bg: rgba(15, 23, 42, 0.75);
+  --glass-blur: blur(16px);
+  --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
   
-  /* Sans-Serif Typography Stack (Meeting Requirement) */
-  --font-title: 'Plus Jakarta Sans', sans-serif;
-  --font-editorial: 'Plus Jakarta Sans', sans-serif;
+  --font-title: 'Outfit', sans-serif;
+  --font-editorial: 'Outfit', sans-serif;
   --font-body: 'Inter', sans-serif;
-  --font-ui: 'Outfit', sans-serif;
+  --font-ui: 'Inter', sans-serif;
   --font-nav: 'Outfit', sans-serif;
+  
+  --transition-smooth: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Base Styles & Reset */
@@ -254,7 +253,6 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     color: var(--accent-gold);
 }
 
-/* Glassmorphism Cards */
 .glass-card {
     background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
@@ -267,7 +265,9 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
 }
 
 .glass-card:hover {
-    border-color: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(99, 102, 241, 0.1);
 }
 
 /* Tab Contents Toggle */
