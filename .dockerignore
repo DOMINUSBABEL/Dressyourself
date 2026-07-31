@@ -1,0 +1,51 @@
+# Version Control & IDE
+.git
+.gitignore
+.github
+.idea
+.vscode
+
+# Python bytecode & cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.coverage
+htmlcov/
+*.egg-info
+.venv/
+venv/
+env/
+
+# Environment secrets
+.env
+.env.local
+.env.production
+!.env.example
+
+# Mobile App & Build artifacts
+app/build/
+build/
+.gradle/
+.kotlin/
+.build-outputs/
+*.apk
+*.keystore
+debug.keystore
+
+# Node / Firebase
+node_modules/
+backend/functions/node_modules/
+backend/functions/lib/
+.firebase/
+firebase-debug.log*
+
+# Database & Runtime logs
+*.db-journal
+*.db-wal
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db

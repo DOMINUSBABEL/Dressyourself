@@ -27,3 +27,4 @@ static/uploads/
 
 # Android APK builds
 *.apk
+agent-orchestrator/

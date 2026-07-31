@@ -13,9 +13,21 @@ COLOR_FAMILIES = {
 def get_color_family(color_name):
     if not color_name:
         return "NEUTRAL"
+    norm = normalize_str(color_name)
     for family, colors in COLOR_FAMILIES.items():
-        if color_name in colors:
-            return family
+        for c in colors:
+            norm_c = normalize_str(c)
+            if norm_c in norm or norm in norm_c:
+                return family
+    # Fallback keyword matching
+    if any(k in norm for k in ["azul", "blue"]):
+        return "BLUE"
+    if any(k in norm for k in ["verde", "green"]):
+        return "GREEN"
+    if any(k in norm for k in ["rojo", "rosa", "red", "pink", "morado", "purpura", "magenta"]):
+        return "RED_PINK"
+    if any(k in norm for k in ["amarillo", "naranja", "marron", "beige", "brown", "yellow", "orange", "cafe"]):
+        return "YELLOW_BROWN"
     return "NEUTRAL"
 
 # Complementary pairs

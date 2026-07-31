@@ -4,35 +4,50 @@
 
 :root {
   /* ==========================================================================
-     DESIGN SYSTEM TOKENS - HIGH-END DARK GLASSMORPHISM (IMPECCABLE)
-     Palette: Nocturne Slate, Glass Panels, Vivid Accents
+     DESIGN SYSTEM TOKENS - FRESH MINT & PURE WHITE LUXURY THEME
+     Palette: Mint Fresh (#f0faf5), Pure White (#ffffff), Deep Emerald (#0a251c)
+     Accents: Jade Mint (#059669 / #10b981 / #047857)
      Typography: Outfit (Headings), Inter (Body)
      ========================================================================== */
-  --bg-primary: #090d16;
-  --bg-secondary: #0c121e;
-  --bg-tertiary: #111827;
+  --bg-primary: #f0faf5;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e3f6ed;
   
-  --accent-gold: #6366f1;         /* Re-mapping gold to Indigo for main accent */
-  --accent-gold-light: rgba(99, 102, 241, 0.15);
-  --accent-gold-hover: #4f46e5;
+  --accent-gold: #059669;         /* Primary Mint Green Accent */
+  --accent-gold-light: rgba(5, 150, 105, 0.12);
+  --accent-gold-hover: #047857;
+  --accent-gold-glow: rgba(16, 185, 129, 0.35);
   
   --accent-magenta: #f43f5e;
   --accent-emerald: #10b981;
   
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-primary: #0a251c;
+  --text-secondary: #2e594b;
+  --text-muted: #5e8c7c;
   
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-gold: rgba(99, 102, 241, 0.35);
+  --border-color: rgba(5, 150, 105, 0.16);
+  --border-gold: rgba(5, 150, 105, 0.4);
   
-  --glass-bg: rgba(15, 23, 42, 0.75);
-  --glass-blur: blur(16px);
-  --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  --glass-bg: rgba(255, 255, 255, 0.88);
+  --glass-blur: blur(20px) saturate(180%);
+  --card-shadow: 0 10px 30px rgba(5, 150, 105, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
   
   --font-title: 'Outfit', sans-serif;
   --font-editorial: 'Outfit', sans-serif;
   --font-body: 'Inter', sans-serif;
+
+  /* Fluid Typography & Touch Spacings */
+  --fs-3xs: clamp(0.55rem, 0.5rem + 0.2vw, 0.65rem);
+  --fs-2xs: clamp(0.65rem, 0.6rem + 0.25vw, 0.75rem);
+  --fs-xs: clamp(0.75rem, 0.7rem + 0.3vw, 0.85rem);
+  --fs-sm: clamp(0.85rem, 0.8rem + 0.35vw, 0.95rem);
+  --fs-base: clamp(0.95rem, 0.88rem + 0.4vw, 1.1rem);
+  --fs-md: clamp(1.1rem, 1rem + 0.6vw, 1.35rem);
+  --fs-lg: clamp(1.35rem, 1.15rem + 0.9vw, 1.75rem);
+  --fs-xl: clamp(1.75rem, 1.4rem + 1.5vw, 2.4rem);
+  --fs-2xl: clamp(2.2rem, 1.75rem + 2.2vw, 3.4rem);
+  --content-padding: clamp(14px, 3vw, 40px);
+
   --font-ui: 'Inter', sans-serif;
   --font-nav: 'Outfit', sans-serif;
   
@@ -148,7 +163,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     color: var(--accent-gold);
     background-color: var(--accent-gold-light);
     border-color: var(--border-gold);
-    box-shadow: 0 4px 20px rgba(212, 175, 55, 0.1);
+    box-shadow: 0 4px 20px rgba(5, 150, 105, 0.1);
 }
 
 .nav-icon {
@@ -1049,7 +1064,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
 }
 
 .scanner-upload-box:hover {
-    background-color: rgba(212, 175, 55, 0.03);
+    background-color: rgba(5, 150, 105, 0.03);
     border-color: var(--accent-gold);
 }
 
@@ -1530,7 +1545,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
 .fitting-verdict-box {
     margin-top: 24px;
     padding: 20px;
-    background-color: rgba(212, 175, 55, 0.05);
+    background-color: rgba(5, 150, 105, 0.05);
     border: 1px solid var(--border-gold);
     border-radius: 12px;
     display: flex;
@@ -1574,7 +1589,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
 }
 
 .verdict-bubble {
-    border-top: 1px solid rgba(212, 175, 55, 0.15);
+    border-top: 1px solid rgba(5, 150, 105, 0.15);
     padding-top: 12px;
 }
 
@@ -1700,7 +1715,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     background-color: var(--accent-gold-light);
     border-color: var(--accent-gold);
     color: var(--accent-gold);
-    box-shadow: 0 2px 10px rgba(212, 175, 55, 0.15);
+    box-shadow: 0 2px 10px rgba(5, 150, 105, 0.15);
 }
 
 .vote-count {
@@ -1974,7 +1989,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
 
 .builder-slot:hover {
     border-color: var(--border-gold);
-    background-color: rgba(212, 175, 55, 0.03);
+    background-color: rgba(5, 150, 105, 0.03);
 }
 
 .bslot-header {
@@ -2338,7 +2353,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
 .spinner {
     width: 40px;
     height: 40px;
-    border: 3px solid rgba(212, 175, 55, 0.1);
+    border: 3px solid rgba(5, 150, 105, 0.1);
     border-radius: 50%;
     border-top-color: var(--accent-gold);
     animation: spin 1s ease infinite;
@@ -2427,19 +2442,20 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     /* Bottom Navigation Bar styled like Native iOS/Android navbar */
     .bottom-nav {
         display: flex;
-        position: absolute;
+        position: fixed;
         bottom: 0;
         left: 0;
         right: 0;
-        height: 65px;
-        background: rgba(255, 255, 255, 0.95);
+        height: 68px;
+        background: rgba(255, 255, 255, 0.96);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border-top: 1px solid var(--border-color);
         justify-content: space-around;
         align-items: center;
-        padding: 0 8px;
-        z-index: 15;
+        padding: 4px 8px calc(4px + env(safe-area-inset-bottom, 0px)) 8px;
+        z-index: 9999;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
     }
     
     .bottom-nav-btn {
@@ -2595,7 +2611,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
 
 .brand-filter-btn {
     background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(212, 175, 55, 0.15);
+    border: 1px solid rgba(5, 150, 105, 0.15);
     color: var(--text-secondary);
     padding: 10px 22px;
     border-radius: 20px;
@@ -2609,8 +2625,8 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
 }
 
 .brand-filter-btn:hover {
-    background: rgba(212, 175, 55, 0.08);
-    border-color: rgba(212, 175, 55, 0.4);
+    background: rgba(5, 150, 105, 0.08);
+    border-color: rgba(5, 150, 105, 0.4);
     color: #fff;
 }
 
@@ -2618,7 +2634,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     background: linear-gradient(135deg, var(--accent-gold) 0%, #a28325 100%);
     border-color: var(--accent-gold);
     color: #000;
-    box-shadow: 0 0 15px rgba(212, 175, 55, 0.35);
+    box-shadow: 0 0 15px rgba(5, 150, 105, 0.35);
     font-weight: 600;
 }
 
@@ -2654,13 +2670,13 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
 
 .calendar-day-card:hover {
     border-color: var(--border-gold);
-    background: rgba(212, 175, 55, 0.02);
+    background: rgba(5, 150, 105, 0.02);
     transform: translateY(-3px);
 }
 
 .calendar-day-card.today {
     border: 1px solid var(--accent-gold);
-    background: rgba(212, 175, 55, 0.05);
+    background: rgba(5, 150, 105, 0.05);
 }
 
 .calendar-day-header {
@@ -2731,7 +2747,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
 .calendar-empty-slot:hover {
     border-color: var(--accent-gold);
     color: var(--accent-gold);
-    background: rgba(212, 175, 55, 0.03);
+    background: rgba(5, 150, 105, 0.03);
 }
 
 .capsule-grid {
@@ -2806,7 +2822,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
 }
 
 .capsule-outfit-score-badge {
-    background: rgba(212, 175, 55, 0.1);
+    background: rgba(5, 150, 105, 0.1);
     border: 1px solid var(--accent-gold);
     color: var(--accent-gold);
     font-size: 0.75rem;
@@ -2828,7 +2844,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
 }
 
 .quest-card:hover {
-    border-color: rgba(212, 175, 55, 0.3);
+    border-color: rgba(5, 150, 105, 0.3);
     background: rgba(255, 255, 255, 0.04);
 }
 
@@ -2846,7 +2862,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
 }
 
 .quest-badge.active {
-    background: rgba(212, 175, 55, 0.15);
+    background: rgba(5, 150, 105, 0.15);
     color: var(--accent-gold);
     border: 1px solid var(--accent-gold);
 }
@@ -2864,7 +2880,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     transition: all 0.25s ease;
 }
 #analytics-cpw-list div:hover {
-    border-color: rgba(212, 175, 55, 0.2) !important;
+    border-color: rgba(5, 150, 105, 0.2) !important;
     background: rgba(255,255,255,0.04) !important;
     transform: translateY(-1px);
 }
@@ -2877,7 +2893,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     transition: all 0.25s ease;
 }
 #packing-lists-container .glass-card:hover {
-    border-color: rgba(212, 175, 55, 0.3) !important;
+    border-color: rgba(5, 150, 105, 0.3) !important;
     box-shadow: 0 8px 24px rgba(0,0,0,0.4);
 }
 
@@ -2888,7 +2904,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
 .spinner {
     width: 32px;
     height: 32px;
-    border: 3px solid rgba(212, 175, 55, 0.1);
+    border: 3px solid rgba(5, 150, 105, 0.1);
     border-top-color: var(--accent-gold);
     border-radius: 50%;
     animation: spin 1s linear infinite;
@@ -2913,8 +2929,8 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     transform: rotate(90deg);
 }
 .nav-more-trigger.active {
-    border-color: rgba(212, 175, 55, 0.3) !important;
-    background-color: rgba(212, 175, 55, 0.04) !important;
+    border-color: rgba(5, 150, 105, 0.3) !important;
+    background-color: rgba(5, 150, 105, 0.04) !important;
     color: var(--accent-gold) !important;
 }
 .mobile-drawer-content,
@@ -2933,7 +2949,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     border: 1px solid rgba(0, 0, 0, 0.08);
 }
 .mobile-drawer-grid .bottom-nav-btn.drawer-item:active {
-    background: rgba(212, 175, 55, 0.15);
+    background: rgba(5, 150, 105, 0.15);
     border-color: var(--border-gold);
 }
 
@@ -2969,7 +2985,7 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     max-width: 440px;
     width: 90%;
     position: relative;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15), 0 0 40px rgba(212, 175, 55, 0.03);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15), 0 0 40px rgba(5, 150, 105, 0.03);
     transform: translateY(20px) scale(0.95);
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -2984,12 +3000,12 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     left: 10%;
     right: 10%;
     height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent-gold, #d4af37), transparent);
+    background: linear-gradient(90deg, transparent, var(--accent-gold, #059669), transparent);
 }
 
 .auth-modal-content h3 {
     font-family: var(--font-editorial);
-    color: var(--accent-gold, #d4af37);
+    color: var(--accent-gold, #059669);
     font-size: 1.3rem;
     font-weight: 500;
     letter-spacing: 2px;
@@ -3026,9 +3042,9 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
 }
 
 .auth-field:focus {
-    border-color: var(--accent-gold, #d4af37);
+    border-color: var(--accent-gold, #059669);
     background: rgba(0, 0, 0, 0.05);
-    box-shadow: 0 0 15px rgba(212, 175, 55, 0.15);
+    box-shadow: 0 0 15px rgba(5, 150, 105, 0.15);
 }
 
 .auth-error {
@@ -3074,20 +3090,20 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
 .btn-modal-primary {
     flex: 1.3;
     padding: 12px 20px;
-    background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
-    border: 1px solid #d4af37;
+    background: linear-gradient(135deg, #059669 0%, #b8860b 100%);
+    border: 1px solid #059669;
     color: #050505;
     font-weight: 600;
     font-size: 0.9rem;
     border-radius: 6px;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+    box-shadow: 0 4px 15px rgba(5, 150, 105, 0.2);
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-modal-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.35);
+    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.35);
     filter: brightness(1.05);
 }
 

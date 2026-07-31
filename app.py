@@ -17,6 +17,8 @@ import database
 import vision_engine
 import styling_engine
 import store_scraper
+import auth_middleware
+import storage_service
 import json
 
 # Initialize Flask app
@@ -279,6 +281,51 @@ def scan_image():
                 os.remove(temp_path)
                 
         return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/remove-bg', methods=['POST'])
+def remove_bg_endpoint():
+    """
+    Automated background removal endpoint (/api/remove-bg).
+    Supports multipart/form-data ('image' or 'file') and JSON ('image_base64').
+    Uses SOTA rembg engine when installed with automatic GrabCut + Alpha Masking fallback for offline resilience.
+    """
+    try:
+        image_bytes = None
+        if 'image' in request.files and request.files['image'].filename != '':
+            image_bytes = request.files['image'].read()
+        elif 'file' in request.files and request.files['file'].filename != '':
+            image_bytes = request.files['file'].read()
+        elif request.is_json and request.json:
+            data = request.json
+            b64_data = data.get('image_base64') or data.get('image') or data.get('cutout_base64')
+            if b64_data:
+                if ',' in b64_data:
+                    b64_data = b64_data.split(',', 1)[1]
+                import base64
+                image_bytes = base64.b64decode(b64_data)
+
+        if not image_bytes:
+            return jsonify({"error": "No se proporcionó archivo de imagen o base64 en la solicitud."}), 400
+
+        cutout_bytes, engine_used = vision_engine.remove_background_with_info(image_bytes)
+
+        if not cutout_bytes:
+            return jsonify({"error": "No se pudo realizar la remoción de fondo."}), 500
+
+        import base64
+        b64_str = base64.b64encode(cutout_bytes).decode('utf-8')
+
+        if request.args.get('format') == 'binary' or 'image/png' in request.headers.get('Accept', ''):
+            import io
+            return send_file(io.BytesIO(cutout_bytes), mimetype='image/png')
+
+        return jsonify({
+            "status": "success",
+            "engine": engine_used,
+            "cutout_base64": f"data:image/png;base64,{b64_str}"
+        }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

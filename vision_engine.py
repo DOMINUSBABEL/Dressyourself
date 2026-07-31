@@ -232,16 +232,38 @@ MATERIAL_KEYWORD_MAPPING = {
 
 def remove_background(image_path_or_bytes):
     """
-    Removes background using OpenCV grabCut to isolate the garment as a transparent PNG.
-    Uses a hybrid border-color and bounding box mask initialization for near-perfect segmentation.
-    Incluye filtro de remoción de sombras y limpieza de fondo estilo Moda AI.
+    Automated Background Removal (Motor de Remoción de Fondo).
+    Uses rembg if available, otherwise executes GrabCut + Alpha Masking with OpenCV (offline resilience).
+    Returns bytes of transparent PNG image, or None if processing fails.
     """
+    # 1. Try rembg first if installed
+    try:
+        import rembg
+        if isinstance(image_path_or_bytes, str):
+            with open(image_path_or_bytes, 'rb') as f:
+                inp = f.read()
+        elif hasattr(image_path_or_bytes, 'read'):
+            inp = image_path_or_bytes.read()
+        else:
+            inp = image_path_or_bytes
+        output_bytes = rembg.remove(inp)
+        if output_bytes and isinstance(output_bytes, bytes):
+            return output_bytes
+    except Exception:
+        pass
+
+    # 2. OpenCV GrabCut Fallback with SOTA Alpha Masking & Shadow Filter
     try:
         if isinstance(image_path_or_bytes, str):
             img = cv2.imread(image_path_or_bytes)
-        else:
+        elif hasattr(image_path_or_bytes, 'read'):
+            nparr = np.frombuffer(image_path_or_bytes.read(), np.uint8)
+            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        elif isinstance(image_path_or_bytes, bytes):
             nparr = np.frombuffer(image_path_or_bytes, np.uint8)
             img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        else:
+            return None
 
         if img is None:
             return None
@@ -251,7 +273,7 @@ def remove_background(image_path_or_bytes):
         bgdModel = np.zeros((1, 65), np.float64)
         fgdModel = np.zeros((1, 65), np.float64)
 
-        # 1. Estimate background color from outer borders
+        # Estimate background color from outer borders
         border_pixels = []
         border_pixels.extend(img[0, :, :])
         border_pixels.extend(img[-1, :, :])
@@ -264,48 +286,53 @@ def remove_background(image_path_or_bytes):
         diff = np.abs(img.astype(np.int32) - bg_color)
         is_bg = np.all(diff < 22, axis=2)
 
-        # 2. Initialize mask: GC_BGD (sure bg) for border-matching colors, GC_PR_FGD inside the inner rect
+        # Initialize mask
         mask[is_bg] = cv2.GC_BGD
         
-        # Rect: 5% inset
         rx, ry, rw, rh = int(w * 0.05), int(h * 0.05), int(w * 0.9), int(h * 0.9)
         rect_mask = np.zeros((h, w), dtype=bool)
         rect_mask[ry:ry+rh, rx:rx+rw] = True
         
-        # Mark non-bg pixels inside the rect as probable foreground
         mask[rect_mask & ~is_bg] = cv2.GC_PR_FGD
-        # Mark bg pixels inside the rect as probable background
         mask[rect_mask & is_bg] = cv2.GC_PR_BGD
-        # Mark outside rect as sure background
         mask[~rect_mask] = cv2.GC_BGD
 
-        # 3. Run grabCut with mask
-        cv2.grabCut(img, mask, None, bgdModel, fgdModel, 5, cv2.GC_INIT_WITH_MASK)
-        
-        mask2 = np.where((mask==2)|(mask==0), 0, 1).astype('uint8')
+        # Ensure GrabCut has non-empty foreground & background samples
+        if np.count_nonzero(mask == cv2.GC_PR_FGD) == 0:
+            cx1, cy1 = int(w * 0.2), int(h * 0.2)
+            cx2, cy2 = int(w * 0.8), int(h * 0.8)
+            mask[cy1:cy2, cx1:cx2] = cv2.GC_PR_FGD
+
+        if np.count_nonzero(mask == cv2.GC_BGD) == 0:
+            mask[0:max(1, int(h * 0.05)), :] = cv2.GC_BGD
+            mask[-max(1, int(h * 0.05)):, :] = cv2.GC_BGD
+
+        try:
+            cv2.grabCut(img, mask, None, bgdModel, fgdModel, 5, cv2.GC_INIT_WITH_MASK)
+            mask2 = np.where((mask == 2) | (mask == 0), 0, 1).astype('uint8')
+        except Exception:
+            # Fallback alpha mask if GrabCut fails on uniform images
+            dist = np.sqrt(np.sum((img.astype(np.float32) - bg_color) ** 2, axis=2))
+            mask2 = np.where(dist < 25, 0, 1).astype('uint8')
         mask2 = cv2.GaussianBlur(mask2 * 255, (3, 3), 0)
         _, mask_alpha = cv2.threshold(mask2, 100, 255, cv2.THRESH_BINARY)
 
-        # 4. Solid backdrop Euclidean distance override (for synthetic/studio flat backdrops)
         dist = np.sqrt(np.sum((img.astype(np.float32) - bg_color) ** 2, axis=2))
         is_flat_bg = dist < 35
         mask_alpha[is_flat_bg] = 0
         
-        # Filtro de remoción de sombras y limpieza de fondo estilo Moda AI
-        # Convert to LAB to detect shadows (low lightness)
+        # Shadow removal filter
         lab_img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
-        l_channel, a_channel, b_channel = cv2.split(lab_img)
-        # Shadows usually have low L value, but we only remove shadows on the background/edges
+        l_channel, _, _ = cv2.split(lab_img)
         shadow_mask = (l_channel < 50) & (dist < 80)
         mask_alpha[shadow_mask] = 0
 
-        # Suavizado de bordes (Feathering) para limpieza estilo Moda AI
+        # Feathering
         mask_alpha = cv2.GaussianBlur(mask_alpha, (5, 5), 0)
 
         b, g, r = cv2.split(img)
         rgba = cv2.merge([b, g, r, mask_alpha])
         
-        # Crop transparent padding
         pts = np.argwhere(mask_alpha > 0)
         if len(pts) > 0:
             y_min, x_min = pts.min(axis=0)
@@ -314,14 +341,12 @@ def remove_background(image_path_or_bytes):
         else:
             cropped = rgba
 
-        # Resize to fit in 1024x1024 box (keeping aspect ratio)
         ch, cw, _ = cropped.shape
         fit_size = 900
         scale = min(float(fit_size) / cw, float(fit_size) / ch)
         nw, nh = int(cw * scale), int(ch * scale)
         resized = cv2.resize(cropped, (nw, nh), interpolation=cv2.INTER_AREA)
         
-        # Place in a transparent 1024x1024 square
         canvas = np.zeros((1024, 1024, 4), dtype=np.uint8)
         dx = (1024 - nw) // 2
         dy = (1024 - nh) // 2
@@ -330,8 +355,30 @@ def remove_background(image_path_or_bytes):
         _, encoded = cv2.imencode('.png', canvas)
         return encoded.tobytes()
     except Exception as e:
-        print(f"Error in background removal: {e}")
+        print(f"Error in background removal: {e}", flush=True)
         return None
+
+def remove_background_with_info(image_path_or_bytes):
+    """
+    Automated Background Removal returning tuple (cutout_bytes, engine_name).
+    """
+    try:
+        import rembg
+        if isinstance(image_path_or_bytes, str):
+            with open(image_path_or_bytes, 'rb') as f:
+                inp = f.read()
+        elif hasattr(image_path_or_bytes, 'read'):
+            inp = image_path_or_bytes.read()
+        else:
+            inp = image_path_or_bytes
+        output_bytes = rembg.remove(inp)
+        if output_bytes and isinstance(output_bytes, bytes):
+            return output_bytes, "rembg"
+    except Exception:
+        pass
+    
+    cutout = remove_background(image_path_or_bytes)
+    return cutout, "opencv_grabcut"
 
 def extract_multiple_items(image_path_or_bytes):
     """
@@ -1005,4 +1052,5 @@ def analyze_image(image_path_or_bytes):
 
 # BabylonSwarm_Commit_15: feat(brands): add structured tags for premium fabrics (Silk, Wool, Tweed, Leather)
 
-# BabylonSwarm_Commit_57: fix(vision): patch potential edge cases in contour-split calculations
+
+
