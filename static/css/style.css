@@ -2442,20 +2442,19 @@ h1, h2, h3, h4, .editorial-title, .editorial-subtitle {
     /* Bottom Navigation Bar styled like Native iOS/Android navbar */
     .bottom-nav {
         display: flex;
-        position: fixed;
+        position: absolute;
         bottom: 0;
         left: 0;
         right: 0;
-        height: 68px;
-        background: rgba(255, 255, 255, 0.96);
+        height: 65px;
+        background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border-top: 1px solid var(--border-color);
         justify-content: space-around;
         align-items: center;
-        padding: 4px 8px calc(4px + env(safe-area-inset-bottom, 0px)) 8px;
-        z-index: 9999;
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+        padding: 0 8px;
+        z-index: 15;
     }
     
     .bottom-nav-btn {
