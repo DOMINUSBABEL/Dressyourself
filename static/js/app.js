@@ -18,14 +18,20 @@
         };
 
         window.AetherAppResponseBase64 = function(callId, base64Str) {
-            try {
-                const jsonStr = decodeURIComponent(escape(atob(base64Str)));
-                window.AetherAppResponse(callId, jsonStr);
-            } catch (e) {
+            if (nativeCallbacks[callId]) {
                 try {
-                    window.AetherAppResponse(callId, atob(base64Str));
-                } catch (e2) {
-                    console.error("Error decoding AetherAppResponseBase64:", e2);
+                    const jsonStr = decodeURIComponent(escape(window.atob(base64Str)));
+                    const parsed = JSON.parse(jsonStr);
+                    nativeCallbacks[callId].resolve(parsed);
+                } catch (e) {
+                    try {
+                        const rawJson = window.atob(base64Str);
+                        nativeCallbacks[callId].resolve(JSON.parse(rawJson));
+                    } catch (e2) {
+                        nativeCallbacks[callId].reject(e2);
+                    }
+                } finally {
+                    delete nativeCallbacks[callId];
                 }
             }
         };
@@ -173,7 +179,7 @@ function getEmptyStateHTML(type) {
 }
 
 function updateChatHistoryState() {
-    const history = document.getElementById('chat-history');
+    const history = document.getElementById('chat-history') || document.getElementById('bchat-history') || document.getElementById('chat-messages');
     if (!history) return;
     
     const hasMessages = history.querySelector('.chat-msg');
@@ -188,7 +194,12 @@ function updateChatHistoryState() {
 
 // Gold particle burst effect generator for ratings
 function createGoldParticleBurst(element) {
-    const rect = element.getBoundingClientRect();
+    let rect;
+    if (element && typeof element.getBoundingClientRect === 'function') {
+        rect = element.getBoundingClientRect();
+    } else {
+        rect = { left: 100, top: 100, width: 50, height: 50 };
+    }
     const x = rect.left + rect.width / 2;
     const y = rect.top + rect.height / 2;
     
@@ -369,7 +380,7 @@ const MOCK_CITIES_WEATHER = [
 ];
 
 // Document Lifecycle Init
-function bootApp() {
+document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
     initWeather();
     initCloset();
@@ -385,13 +396,7 @@ function bootApp() {
     if (typeof window.checkOnboardingStartup === 'function') {
         window.checkOnboardingStartup();
     }
-}
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bootApp);
-} else {
-    bootApp();
-}
+});
 
 // 1. Dynamic Tab Navigation (Responsive support)
 function initNavigation() {
@@ -407,6 +412,8 @@ function initNavigation() {
 
 function switchTab(tabName) {
     if (!tabName) return;
+    if (STATE.currentTab === tabName) return; // Prevent duplicate transition if clicking active tab
+    
     const prevTabName = STATE.currentTab;
     STATE.currentTab = tabName;
     
@@ -419,38 +426,47 @@ function switchTab(tabName) {
     });
 
     const mainContent = document.querySelector('.main-content');
-    const oldSection = (prevTabName && prevTabName !== tabName) ? document.getElementById(prevTabName) : null;
+    const oldSection = document.getElementById(prevTabName);
     const newSection = document.getElementById(tabName);
 
     if (oldSection && newSection) {
+        // Create or show a blur-out overlay for an organic feel
         let overlay = document.getElementById('tab-transition-overlay');
-        if (!overlay && mainContent) {
+        if (!overlay) {
             overlay = document.createElement('div');
             overlay.id = 'tab-transition-overlay';
             mainContent.appendChild(overlay);
         }
-        if (overlay) overlay.classList.add('transitioning');
         
+        // Trigger overlay fade & blur
+        overlay.classList.add('transitioning');
+        
+        // Animate old section out
         oldSection.classList.remove('active');
         oldSection.classList.add('tab-leaving');
         
+        // Wait for old section exit animation (200ms)
         setTimeout(() => {
             oldSection.classList.remove('tab-leaving');
+            
+            // Activate new section
             newSection.classList.add('active');
             newSection.classList.add('tab-entering');
-            if (mainContent) mainContent.scrollTop = 0;
+            mainContent.scrollTop = 0;
             
+            // Remove entering class and transition overlay after entering
             setTimeout(() => {
                 newSection.classList.remove('tab-entering');
-                if (overlay) overlay.classList.remove('transitioning');
-            }, 250);
-        }, 150);
+                overlay.classList.remove('transitioning');
+            }, 300);
+        }, 200);
     } else if (newSection) {
+        // Fallback for first load
         document.querySelectorAll('.tab-content').forEach(section => {
             section.classList.remove('active');
         });
         newSection.classList.add('active');
-        if (mainContent) mainContent.scrollTop = 0;
+        mainContent.scrollTop = 0;
     }
     
     if (tabName === 'pedidos') {
@@ -474,7 +490,7 @@ function switchTab(tabName) {
     }
 }
 
-const MORE_TABS = ['progreso', 'asistente', 'boutique', 'comunidad', 'pedidos', 'calendario', 'capsula', 'analiticas', 'mezclador', 'viajes', 'configuracion'];
+const MORE_TABS = ['progreso', 'boutique', 'comunidad', 'pedidos', 'calendario', 'capsula', 'analiticas', 'mezclador', 'viajes', 'configuracion'];
 
 window.toggleDesktopMoreMenu = function(event) {
     if (event) event.preventDefault();
@@ -549,45 +565,30 @@ window.switchTab = function(tabName) {
 };
 
 // 2. Weather & Daily Recommendations Integration (with GPS geolocation, Nominatim reverse geocoding & location picker)
-function initWeather() {
+async function initWeather() {
     initLocationModal();
 
-    // 1. INSTANT SYNCHRONOUS INITIAL RENDER (0ms wait) to eliminate loading spinners on startup
+    // Check if user manually saved a location previously
     const savedCityIndex = localStorage.getItem('dy_selected_city_index');
-    const cityIdx = (savedCityIndex !== null && !isNaN(parseInt(savedCityIndex))) ? parseInt(savedCityIndex) : 0;
-    const defaultCityWeather = MOCK_CITIES_WEATHER[cityIdx] || MOCK_CITIES_WEATHER[0];
-    
-    renderWeather({
-        city: defaultCityWeather.name,
-        temp: defaultCityWeather.temp,
-        desc: defaultCityWeather.desc,
-        details: [
-            { label: "Condición", value: defaultCityWeather.condition },
-            { label: "Humedad", value: defaultCityWeather.humidity },
-            { label: "Viento", value: defaultCityWeather.wind }
-        ]
-    });
-    renderRecommendations(MOCK_DATA.climaRecommendation);
+    if (savedCityIndex !== null && localStorage.getItem('dy_use_gps') !== 'true') {
+        await loadWeatherByCityIndex(parseInt(savedCityIndex));
+        return;
+    }
 
-    // 2. NON-BLOCKING ASYNCHRONOUS BACKGROUND REFRESH (Network/GPS)
-    setTimeout(async () => {
-        if (savedCityIndex !== null && localStorage.getItem('dy_use_gps') !== 'true') {
-            await loadWeatherByCityIndex(parseInt(savedCityIndex));
-            return;
-        }
+    // Try to get real GPS coordinates
+    let geoCoords = null;
+    try {
+        geoCoords = await getDeviceLocation();
+    } catch (geoErr) {
+        console.log("GPS not available, using default weather:", geoErr.message);
+    }
 
-        try {
-            const geoCoords = await Promise.race([
-                getDeviceLocation(),
-                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout GPS background")), 2500))
-            ]);
-            if (geoCoords) {
-                await loadWeatherByGPS(geoCoords.latitude, geoCoords.longitude);
-            }
-        } catch (geoErr) {
-            console.log("Background GPS lookup completed or fallback retained:", geoErr.message);
-        }
-    }, 50);
+    if (geoCoords) {
+        await loadWeatherByGPS(geoCoords.latitude, geoCoords.longitude);
+    } else {
+        // Fallback to default city (Bogota, index 0)
+        await loadWeatherByCityIndex(0);
+    }
 }
 
 // Get device GPS location
@@ -849,7 +850,7 @@ function renderRecommendations(items) {
             
             window.ratePolaroid = function(e, idx, rating) {
                 e.stopPropagation();
-                const container = document.getElementById('clima-polaroid-' + idx);
+                const container = document.getElementById(`clima-polaroid-${idx}`);
                 if (!container) return;
                 const stars = container.querySelectorAll('.star-rating-icon');
                 stars.forEach((star, i) => {
@@ -864,7 +865,7 @@ function renderRecommendations(items) {
                 if (typeof createGoldParticleBurst === 'function') {
                     createGoldParticleBurst(e.target);
                 }
-                showToast("¡Gracias por calificar con " + rating + " estrellas!");
+                showToast(`¡Gracias por calificar con ${rating} estrellas!`);
             };
 
             // Hover sync from Polaroid to Card
@@ -943,16 +944,28 @@ async function initCloset() {
     });
 }
 
+window.filterClosetCategory = function(category) {
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(b => {
+        if (b.getAttribute('data-filter') === category) {
+            b.classList.add('active');
+        } else {
+            b.classList.remove('active');
+        }
+    });
+    renderCloset(category);
+};
+
 // Map backend category names to frontend category keys
 function mapCategory(backendCat) {
-    const map = {
-        'Top': 'superior',
-        'Bottom': 'inferior',
-        'Footwear': 'calzado',
-        'Outerwear': 'abrigo',
-        'Accessory': 'accesorio'
-    };
-    return map[backendCat] || backendCat;
+    if (!backendCat) return 'superior';
+    const norm = String(backendCat).trim().toLowerCase();
+    if (norm === 'superior' || norm === 'top') return 'superior';
+    if (norm === 'inferior' || norm === 'bottom') return 'inferior';
+    if (norm === 'base' || norm === 'vestido' || norm === 'outerwear' || norm === 'abrigo') return 'abrigo';
+    if (norm === 'calzado' || norm === 'footwear' || norm === 'shoes') return 'calzado';
+    if (norm === 'accessory' || norm === 'accesorio' || norm === 'complementos') return 'accesorio';
+    return norm;
 }
 
 async function loadClosetItems() {
@@ -1002,7 +1015,7 @@ function updateStylingIndex() {
     const gCountEl = document.getElementById('gamification-count');
     const gBarEl = document.getElementById('gamification-bar');
     if (gCountEl) gCountEl.textContent = count;
-    if (gBarEl) gBarEl.style.width = progressPct + '%';
+    if (gBarEl) gBarEl.style.width = `${progressPct}%`;
     if (count >= 20 && gBarEl) {
         gBarEl.style.background = 'var(--accent-emerald)';
         showToast("¡Has alcanzado el título de Maestro del Estilo!", "success");
@@ -1223,6 +1236,7 @@ function getRandomQuote() {
 
 function triggerIsaSpeech(text) {
     const speechEl = document.getElementById('isa-speech');
+    if (!speechEl) return;
     const pulseRing = document.querySelector('.isa-pulse-ring');
     
     speechEl.style.opacity = '0';
@@ -1235,13 +1249,16 @@ function triggerIsaSpeech(text) {
     }
 
     setTimeout(() => {
-        speechEl.textContent = text;
-        speechEl.style.opacity = '1';
+        if (speechEl) {
+            speechEl.textContent = text;
+            speechEl.style.opacity = '1';
+        }
     }, 200);
 }
 
 async function handleUserMessage() {
-    const chatInput = document.getElementById('chat-input');
+    const chatInput = document.getElementById('chat-input') || document.getElementById('bchat-input');
+    if (!chatInput) return;
     const text = chatInput.value.trim();
     if (!text) return;
 
@@ -1276,7 +1293,8 @@ async function handleUserMessage() {
 }
 
 function appendChatMessage(sender, text, scrapedItem = null, rpgRecommendation = null) {
-    const history = document.getElementById('chat-history');
+    const history = document.getElementById('chat-history') || document.getElementById('bchat-history') || document.getElementById('chat-messages');
+    if (!history) return;
     
     // Remove empty state if present
     const existingEmpty = history.querySelector('.empty-state');
@@ -5214,39 +5232,28 @@ window.onboardingData = {
     skinTone: '#FDE4C8'
 };
 
+window.handleGoogleSignIn = function() {
+    showToast("Autenticando con Google (Firebase JS SDK)...");
+    setTimeout(() => {
+        window.nextOnboardingStep(2);
+    }, 1000);
+};
+
 window.detectLocationOB = function() {
-    const inputCity = document.getElementById('ob-profile-city');
-    if (inputCity) inputCity.value = 'Detectando ubicación...';
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                if (inputCity) inputCity.value = 'Medellín (GPS)';
-                window.checkStep3();
-            },
-            (err) => {
-                if (inputCity) inputCity.value = 'Bogotá';
-                window.checkStep3();
-            },
-            { timeout: 5000 }
-        );
-    } else {
-        if (inputCity) inputCity.value = 'Bogotá';
-        window.checkStep3();
-    }
+    document.getElementById('ob-profile-city').value = 'Bogotá (Detectado)';
+    window.checkStep3();
 };
 
 window.checkStep3 = function() {
-    const nameEl = document.getElementById('ob-profile-name');
-    const cityEl = document.getElementById('ob-profile-city');
-    const name = nameEl ? nameEl.value.trim() : '';
-    const city = cityEl ? cityEl.value.trim() : '';
+    const name = document.getElementById('ob-profile-name').value.trim();
+    const city = document.getElementById('ob-profile-city').value.trim();
     const btn = document.getElementById('btn-onboarding-next-3');
     if (name && city) {
-        if (btn) btn.disabled = false;
+        btn.disabled = false;
         window.onboardingData.name = name;
         window.onboardingData.city = city;
     } else {
-        if (btn) btn.disabled = true;
+        btn.disabled = true;
     }
 };
 
@@ -5254,81 +5261,164 @@ window.selectSkinTone = function(el, color) {
     document.querySelectorAll('#ostep-4 [onclick^="window.selectSkinTone"]').forEach(div => {
         div.style.borderColor = 'transparent';
     });
-    if (el) el.style.borderColor = 'var(--accent-gold)';
+    el.style.borderColor = 'var(--accent-gold)';
     window.onboardingData.skinTone = color;
 };
 
 window.nextOnboardingStep = function(stepNum) {
+    const activeStep = document.querySelector('.onboarding-step.active');
+    if (activeStep && (activeStep.id === 'ostep-welcome' || activeStep.id === 'ostep-1' || stepNum === 1)) {
+        const nameEl = document.getElementById('onboarding-user-name') || document.getElementById('ob-profile-name');
+        const nameVal = nameEl ? nameEl.value.trim() : '';
+        if (!nameVal) {
+            if (typeof showToast === 'function') {
+                showToast('Por favor ingresa tu nombre', 'error');
+            }
+            return;
+        }
+        if (!window.onboardingData) window.onboardingData = {};
+        window.onboardingData.name = nameVal;
+    }
+
     document.querySelectorAll('.onboarding-step').forEach(step => {
         step.classList.remove('active');
     });
     
-    let stepId = 'ostep-' + stepNum;
-    const stepEl = document.getElementById(stepId);
-    if (stepEl) stepEl.classList.add('active');
+    const stepMap = {
+        0: 'ostep-welcome',
+        1: 'ostep-style',
+        2: 'ostep-color',
+        3: 'ostep-brand'
+    };
+
+    let stepId = stepMap[stepNum] || ('ostep-' + stepNum);
+    
+    let targetStep = document.getElementById(stepId);
+    if (!targetStep && stepNum === 1) {
+        targetStep = document.getElementById('ostep-style') || document.getElementById('ostep-2');
+    } else if (!targetStep && stepNum === 2) {
+        targetStep = document.getElementById('ostep-color') || document.getElementById('ostep-3');
+    } else if (!targetStep && stepNum === 3) {
+        targetStep = document.getElementById('ostep-brand') || document.getElementById('ostep-4');
+    }
+    if (targetStep) targetStep.classList.add('active');
 };
 
-window.selectOnboardingOption = function(type, value, targetEl) {
+window.selectOnboardingOption = function(arg1, arg2, arg3) {
+    let type, value, evt;
+    if (typeof arg1 === 'object' && arg1 !== null) {
+        evt = arg1;
+        type = arg2;
+        value = arg3;
+    } else {
+        type = arg1;
+        value = arg2;
+        evt = arg3;
+    }
+
     const activeStep = document.querySelector('.onboarding-step.active');
     if (!activeStep) return;
-    
-    activeStep.querySelectorAll('.onboarding-option').forEach(opt => {
+
+    let targetEl = null;
+    if (evt && evt.currentTarget) {
+        targetEl = evt.currentTarget;
+    } else if (evt && evt.target) {
+        targetEl = evt.target.closest ? evt.target.closest('.onboarding-option') : evt.target;
+    } else if (typeof window !== 'undefined' && window.event && (window.event.currentTarget || window.event.target)) {
+        targetEl = window.event.currentTarget || window.event.target;
+    }
+
+    const options = activeStep.querySelectorAll('.onboarding-option');
+
+    if (!targetEl && options && options.length > 0) {
+        for (let i = 0; i < options.length; i++) {
+            const opt = options[i];
+            const onclickAttr = (opt.getAttribute && opt.getAttribute('onclick')) || '';
+            if (onclickAttr && (onclickAttr.includes(`'${value}'`) || onclickAttr.includes(`"${value}"`))) {
+                targetEl = opt;
+                break;
+            }
+        }
+        if (!targetEl) targetEl = options[0];
+    }
+
+    options.forEach(opt => {
         opt.classList.remove('selected');
     });
-    
-    const el = targetEl || (typeof event !== 'undefined' ? event.currentTarget : null);
-    if (el) el.classList.add('selected');
-    window.onboardingData[type] = value;
-    
+
+    if (targetEl && targetEl.classList) {
+        targetEl.classList.add('selected');
+    }
+
+    if (type) {
+        window.onboardingData[type] = value;
+    }
+
     let nextBtnId = '';
-    if (type === 'goal') nextBtnId = 'btn-onboarding-next-2';
-    
+    if (type === 'style') nextBtnId = 'btn-onboarding-next-1';
+    else if (type === 'goal' || type === 'color') nextBtnId = 'btn-onboarding-next-2';
+    else if (type === 'brand') nextBtnId = 'btn-onboarding-finish';
+
     if (nextBtnId) {
         const btn = document.getElementById(nextBtnId);
         if (btn) btn.disabled = false;
     }
 };
 
+window.applyColorSeasonTheme = function(season) {
+    if (!season) return;
+    const normalized = season.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    ['theme-invierno', 'theme-otono', 'theme-primavera', 'theme-verano'].forEach(cls => {
+        if (document.body && document.body.classList) {
+            document.body.classList.remove(cls);
+        }
+    });
+    if (document.body && document.body.classList) {
+        document.body.classList.add('theme-' + normalized);
+    }
+};
+
+window.changeSystemColorSeason = function(season) {
+    localStorage.setItem('dy_user_color_season', season);
+    window.applyColorSeasonTheme(season);
+    const selectEl = document.getElementById('settings-color-season');
+    if (selectEl) selectEl.value = season;
+};
+
+window.changeSystemLanguage = function(lang) {
+    localStorage.setItem('dy_language', lang);
+    const selectEl = document.getElementById('settings-language');
+    if (selectEl) selectEl.value = lang;
+};
+
 window.completeOnboarding = function() {
     const chestEl = document.getElementById('measure-chest');
     const waistEl = document.getElementById('measure-waist');
     const hipsEl = document.getElementById('measure-hips');
-
     if (chestEl) window.onboardingData.chest = chestEl.value;
     if (waistEl) window.onboardingData.waist = waistEl.value;
     if (hipsEl) window.onboardingData.hips = hipsEl.value;
 
-    const name = window.onboardingData.name || 'Usuario Dress Yourself';
-    const goal = window.onboardingData.goal || 'Eficiencia';
-    const city = window.onboardingData.city || 'Medellín';
-
-    localStorage.setItem('dy_user_name', name);
-    localStorage.setItem('dy_user_goal', goal);
-    localStorage.setItem('dy_user_city', city);
+    localStorage.setItem('dy_user_name', window.onboardingData.name || '');
+    localStorage.setItem('dy_user_goal', window.onboardingData.goal || '');
+    localStorage.setItem('dy_user_style', window.onboardingData.style || window.onboardingData.goal || '');
+    localStorage.setItem('dy_user_color_season', window.onboardingData.color || window.onboardingData.color_season || '');
+    localStorage.setItem('dy_user_brand_focus', window.onboardingData.brand || '');
     localStorage.setItem('dy_onboarding_completed', 'true');
-    
-    const settingsUsername = document.getElementById('settings-username');
-    if (settingsUsername) settingsUsername.value = name;
 
-    // Send profile data asynchronously to API / Backend
-    try {
-        fetch('/api/profiles', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: name,
-                goal: goal,
-                city: city,
-                chest: window.onboardingData.chest,
-                waist: window.onboardingData.waist,
-                hips: window.onboardingData.hips,
-                skinTone: window.onboardingData.skinTone
-            })
-        });
-    } catch (e) {
-        console.log("Profile backend save offline fallback:", e);
+    const colorSeason = window.onboardingData.color || window.onboardingData.color_season;
+    if (colorSeason) {
+        window.applyColorSeasonTheme(colorSeason);
     }
-    
+
+    const settingsUsername = document.getElementById('settings-username');
+    if (settingsUsername) settingsUsername.value = window.onboardingData.name || '';
+
+    const settingsColorSeason = document.getElementById('settings-color-season');
+    if (settingsColorSeason && colorSeason) {
+        settingsColorSeason.value = colorSeason;
+    }
+
     const overlay = document.getElementById('onboarding-overlay');
     if (overlay) {
         overlay.style.transition = 'opacity 0.6s ease';
@@ -5338,7 +5428,9 @@ window.completeOnboarding = function() {
             if (typeof createGoldParticleBurst === 'function') {
                 createGoldParticleBurst();
             }
-            showToast(`¡Bienvenido, ${window.onboardingData.name}!`);
+            if (typeof showToast === 'function') {
+                showToast(`¡Bienvenido, ${window.onboardingData.name}!`);
+            }
         }, 600);
     }
 };
@@ -5356,6 +5448,13 @@ window.checkOnboardingStartup = function() {
         const settingsUsername = document.getElementById('settings-username');
         if (settingsUsername) settingsUsername.value = name;
         
+        const season = localStorage.getItem('dy_user_color_season');
+        if (season) {
+            window.applyColorSeasonTheme(season);
+            const seasonSelect = document.getElementById('settings-color-season');
+            if (seasonSelect) seasonSelect.value = season;
+        }
+
         const lang = localStorage.getItem('dy_language') || 'es';
         const langSelect = document.getElementById('settings-language');
         if (langSelect) langSelect.value = lang;
@@ -5397,6 +5496,7 @@ window.resetAccountData = async function() {
 };
 
 window.changeSystemLanguage = function(lang) {
+    if (!lang) lang = 'es';
     localStorage.setItem('dy_language', lang);
     const translations = {
         'es': "Idioma cambiado a Español.",
@@ -5407,7 +5507,11 @@ window.changeSystemLanguage = function(lang) {
     
     // Apply translations across DOM elements
     if (typeof applySystemTranslations === 'function') {
-        applySystemTranslations(lang);
+        try {
+            applySystemTranslations(lang);
+        } catch (e) {
+            console.warn("Language update partial failure:", e);
+        }
     }
 };
 
@@ -5926,7 +6030,7 @@ function applySystemTranslations(lang) {
     const dict = TRANSLATIONS[lang];
     
     // Navigation translate
-    const tabs = ['clima', 'closet', 'asistente', 'innovaciones', 'boutique', 'probador', 'comunidad', 'pedidos', 'calendario', 'capsula', 'analiticas', 'mezclador', 'viajes', 'configuracion'];
+    const tabs = ['clima', 'closet', 'innovaciones', 'boutique', 'probador', 'comunidad', 'pedidos', 'calendario', 'capsula', 'analiticas', 'mezclador', 'viajes', 'configuracion'];
     tabs.forEach(t => {
         const btnText = dict[`nav_${t}`];
         if (btnText) {
@@ -5955,12 +6059,6 @@ function applySystemTranslations(lang) {
         
         { sel: '.daily-quests-panel h4.gold-text', key: 'quests_title' },
         { sel: '.daily-quests-panel .section-desc', key: 'quests_desc', isTextContent: true },
-        { sel: '#asistente .editorial-title', key: 'isa_title' },
-        { sel: '#asistente .section-desc', key: 'isa_desc' },
-        { sel: '#asistente label[for="isa-look"]', key: 'isa_hair_label' },
-        { sel: '#asistente label[for="personality"]', key: 'isa_personality_label' },
-        { sel: '#asistente .chat-mode-header h4', key: 'isa_rpg_header' },
-        { sel: '#asistente .rpg-progress-tracker span:first-child', key: 'isa_rpg_progress' },
         
         { sel: '#configuracion .editorial-title', key: 'settings_title', isTextContent: true },
         { sel: '#configuracion .section-desc', key: 'settings_desc' },
@@ -6327,50 +6425,5 @@ window.verifyAuthCode = function() {
             input.focus();
             input.select();
         }
-window.skipOnboardingWizard = function() {
-    localStorage.setItem('dy_onboarding_completed', 'true');
-    const overlay = document.getElementById('onboarding-overlay');
-    if (overlay) overlay.style.display = 'none';
-};
-
-window.handleGoogleSignIn = async function(event) {
-    if (event) event.preventDefault();
-    console.log("Initiating Google Sign-In...");
-    
-    const userProfile = {
-        name: "Usuario Google",
-        email: "usuario.demo@dressyourself.app",
-        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop",
-        provider: "google",
-        authenticated: true
-    };
-
-    localStorage.setItem('dy_user_profile', JSON.stringify(userProfile));
-    localStorage.setItem('dy_auth_token', 'google_session_token_' + Date.now());
-
-    if (window.AetherApp && typeof window.AetherApp.postMessage === 'function') {
-        try {
-            window.AetherApp.postMessage(JSON.stringify({ path: '/api/auth/google', body: userProfile }));
-        } catch (e) {
-            console.warn("AetherApp bridge call:", e);
-        }
-    }
-
-    if (typeof window.showToast === 'function') {
-        window.showToast('✅ Sesión iniciada exitosamente con Google', 'success');
-    }
-
-    if (typeof window.nextOnboardingStep === 'function') {
-        window.nextOnboardingStep(2);
-    } else {
-        const overlay = document.getElementById('onboarding-overlay');
-        if (overlay) overlay.style.display = 'none';
     }
 };
-
-document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('btn-google-login');
-    if (btn) {
-        btn.addEventListener('click', (e) => window.handleGoogleSignIn(e));
-    }
-});
