@@ -424,111 +424,141 @@
 </head>
 <body>
     <!-- ONBOARDING LUXURY JOURNEY (New 4-step) -->
-    <div id="onboarding-overlay" class="modal-overlay" style="display:none; justify-content:center; align-items:center; z-index:999999; position:fixed; inset:0; background:#FFFFFF;">
+    <div id="onboarding-overlay" class="modal-overlay" style="display:none; justify-content:center; align-items:center; z-index:999999; position:fixed; inset:0; background:rgba(240, 250, 245, 0.98); backdrop-filter:blur(16px);">
         <style>
             .onboarding-card {
-                max-width: 700px;
+                max-width: 650px;
                 width: 90%;
                 background: #FFFFFF;
                 border: 1px solid var(--border-gold);
-                padding: 40px;
-                border-radius: 16px;
-                box-shadow: 0 25px 60px rgba(0,0,0,0.1), 0 0 40px rgba(5, 150, 105,0.02);
+                padding: 35px 30px;
+                border-radius: 20px;
+                box-shadow: 0 20px 50px rgba(5, 150, 105, 0.12), 0 4px 20px rgba(0, 0, 0, 0.05);
                 text-align: center;
                 position: relative;
                 overflow: hidden;
+                color: var(--text-primary);
             }
             .onboarding-step {
                 display: none;
-                animation: fadeIn 0.6s ease;
+                animation: fadeIn 0.5s ease;
             }
             .onboarding-step.active {
                 display: block;
             }
             .onboarding-title {
-                font-family: 'Playfair Display', 'Cinzel', serif;
+                font-family: 'Outfit', sans-serif;
                 font-size: 2.2rem;
                 letter-spacing: 3px;
                 color: var(--accent-gold);
-                margin-bottom: 10px;
+                margin-bottom: 8px;
+                font-weight: 700;
             }
             .onboarding-subtitle {
                 font-family: 'Outfit', sans-serif;
-                font-size: 0.9rem;
+                font-size: 0.85rem;
                 letter-spacing: 1.5px;
                 color: var(--text-secondary);
                 text-transform: uppercase;
-                margin-bottom: 30px;
+                margin-bottom: 25px;
             }
             .onboarding-grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 20px;
-                margin-bottom: 30px;
+                gap: 16px;
+                margin-bottom: 25px;
             }
             .onboarding-option {
-                border: 1px solid rgba(0, 0, 0, 0.15);
+                border: 1px solid var(--border-color);
                 background: #FFFFFF;
-                padding: 20px;
-                border-radius: 8px;
+                padding: 18px;
+                border-radius: 12px;
                 cursor: pointer;
                 transition: all 0.3s ease;
                 text-align: left;
+                color: var(--text-primary);
             }
             .onboarding-option:hover {
                 border-color: var(--accent-gold);
-                background: rgba(5, 150, 105, 0.04);
+                background: rgba(5, 150, 105, 0.06);
                 transform: translateY(-2px);
             }
             .onboarding-option.selected {
                 border-color: var(--accent-gold);
-                background: rgba(5, 150, 105, 0.1);
-                box-shadow: 0 0 15px rgba(5, 150, 105, 0.2);
+                background: rgba(5, 150, 105, 0.12);
+                box-shadow: 0 0 15px rgba(5, 150, 105, 0.15);
             }
             .onboarding-dots {
                 display: flex;
                 justify-content: center;
                 gap: 8px;
-                margin-bottom: 30px;
+                margin-bottom: 25px;
             }
             .onboarding-dot {
                 width: 8px;
                 height: 8px;
                 border-radius: 50%;
-                background: rgba(5, 150, 105, 0.3);
+                background: rgba(5, 150, 105, 0.25);
                 transition: all 0.3s ease;
             }
             .onboarding-dot.active {
                 background: var(--accent-gold);
-                transform: scale(1.25);
+                transform: scale(1.3);
             }
             .google-btn {
-                background: white;
-                color: #444;
-                border: 1px solid #ccc;
-                padding: 10px 20px;
-                border-radius: 4px;
-                font-size: 1rem;
+                background: #FFFFFF;
+                color: #374151;
+                border: 1px solid #D1D5DB;
+                padding: 12px 20px;
+                border-radius: 10px;
+                font-size: 0.95rem;
+                font-weight: 600;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                gap: 10px;
+                gap: 12px;
                 width: 100%;
                 margin-bottom: 15px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+                transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            }
+            .google-btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                border-color: var(--accent-gold);
+                background: #F9FAFB;
+            }
+            .ob-input {
+                width: 100%;
+                padding: 12px 16px;
+                background: #FFFFFF;
+                border: 1px solid var(--border-gold);
+                border-radius: 10px;
+                color: var(--text-primary);
+                font-size: 0.95rem;
+                outline: none;
+                transition: border-color 0.2s;
+            }
+            .ob-input:focus {
+                border-color: var(--accent-gold);
+                box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+            }
+            .ob-input::placeholder {
+                color: var(--text-muted);
             }
             .interactive-svg-avatar {
-                width: 200px;
-                height: 300px;
-                margin: 0 auto 20px;
-                border: 1px dashed var(--border-gold);
+                width: 180px;
+                height: 260px;
+                margin: 0 auto 15px;
+                border: 1px dashed var(--accent-gold);
                 border-radius: 12px;
                 position: relative;
                 transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             }
             .interactive-svg-avatar:hover {
                 transform: translateY(-3px);
-                box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3), 0 0 15px rgba(99, 102, 241, 0.2);
+                box-shadow: 0 12px 25px rgba(5, 150, 105, 0.15);
             }
             .avatar-part {
                 transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -536,7 +566,7 @@
             .measurement-input {
                 width: 100%;
                 margin-top: 5px;
-                accent-color: var(--accent-gold);
+                accent-color: #F59E0B;
                 cursor: pointer;
             }
         </style>
@@ -546,18 +576,23 @@
             <div class="onboarding-step active" id="ostep-1">
                 <h2 class="onboarding-title">BIENVENIDO</h2>
                 <div class="onboarding-subtitle">Paso 1 de 4: Crea tu cuenta</div>
-                <div style="max-width: 400px; margin: 0 auto;">
+                <div style="max-width: 380px; margin: 0 auto;">
                     <button type="button" class="google-btn" id="btn-google-login" onclick="window.handleGoogleSignIn(event)">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20" height="20" alt="G">
+                        <svg width="20" height="20" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                        </svg>
                         Continuar con Google
                     </button>
-                    <div style="margin: 15px 0; color: #888;">o ingresa con tu correo</div>
-                    <form id="email-signin-form" onsubmit="event.preventDefault(); window.nextOnboardingStep(2);">
-                        <input type="email" placeholder="Correo Electrónico" class="gold-input" style="margin-bottom: 10px;" required>
-                        <input type="password" placeholder="Contraseña" class="gold-input" style="margin-bottom: 15px;" required>
+                    <div style="margin: 15px 0; color: #94A3B8; font-size: 0.85rem;">o ingresa con tu correo</div>
+                    <form id="email-signin-form" onsubmit="event.preventDefault(); window.handleEmailSignIn(event);">
+                        <input type="email" placeholder="Correo Electrónico" class="ob-input" style="margin-bottom: 12px;" required>
+                        <input type="password" placeholder="Contraseña" class="ob-input" style="margin-bottom: 18px;" required>
                         <button type="submit" class="gold-btn-large" style="width: 100%;">Ingresar</button>
                     </form>
-                    <button type="button" class="gold-btn-outline" style="width: 100%; margin-top: 10px; font-size: 0.85rem; padding: 10px;" onclick="window.completeOnboarding()">
+                    <button type="button" class="gold-btn-outline" style="width: 100%; margin-top: 12px; font-size: 0.85rem; padding: 10px;" onclick="window.completeOnboarding()">
                         <span>Explorar App como Invitado</span>
                     </button>
                 </div>
@@ -589,12 +624,12 @@
                 <div class="onboarding-title">TU PERFIL</div>
                 <div class="onboarding-subtitle">Paso 3 de 4: Contexto Diario</div>
                 <div style="text-align: left; max-width: 400px; margin: 0 auto 30px;">
-                    <label style="display:block; margin-bottom: 8px; color: var(--accent-gold);">Nombre o Apodo:</label>
-                    <input type="text" id="ob-profile-name" class="gold-input" placeholder="Ej. Alex" style="margin-bottom: 20px;" required oninput="window.checkStep3()">
+                    <label style="display:block; margin-bottom: 8px; color: var(--accent-gold); font-weight:600;">Nombre o Apodo:</label>
+                    <input type="text" id="ob-profile-name" class="ob-input" placeholder="Ej. Alex" style="margin-bottom: 20px;" required oninput="window.checkStep3()">
                     
-                    <label style="display:block; margin-bottom: 8px; color: var(--accent-gold);">Ciudad Principal (Clima):</label>
-                    <input type="text" id="ob-profile-city" class="gold-input" placeholder="Ej. Bogotá" style="margin-bottom: 10px;" required oninput="window.checkStep3()">
-                    <button class="gold-btn-outline" style="width: 100%; font-size: 0.8rem; padding: 8px;" onclick="window.detectLocationOB()">📍 Detectar mi ubicación</button>
+                    <label style="display:block; margin-bottom: 8px; color: var(--accent-gold); font-weight:600;">Ciudad Principal (Clima):</label>
+                    <input type="text" id="ob-profile-city" class="ob-input" placeholder="Ej. Bogotá" style="margin-bottom: 12px;" required oninput="window.checkStep3()">
+                    <button class="gold-btn-outline" style="width: 100%; font-size: 0.8rem; padding: 10px;" onclick="window.detectLocationOB()">📍 Detectar mi ubicación</button>
                 </div>
                 <button class="gold-btn" onclick="window.nextOnboardingStep(4)" id="btn-onboarding-next-3" disabled>Siguiente</button>
             </div>
@@ -809,13 +844,57 @@
 
             <!-- TABS -->
             
-            <!-- SECTION 1: CLIMA -->
+            <!-- SECTION 1: CLIMA (HOME) -->
             <section id="clima" class="tab-content active">
-                <div class="section-header">
-                    <h2 class="editorial-title">Clima & Silhouette</h2>
-                    <p class="section-desc">Estilo inteligente adaptado a la temperatura exterior, proyectado sobre tu avatar de DressYourself.</p>
+                <!-- HERO ASESORA DE IMAGEN PERSONAL & RECOMENDACIÓN INMEDIATA -->
+                <div class="stylist-hero-card glass-card" id="stylist-hero-card" style="margin-bottom: 20px; padding: 20px 22px; border-radius: 18px; border: 1px solid var(--border-gold); background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,253,244,0.95) 100%); box-shadow: 0 10px 30px rgba(5,150,105,0.08); position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: -40px; right: -40px; width: 140px; height: 140px; background: radial-gradient(circle, rgba(5,150,105,0.15) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+                    
+                    <div style="display: flex; gap: 16px; align-items: center; position: relative; z-index: 2;">
+                        <div class="stylist-avatar-wrap" style="position: relative; flex-shrink: 0;">
+                            <img src="static/images/stylist_avatar.png" 
+                                 onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'45\' fill=\'%23059669\'/><text x=\'50\' y=\'62\' font-size=\'40\' text-anchor=\'middle\' fill=\'white\' font-family=\'sans-serif\'>👗</text></svg>'" 
+                                 alt="Asesora de Imagen" 
+                                 style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2.5px solid var(--accent-gold); box-shadow: 0 4px 15px rgba(5,150,105,0.25);">
+                            <div style="position: absolute; bottom: 2px; right: 2px; width: 13px; height: 13px; background: #10b981; border: 2px solid #fff; border-radius: 50%;" title="Asesora en línea"></div>
+                        </div>
+                        
+                        <div style="flex-grow: 1; text-align: left;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
+                                <span style="font-size: 0.72rem; font-weight: 700; color: var(--accent-gold); letter-spacing: 1.5px; text-transform: uppercase; font-family: 'Outfit', sans-serif;">✨ Tu Asesora de Moda</span>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <span id="hero-streak-pill" style="font-size: 0.75rem; background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(245,158,11,0.15)); color: #d97706; padding: 3px 9px; border-radius: 12px; font-weight: 700; border: 1px solid rgba(245,158,11,0.3);">🔥 1 Día de Racha</span>
+                                    <span id="hero-weather-pill" style="font-size: 0.75rem; background: rgba(5,150,105,0.1); color: var(--accent-gold); padding: 3px 9px; border-radius: 12px; font-weight: 600;">☀️ Clima Óptimo</span>
+                                </div>
+                            </div>
+                            <h2 id="stylist-greeting-title" style="margin: 0 0 4px 0; font-family: 'Outfit', sans-serif; font-size: 1.35rem; color: var(--text-primary); font-weight: 700; letter-spacing: 0.5px;">¡Hola! ¿Cómo estás?</h2>
+                            <p id="stylist-greeting-msg" style="margin: 0; font-size: 0.88rem; color: var(--text-secondary); line-height: 1.4;">Aquí tienes tu recomendación de prendas lista para que luzcas increíble el día de hoy:</p>
+                        </div>
+                    </div>
+
+                    <!-- Occasion Filter Chips -->
+                    <div style="display: flex; gap: 6px; margin-top: 14px; overflow-x: auto; padding-bottom: 2px;">
+                        <button class="occasion-chip active" data-occ="all" onclick="window.filterOccasion('all')" style="border: 1px solid var(--accent-gold); background: var(--accent-gold); color: #fff; border-radius: 20px; font-size: 0.75rem; padding: 5px 12px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s;">🌟 Todo el día</button>
+                        <button class="occasion-chip" data-occ="formal" onclick="window.filterOccasion('formal')" style="border: 1px solid var(--border-gold); background: rgba(255,255,255,0.85); color: var(--text-primary); border-radius: 20px; font-size: 0.75rem; padding: 5px 12px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s;">💼 Oficina</button>
+                        <button class="occasion-chip" data-occ="casual" onclick="window.filterOccasion('casual')" style="border: 1px solid var(--border-gold); background: rgba(255,255,255,0.85); color: var(--text-primary); border-radius: 20px; font-size: 0.75rem; padding: 5px 12px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s;">☕ Casual</button>
+                        <button class="occasion-chip" data-occ="noche" onclick="window.filterOccasion('noche')" style="border: 1px solid var(--border-gold); background: rgba(255,255,255,0.85); color: var(--text-primary); border-radius: 20px; font-size: 0.75rem; padding: 5px 12px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s;">🌙 Noche</button>
+                        <button class="occasion-chip" data-occ="relax" onclick="window.filterOccasion('relax')" style="border: 1px solid var(--border-gold); background: rgba(255,255,255,0.85); color: var(--text-primary); border-radius: 20px; font-size: 0.75rem; padding: 5px 12px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s;">🏃 Relax</button>
+                    </div>
+                    
+                    <!-- 1-Tap Action Row -->
+                    <div style="display: flex; gap: 8px; margin-top: 12px; border-top: 1px solid rgba(5,150,105,0.12); padding-top: 12px; flex-wrap: wrap;">
+                        <button id="btn-wear-today-ootd" onclick="window.registerOOTDToday()" class="gold-btn" style="flex: 1; min-width: 160px; font-size: 0.82rem; padding: 10px 14px; display: flex; align-items: center; justify-content: center; gap: 6px; background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #fff; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(5,150,105,0.3); transition: all 0.2s ease;">
+                            <span>✨ ¡Me pondré este Outfit hoy!</span>
+                        </button>
+                        <button id="btn-reroll-daily-outfit" onclick="window.recalibrateDailyOutfit()" class="gold-btn-outline" style="font-size: 0.82rem; padding: 10px 12px; display: flex; align-items: center; gap: 4px; border: 1px solid var(--border-gold); background: rgba(255,255,255,0.85); border-radius: 10px; color: var(--accent-gold); font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+                            <span>🔄 Otra</span>
+                        </button>
+                        <button id="btn-share-ootd" onclick="window.openShareOOTDModal()" class="gold-btn-outline" style="font-size: 0.82rem; padding: 10px 12px; display: flex; align-items: center; gap: 4px; border: 1px solid var(--border-gold); background: rgba(255,255,255,0.85); border-radius: 10px; color: var(--accent-gold); font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+                            <span>📸 Compartir</span>
+                        </button>
+                    </div>
                 </div>
-                
+
                 <div class="weather-widget glass-card">
                     <div class="weather-info">
                         <div style="display: flex; align-items: center; gap: 8px;">
@@ -1058,7 +1137,7 @@
                 <div class="scanner-container glass-card">
                     <div class="scanner-upload-box" id="scanner-drop-zone" style="position: relative; cursor: pointer;">
                         <!-- Native overlay input to guarantee Android WebView file chooser touch triggers -->
-                        <input type="file" id="scanner-file-input" accept="image/*" capture="environment" multiple style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10;">
+                        <input type="file" id="scanner-file-input" multiple accept="image/*" capture="environment" multiple style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10;">
                         
                         <div class="upload-placeholder" id="upload-placeholder" style="pointer-events: none;">
                             <svg viewBox="0 0 24 24" class="upload-icon"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" fill="currentColor"/></svg>
@@ -1170,6 +1249,24 @@
                 <div class="section-header">
                     <h2 class="editorial-title">Boutique Curada</h2>
                     <p class="section-desc">Explora colecciones exclusivas. Agrégalas al probador o realiza una orden directamente.</p>
+                </div>
+
+                
+                <!-- Store & Brand Filters -->
+                <div class="brand-filter-chips" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 18px; scrollbar-width: none;">
+                    <button class="brand-filter-btn active" data-brand="all" style="white-space: nowrap; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border-gold); background: var(--bg-card); color: var(--text-primary); cursor: pointer; font-size: 0.78rem;">🌟 Todas</button>
+                    <button class="brand-filter-btn" data-brand="Zara" style="white-space: nowrap; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border-gold); background: var(--bg-card); color: var(--text-primary); cursor: pointer; font-size: 0.78rem;">Zara</button>
+                    <button class="brand-filter-btn" data-brand="H&M" style="white-space: nowrap; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border-gold); background: var(--bg-card); color: var(--text-primary); cursor: pointer; font-size: 0.78rem;">H&M</button>
+                    <button class="brand-filter-btn" data-brand="Mango" style="white-space: nowrap; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border-gold); background: var(--bg-card); color: var(--text-primary); cursor: pointer; font-size: 0.78rem;">Mango</button>
+                    <button class="brand-filter-btn" data-brand="Arturo Calle" style="white-space: nowrap; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border-gold); background: var(--bg-card); color: var(--text-primary); cursor: pointer; font-size: 0.78rem;">🇨🇴 Arturo Calle</button>
+                    <button class="brand-filter-btn" data-brand="GEF" style="white-space: nowrap; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border-gold); background: var(--bg-card); color: var(--text-primary); cursor: pointer; font-size: 0.78rem;">🇨🇴 GEF</button>
+                    <button class="brand-filter-btn" data-brand="Koaj" style="white-space: nowrap; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border-gold); background: var(--bg-card); color: var(--text-primary); cursor: pointer; font-size: 0.78rem;">🇨🇴 Koaj</button>
+                    <button class="brand-filter-btn" data-brand="Matelsa" style="white-space: nowrap; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border-gold); background: var(--bg-card); color: var(--text-primary); cursor: pointer; font-size: 0.78rem;">🇨🇴 Matelsa</button>
+                    <button class="brand-filter-btn" data-brand="Punto Blanco" style="white-space: nowrap; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border-gold); background: var(--bg-card); color: var(--text-primary); cursor: pointer; font-size: 0.78rem;">🇨🇴 Punto Blanco</button>
+                    <button class="brand-filter-btn" data-brand="Studio F" style="white-space: nowrap; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border-gold); background: var(--bg-card); color: var(--text-primary); cursor: pointer; font-size: 0.78rem;">🇨🇴 Studio F</button>
+                    <button class="brand-filter-btn" data-brand="Bosi" style="white-space: nowrap; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border-gold); background: var(--bg-card); color: var(--text-primary); cursor: pointer; font-size: 0.78rem;">🇨🇴 Bosi</button>
+                    <button class="brand-filter-btn" data-brand="Tennis" style="white-space: nowrap; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border-gold); background: var(--bg-card); color: var(--text-primary); cursor: pointer; font-size: 0.78rem;">🇨🇴 Tennis</button>
+                    <button class="brand-filter-btn" data-brand="Decathlon" style="white-space: nowrap; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border-gold); background: var(--bg-card); color: var(--text-primary); cursor: pointer; font-size: 0.78rem;">Decathlon</button>
                 </div>
 
                 <div class="boutique-grid" id="boutique-grid">
@@ -1605,7 +1702,25 @@
                     <!-- Account & General Settings -->
                     <div style="display: flex; flex-direction: column; gap: 20px;">
                         
-                        <!-- Account management -->
+                        
+                        <!-- Android System Notifications & GPS Card -->
+                        <div class="glass-card" style="padding: 24px; border-radius: 12px; margin-top: 15px; border: 1px solid var(--accent-gold);">
+                            <h4 class="gold-text" style="font-family: var(--font-editorial); margin-top: 0; margin-bottom: 12px; font-size: 1.15rem;">🔔 Barra de Notificaciones Android & GPS</h4>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px;">Recibe sugerencias diarias de estilo en la barra superior de tu dispositivo Android basadas en el clima en tiempo real.</p>
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                <button type="button" class="gold-btn" onclick="window.testAndroidNotification()" style="font-size: 0.82rem; padding: 10px 14px; width: 100%; text-align: center;">
+                                    🔔 Probar Notificación en Barra de Android
+                                </button>
+                                <button type="button" class="gold-btn-outline" onclick="window.triggerDailyTipNotification()" style="font-size: 0.82rem; padding: 9px 14px; width: 100%; text-align: center;">
+                                    🌤️ Enviar Alerta Diaria de Look & Clima
+                                </button>
+                                <button type="button" class="gold-btn-outline" onclick="window.detectLocationDirect()" style="font-size: 0.82rem; padding: 9px 14px; width: 100%; text-align: center;">
+                                    📍 Auto-detectar Ubicación GPS
+                                </button>
+                            </div>
+                        </div>
+
+<!-- Account management -->
                         <div class="glass-card" style="padding: 24px; border-radius: 12px;">
                             <h4 class="gold-text" style="font-family: var(--font-editorial); margin-top: 0; margin-bottom: 15px; font-size: 1.15rem;">👤 Administrar Cuenta</h4>
                             <form id="settings-account-form" onsubmit="window.handleSettingsAccountSubmit(event)" style="display: flex; flex-direction: column; gap: 12px;">
@@ -1669,6 +1784,17 @@
                                     <option value="9">Ibagué</option>
                                 </select>
                             </div>
+                        </div>
+
+                        <!-- Legal & Privacy -->
+                        <div class="glass-card" style="padding: 24px; border-radius: 12px; border: 1px solid rgba(5, 150, 105, 0.15);">
+                            <h4 class="gold-text" style="font-family: var(--font-editorial); margin-top: 0; margin-bottom: 10px; font-size: 1.15rem;">📜 Legal y Privacidad</h4>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 15px;">
+                                Consulta nuestros términos de uso y política de privacidad requeridos para el programa de pruebas de Google Play.
+                            </p>
+                            <a href="privacy.html" target="_blank" class="gold-btn-outline" style="text-decoration: none; display: inline-flex; justify-content: center; align-items: center; width: 100%; padding: 10px; font-size: 0.8rem;">
+                                <span>🔒 Ver Política de Privacidad</span>
+                            </a>
                         </div>
 
                     </div>
@@ -2163,52 +2289,71 @@
         </div>
     </div>
 
+    <!-- MODAL: SOCIAL OOTD STORY EXPORTER -->
+    <div id="modal-share-ootd" class="modal-overlay" style="display: none; align-items: center; justify-content: center; z-index: 10000; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);">
+        <div class="glass-card" style="max-width: 420px; width: 92%; padding: 24px; border-radius: 20px; border: 1px solid var(--border-gold); background: #171717; text-align: center; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="margin: 0; font-family: 'Outfit', sans-serif; color: var(--accent-gold); font-size: 1.15rem;">✨ Tarjeta OOTD Story (9:16)</h3>
+                <button onclick="window.closeShareOOTDModal()" style="background: transparent; border: none; color: var(--text-muted); font-size: 1.3rem; cursor: pointer;">✕</button>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 14px;">Comparte tu outfit del día en tus historias de Instagram o estado de WhatsApp.</p>
+            
+            <div style="background: #0d0d0d; border-radius: 14px; padding: 8px; border: 1px solid rgba(212,175,55,0.2); display: flex; justify-content: center;">
+                <canvas id="canvas-share-ootd" width="360" height="640" style="max-width: 100%; height: auto; border-radius: 10px; box-shadow: 0 8px 25px rgba(0,0,0,0.6);"></canvas>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 16px;">
+                <button onclick="window.downloadOOTDCard()" class="gold-btn" style="flex: 1; padding: 10px; font-size: 0.85rem; font-weight: 600; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <span>📥 Guardar Foto</span>
+                </button>
+                <button onclick="window.shareOOTDNative()" class="gold-btn-outline" style="flex: 1; padding: 10px; font-size: 0.85rem; font-weight: 600; border-radius: 10px; border: 1px solid var(--border-gold); color: var(--accent-gold);">
+                    <span>📲 Compartir</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: SMART BOUTIQUE TRY-ON -->
+    <div id="modal-boutique-tryon" class="modal-overlay" style="display: none; align-items: center; justify-content: center; z-index: 10000; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);">
+        <div class="glass-card" style="max-width: 480px; width: 92%; padding: 24px; border-radius: 20px; border: 1px solid var(--border-gold); background: #171717; text-align: center; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="text-align: left;">
+                    <span style="font-size: 0.7rem; font-weight: 700; color: var(--accent-gold); letter-spacing: 1.5px; text-transform: uppercase;">✨ SMART MATCHING PROBADOR</span>
+                    <h3 id="boutique-tryon-title" style="margin: 2px 0 0 0; font-family: 'Outfit', sans-serif; color: var(--text-primary); font-size: 1.2rem;">¿Cómo combina con tu armario?</h3>
+                </div>
+                <button onclick="window.closeBoutiqueTryOnModal()" style="background: transparent; border: none; color: var(--text-muted); font-size: 1.3rem; cursor: pointer;">✕</button>
+            </div>
+            
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 16px; text-align: left;">Proyección visual instantánea de esta prenda de tienda junto a piezas compatibles que ya posees:</p>
+
+            <!-- Score Banner -->
+            <div id="boutique-match-score-banner" style="background: linear-gradient(135deg, rgba(5,150,105,0.15), rgba(16,185,129,0.15)); border: 1px solid rgba(16,185,129,0.3); border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="text-align: left;">
+                    <strong style="color: #10b981; font-size: 1.1rem;" id="boutique-match-pct">✨ 94% Compatibilidad</strong>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);" id="boutique-match-desc">Alta armonía de color, estilo y ocasión</div>
+                </div>
+                <span style="font-size: 1.8rem;">🎯</span>
+            </div>
+
+            <!-- Visual Trio Comparison -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px;" id="boutique-trio-container">
+                <!-- Filled dynamically by JS -->
+            </div>
+
+            <!-- Actions -->
+            <div style="display: flex; gap: 10px; margin-top: 14px;">
+                <button onclick="window.sendBoutiqueTrioToProbador()" class="gold-btn" style="flex: 1; padding: 11px; font-size: 0.85rem; font-weight: 600; border-radius: 10px;">
+                    <span>🪄 Abrir en Probador</span>
+                </button>
+                <button onclick="window.quickBuyBoutiqueItem()" class="gold-btn-outline" style="flex: 1; padding: 11px; font-size: 0.85rem; font-weight: 600; border-radius: 10px; border: 1px solid var(--border-gold); color: var(--accent-gold);">
+                    <span>🛍️ Adquirir Prenda</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Script File -->
     <script src="static/js/app.js"></script>
-
-    <!-- DressYourself v2.2 Fixed Compatibility Shim Layer -->
-    <div id="dy-compat-shim-layer" style="display:none;" aria-hidden="true">
-        <input type="text" id="chat-input" placeholder="Escribe a ISA...">
-        <div id="chat-history"></div>
-        <img id="isa-portrait" src="static/proposals/Propuestas de Asistente Personal/Propuesta (Animada )/Propuesta Animada.png" alt="ISA">
-        <div id="isa-speech"></div>
-        <select id="isa-look">
-            <option value="base">Animada Base</option>
-            <option value="castano_corto">Castaño Corto</option>
-            <option value="castano_medio">Castaño Medio</option>
-            <option value="castano_gafas">Castaño Gafas</option>
-            <option value="rojo_corto">Rojo Corto</option>
-            <option value="rojo_largo">Rojo Largo</option>
-            <option value="cw">CW</option>
-        </select>
-        <select id="personality">
-            <option value="classy">Classy</option>
-            <option value="diva">Diva</option>
-            <option value="sarcastic">Sarcástica</option>
-            <option value="nervous">Nerviosa</option>
-        </select>
-        <button id="btn-mode-libre"></button>
-        <button id="btn-mode-rpg"></button>
-        <div id="fitting-canvas-board"></div>
-        <div id="canvas-empty-hint"></div>
-        <select id="fitting-occasion"><option value="Casual">Casual</option></select>
-        <select id="fitting-tone"><option value="classy">Classy</option></select>
-        <select id="fitting-emotion"><option value="relaxed">Relaxed</option></select>
-        <div id="slot-outerwear"></div>
-        <div id="slot-accessory"></div>
-        <input type="text" id="onboarding-user-name">
-        <input type="text" id="ostep-brand">
-        <input type="text" id="ostep-color">
-        <input type="text" id="ostep-style">
-        <select id="settings-color-season"><option value="otoño">Otoño Calido</option></select>
-        <div id="rpg-options-container"></div>
-        <div id="rpg-progress-bar"></div>
-        <div id="rpg-progress-tracker"></div>
-        <div id="rpg-step-indicator"></div>
-        <div id="scan-badge-0"></div>
-        <div id="scan-thumb-0"></div>
-        <div id="tab-transition-overlay"></div>
-    </div>
 </body>
 </html>
 
